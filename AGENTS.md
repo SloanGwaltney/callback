@@ -21,6 +21,9 @@ Each entry links to the ADR that chose it.
   bindings. No TanStack Query. For shared state, use Context or a hand-written store first, then
   Zustand only if justified.
   ([docs/adr/0012-wrap-backend-calls-in-custom-react-hooks.md](docs/adr/0012-wrap-backend-calls-in-custom-react-hooks.md))
+- **Drag and drop:** `@dnd-kit/core` and `@dnd-kit/sortable` for moving and reordering board
+  cards, with keyboard support.
+  ([docs/adr/0013-use-dnd-kit-for-moving-and-reordering-board-cards.md](docs/adr/0013-use-dnd-kit-for-moving-and-reordering-board-cards.md))
 - **Styling:** CSS Modules, one `*.module.css` per component, using CSS variables from a global
   tokens file. No Tailwind or shadcn/ui. Write our own components, using native HTML elements
   like `<dialog>` for accessible behavior.
