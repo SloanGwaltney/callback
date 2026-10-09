@@ -31,6 +31,13 @@ Feature: Job cards
       When I add a job with company "Acme" and role "Software Engineer" to the "Applied" column
       Then a card for "Software Engineer" at "Acme" appears in the "Applied" column
 
+    @status:not-implemented @id:add-job-not-closed
+    Scenario: A job can't be added straight to Closed
+      Given I open the job search board
+      When I try to add a job with company "Acme" and role "Software Engineer" to the "Closed" column
+      Then the job is not added
+      And I am told to add the job to another column and move it to Closed
+
     @status:not-implemented @id:add-job-missing-required
     Scenario Outline: A job can't be saved without a company or a role
       Given I open the job search board

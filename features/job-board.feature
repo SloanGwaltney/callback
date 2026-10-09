@@ -83,6 +83,20 @@ Feature: Job search board
         | Offer        |
         | Closed       |
 
+    @status:not-implemented @id:reorder-saved-keeps-date
+    Scenario: Reordering a card within Saved keeps its date applied
+      Given the "Saved" column holds the jobs at "Globex" and "Acme" in that order
+      And the job at "Acme" has a date applied of 2026-10-01
+      When I move the "Acme" card above the "Globex" card
+      Then the job's date applied is still 2026-10-01
+
+    @status:not-implemented @id:reorder-applied-no-date
+    Scenario: Reordering a card within Applied doesn't fill in a date applied
+      Given the "Applied" column holds the jobs at "Globex" and "Acme" in that order
+      And the job at "Acme" has no date applied
+      When I move the "Acme" card above the "Globex" card
+      Then the job has no date applied
+
   Rule: Closing a job records why it was closed
 
     @status:not-implemented @id:close-asks-reason
@@ -109,6 +123,14 @@ Feature: Job search board
       Then the card appears in the "Closed" column
       And the card shows the closing reason "Company went through layoffs"
 
+    @status:not-implemented @id:close-other-needs-text
+    Scenario: Closing with Other needs a written reason
+      Given I have a job for "Software Engineer" at "Acme" in "Interviewing"
+      When I move the card to "Closed"
+      And I choose the closing reason "Other" without writing a reason
+      Then the card stays in the "Interviewing" column
+      And I am told to write why the job was closed
+
     @status:not-implemented @id:close-cancel
     Scenario: Cancelling the closing reason leaves the card where it was
       Given I have a job for "Software Engineer" at "Acme" in "Interviewing"
@@ -128,6 +150,13 @@ Feature: Job search board
       When I move the card to "Interviewing"
       Then the card appears in the "Interviewing" column
       And the job has no closing reason
+
+    @status:not-implemented @id:reorder-closed-keeps-reason
+    Scenario: Reordering a card within Closed keeps its closing reason
+      Given the "Closed" column holds the jobs at "Globex" and "Acme" in that order
+      And the job at "Acme" has the closing reason "Rejected"
+      When I move the "Acme" card above the "Globex" card
+      Then the card shows the closing reason "Rejected"
 
   Rule: Cards can be ordered within a column
 

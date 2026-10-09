@@ -9,9 +9,29 @@ import (
 )
 
 type Querier interface {
-	// Every job, grouped by status and in board order within each status.
+	CreateDocument(ctx context.Context, arg CreateDocumentParams) (Document, error)
+	CreateJob(ctx context.Context, arg CreateJobParams) (int64, error)
+	DeleteDocument(ctx context.Context, id int64) error
+	// Deletes the job and, through ON DELETE CASCADE, its document rows. The document files are the
+	// caller's to delete.
+	DeleteJob(ctx context.Context, id int64) error
+	GetDocument(ctx context.Context, id int64) (Document, error)
+	GetJob(ctx context.Context, id int64) (Job, error)
+	// A job's documents in the order they were attached.
+	ListDocumentsForJob(ctx context.Context, jobID int64) ([]Document, error)
+	// The jobs in one status column, top to bottom.
+	ListJobIDsInStatus(ctx context.Context, status string) ([]int64, error)
+	// Every job with how many documents it has, grouped by status and in board order within each
+	// status.
 	// @then [features/job-board.feature] the "Saved" column shows "Initech", "Acme", and "Globex" in that order
-	ListJobs(ctx context.Context) ([]Job, error)
+	ListJobs(ctx context.Context) ([]ListJobsRow, error)
+	SetClosingReason(ctx context.Context, arg SetClosingReasonParams) error
+	SetDocumentKind(ctx context.Context, arg SetDocumentKindParams) error
+	SetJobPosition(ctx context.Context, arg SetJobPositionParams) error
+	UpdateJobDetails(ctx context.Context, arg UpdateJobDetailsParams) error
+	// Moves a job to a status and position, with the date applied and closing reason that go with it.
+	// Status and closing reason change together so the schema's checks hold after the statement.
+	UpdateJobPlacement(ctx context.Context, arg UpdateJobPlacementParams) error
 }
 
 var _ Querier = (*Queries)(nil)

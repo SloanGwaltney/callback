@@ -7,24 +7,152 @@ package store
 
 import (
 	"context"
+	"database/sql"
 )
 
-const listJobs = `-- name: ListJobs :many
+const createJob = `-- name: CreateJob :one
+INSERT INTO jobs (company, role, description, link, salary, location, notes, status, position, date_applied)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+RETURNING id
+`
+
+type CreateJobParams struct {
+	Company     string
+	Role        string
+	Description string
+	Link        string
+	Salary      string
+	Location    string
+	Notes       string
+	Status      string
+	Position    int64
+	DateApplied sql.NullString
+}
+
+func (q *Queries) CreateJob(ctx context.Context, arg CreateJobParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, createJob,
+		arg.Company,
+		arg.Role,
+		arg.Description,
+		arg.Link,
+		arg.Salary,
+		arg.Location,
+		arg.Notes,
+		arg.Status,
+		arg.Position,
+		arg.DateApplied,
+	)
+	var id int64
+	err := row.Scan(&id)
+	return id, err
+}
+
+const deleteJob = `-- name: DeleteJob :exec
+DELETE FROM jobs
+WHERE id = ?
+`
+
+// Deletes the job and, through ON DELETE CASCADE, its document rows. The document files are the
+// caller's to delete.
+func (q *Queries) DeleteJob(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteJob, id)
+	return err
+}
+
+const getJob = `-- name: GetJob :one
 SELECT id, company, role, description, link, salary, location, notes, status, position, date_applied, closing_reason, closing_reason_other FROM jobs
+WHERE id = ?
+`
+
+func (q *Queries) GetJob(ctx context.Context, id int64) (Job, error) {
+	row := q.db.QueryRowContext(ctx, getJob, id)
+	var i Job
+	err := row.Scan(
+		&i.ID,
+		&i.Company,
+		&i.Role,
+		&i.Description,
+		&i.Link,
+		&i.Salary,
+		&i.Location,
+		&i.Notes,
+		&i.Status,
+		&i.Position,
+		&i.DateApplied,
+		&i.ClosingReason,
+		&i.ClosingReasonOther,
+	)
+	return i, err
+}
+
+const listJobIDsInStatus = `-- name: ListJobIDsInStatus :many
+SELECT id FROM jobs
+WHERE status = ?
+ORDER BY position
+`
+
+// The jobs in one status column, top to bottom.
+func (q *Queries) ListJobIDsInStatus(ctx context.Context, status string) ([]int64, error) {
+	rows, err := q.db.QueryContext(ctx, listJobIDsInStatus, status)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listJobs = `-- name: ListJobs :many
+SELECT
+    jobs.id, jobs.company, jobs.role, jobs.description, jobs.link, jobs.salary, jobs.location, jobs.notes, jobs.status, jobs.position, jobs.date_applied, jobs.closing_reason, jobs.closing_reason_other,
+    -- @then [features/job-documents.feature] the card shows that it has 2 documents
+    (SELECT COUNT(*) FROM documents WHERE documents.job_id = jobs.id) AS document_count
+FROM jobs
 ORDER BY status, position
 `
 
-// Every job, grouped by status and in board order within each status.
+type ListJobsRow struct {
+	ID                 int64
+	Company            string
+	Role               string
+	Description        string
+	Link               string
+	Salary             string
+	Location           string
+	Notes              string
+	Status             string
+	Position           int64
+	DateApplied        sql.NullString
+	ClosingReason      sql.NullString
+	ClosingReasonOther sql.NullString
+	DocumentCount      int64
+}
+
+// Every job with how many documents it has, grouped by status and in board order within each
+// status.
 // @then [features/job-board.feature] the "Saved" column shows "Initech", "Acme", and "Globex" in that order
-func (q *Queries) ListJobs(ctx context.Context) ([]Job, error) {
+func (q *Queries) ListJobs(ctx context.Context) ([]ListJobsRow, error) {
 	rows, err := q.db.QueryContext(ctx, listJobs)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Job
+	var items []ListJobsRow
 	for rows.Next() {
-		var i Job
+		var i ListJobsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Company,
@@ -39,6 +167,7 @@ func (q *Queries) ListJobs(ctx context.Context) ([]Job, error) {
 			&i.DateApplied,
 			&i.ClosingReason,
 			&i.ClosingReasonOther,
+			&i.DocumentCount,
 		); err != nil {
 			return nil, err
 		}
@@ -51,4 +180,99 @@ func (q *Queries) ListJobs(ctx context.Context) ([]Job, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const setClosingReason = `-- name: SetClosingReason :exec
+UPDATE jobs
+SET closing_reason = ?, closing_reason_other = ?
+WHERE id = ?
+`
+
+type SetClosingReasonParams struct {
+	ClosingReason      sql.NullString
+	ClosingReasonOther sql.NullString
+	ID                 int64
+}
+
+func (q *Queries) SetClosingReason(ctx context.Context, arg SetClosingReasonParams) error {
+	_, err := q.db.ExecContext(ctx, setClosingReason, arg.ClosingReason, arg.ClosingReasonOther, arg.ID)
+	return err
+}
+
+const setJobPosition = `-- name: SetJobPosition :exec
+UPDATE jobs
+SET position = ?
+WHERE id = ?
+`
+
+type SetJobPositionParams struct {
+	Position int64
+	ID       int64
+}
+
+func (q *Queries) SetJobPosition(ctx context.Context, arg SetJobPositionParams) error {
+	_, err := q.db.ExecContext(ctx, setJobPosition, arg.Position, arg.ID)
+	return err
+}
+
+const updateJobDetails = `-- name: UpdateJobDetails :exec
+UPDATE jobs
+SET company = ?, role = ?, description = ?, link = ?, salary = ?, location = ?, notes = ?, date_applied = ?
+WHERE id = ?
+`
+
+type UpdateJobDetailsParams struct {
+	Company     string
+	Role        string
+	Description string
+	Link        string
+	Salary      string
+	Location    string
+	Notes       string
+	DateApplied sql.NullString
+	ID          int64
+}
+
+func (q *Queries) UpdateJobDetails(ctx context.Context, arg UpdateJobDetailsParams) error {
+	_, err := q.db.ExecContext(ctx, updateJobDetails,
+		arg.Company,
+		arg.Role,
+		arg.Description,
+		arg.Link,
+		arg.Salary,
+		arg.Location,
+		arg.Notes,
+		arg.DateApplied,
+		arg.ID,
+	)
+	return err
+}
+
+const updateJobPlacement = `-- name: UpdateJobPlacement :exec
+UPDATE jobs
+SET status = ?, position = ?, date_applied = ?, closing_reason = ?, closing_reason_other = ?
+WHERE id = ?
+`
+
+type UpdateJobPlacementParams struct {
+	Status             string
+	Position           int64
+	DateApplied        sql.NullString
+	ClosingReason      sql.NullString
+	ClosingReasonOther sql.NullString
+	ID                 int64
+}
+
+// Moves a job to a status and position, with the date applied and closing reason that go with it.
+// Status and closing reason change together so the schema's checks hold after the statement.
+func (q *Queries) UpdateJobPlacement(ctx context.Context, arg UpdateJobPlacementParams) error {
+	_, err := q.db.ExecContext(ctx, updateJobPlacement,
+		arg.Status,
+		arg.Position,
+		arg.DateApplied,
+		arg.ClosingReason,
+		arg.ClosingReasonOther,
+		arg.ID,
+	)
+	return err
 }

@@ -56,6 +56,12 @@ Feature: Job documents
         | resume.rtf      |
         | resume.odt      |
 
+    @status:not-implemented @id:file-type-any-case
+    Scenario: A document's type is recognized whatever the letter case of its extension
+      Given I have a job for "Software Engineer" at "Acme"
+      When I attach the file "RESUME.PDF" as other
+      Then the job lists "RESUME.PDF" as other
+
     @status:not-implemented @id:disallowed-file-types
     Scenario Outline: Other file types can't be attached
       Given I have a job for "Software Engineer" at "Acme"

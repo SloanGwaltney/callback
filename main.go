@@ -5,10 +5,14 @@ import (
 	"embed"
 	"fmt"
 	"os"
+	"time"
 
 	"callback/internal/appdata"
 	"callback/internal/db"
 	"callback/internal/db/migrations"
+	"callback/internal/desktop"
+	"callback/internal/docfiles"
+	"callback/internal/jobs"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -30,7 +34,7 @@ func main() {
 	defer conn.Close()
 
 	// Create an instance of the app structure
-	app := NewApp(conn)
+	app := NewApp(jobs.New(db.NewStore(conn), docfiles.New(dataDir), desktop.Opener{}, time.Now))
 
 	// Create application with options
 	err = wails.Run(&options.App{
