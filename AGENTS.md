@@ -37,6 +37,13 @@ Each entry links to the ADR that chose it.
   for now.
   ([docs/adr/0010-require-unit-tests-and-test-storage-against-real-sqlite.md](docs/adr/0010-require-unit-tests-and-test-storage-against-real-sqlite.md))
 
+## Code conventions
+
+One line each. Each entry links to the ADR that set it.
+
+- **Business rules:** in service packages under `internal/`, over a `store.Querier` + `InTx` interface; `app.go` bindings only call services ([docs/adr/0016-put-business-rules-in-services-over-a-transactional-store-interface.md](docs/adr/0016-put-business-rules-in-services-over-a-transactional-store-interface.md))
+- **Opening files and links:** only through the hand-written opener in `internal/desktop`, never Wails' `BrowserOpenURL`, and only `http`/`https` links ([docs/adr/0017-open-documents-and-links-with-a-hand-written-os-opener.md](docs/adr/0017-open-documents-and-links-with-a-hand-written-os-opener.md))
+
 ## Dependencies
 
 Every package is a supply chain risk: its code, its maintainers, and everything it pulls in ship
