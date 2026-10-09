@@ -140,3 +140,30 @@ Entry points, tests, and ADRs for one scenario:
 ```sh
 grep -rn "#cancelled-no-reminder\]" --include=*.go --include=*.ts --include=*.tsx --include=*.md .
 ```
+
+## Checking the links
+
+`speclint` checks these rules. A Claude Code Stop hook (`.claude/hooks/speclint-stop.sh`) runs
+it at the end of every turn and sends the agent back once to fix any problems; if they remain
+after that, they're shown to the user. To run it by hand from the repo root:
+
+```sh
+go run ./cmd/speclint
+```
+
+It prints `file:line: problem` for each finding and exits 1 if there are any. It reports:
+
+- **Missing links.** Every `@status:implemented` scenario needs a `@scenario` annotation, and
+  each of its steps a step annotation, in both code and tests. A test file is `*_test.go`,
+  `*.test.*`, `*.spec.*`, or anything under `__tests__/`.
+- **Broken links.** Annotations that point at a missing file or ID, copy a title or step text
+  inexactly, use the wrong keyword (`@given` for an `And` step), or leave the ID off `@scenario`.
+- **Stale links.** Annotations on withdrawn scenarios, or on steps only withdrawn scenarios use.
+- **Malformed specs.** Scenarios without exactly one valid `@status:` and one kebab-case `@id:`,
+  duplicate IDs, status or ID tags on `Feature`/`Rule`/`Examples`, and `Background`.
+- **ADR Related sections** that are missing, empty, mix `universal` with feature references, or
+  reference a file, ID, or title that doesn't match.
+
+Annotations must sit on their own comment line; a trailing comment after code isn't read. The
+linter skips `node_modules`, `vendor`, `dist`, `build`, `testdata`, `frontend/wailsjs`, and
+dot-directories. Its code is in `internal/speclint/`.

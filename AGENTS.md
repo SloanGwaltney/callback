@@ -20,3 +20,5 @@ How we do that:
   decisions, so grepping a scenario ID finds the decisions behind it. Only the user starts an
   ADR, by running `/adr`. Don't create or edit files in `docs/adr/` on your own; if a decision
   looks worth recording, suggest that the user run `/adr`.
+- **Linted links.** A Stop hook (`.claude/hooks/speclint-stop.sh`) runs `cmd/speclint` whenever
+  you finish a turn. If it reports problems, you'll be sent back to fix them.

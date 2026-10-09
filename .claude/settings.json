@@ -2,5 +2,19 @@
   "attribution": {
     "commit": "",
     "pr": ""
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/speclint-stop.sh\"",
+            "timeout": 120,
+            "statusMessage": "Linting spec links"
+          }
+        ]
+      }
+    ]
   }
 }
