@@ -1,5 +1,21 @@
 # AGENTS.md
 
+## Tech stack
+
+Each entry links to the ADR that chose it.
+
+- **Desktop shell:** Wails v2, with a Go backend and a web frontend
+  ([docs/adr/0002-use-wails-for-the-desktop-shell.md](docs/adr/0002-use-wails-for-the-desktop-shell.md))
+- **Database:** SQLite, embedded in the app
+  ([docs/adr/0003-store-user-data-in-sqlite.md](docs/adr/0003-store-user-data-in-sqlite.md))
+- **SQLite driver:** `mattn/go-sqlite3` through `database/sql`. Needs CGO.
+  ([docs/adr/0004-use-mattn-go-sqlite3-as-the-sqlite-driver.md](docs/adr/0004-use-mattn-go-sqlite3-as-the-sqlite-driver.md))
+- **Queries:** sqlc generates Go from `.sql` files. Run `sqlc generate` after changing queries or
+  the schema.
+  ([docs/adr/0005-generate-database-queries-with-sqlc.md](docs/adr/0005-generate-database-queries-with-sqlc.md))
+- **Migrations:** goose, with migration files embedded in the app and run when it starts
+  ([docs/adr/0006-run-database-migrations-with-goose.md](docs/adr/0006-run-database-migrations-with-goose.md))
+
 ## Grep-complete
 
 This codebase aims to be grep-complete: starting from any point of entry, you should be able to
