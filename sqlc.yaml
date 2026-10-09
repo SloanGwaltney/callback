@@ -1,0 +1,15 @@
+# sqlc generates Go from the SQL in internal/db/queries, checked against the schema built from the
+# goose migrations. Run `sqlc generate` after changing either. See
+# docs/adr/0005-generate-database-queries-with-sqlc.md.
+version: "2"
+sql:
+  - engine: sqlite
+    schema: internal/db/migrations
+    queries: internal/db/queries
+    gen:
+      go:
+        package: store
+        out: internal/store
+        # Generates the Querier interface that unit tests fake by hand. See
+        # docs/adr/0010-require-unit-tests-and-test-storage-against-real-sqlite.md.
+        emit_interface: true
