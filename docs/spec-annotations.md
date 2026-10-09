@@ -129,14 +129,14 @@ func TestNoReminderForCancelledCall(t *testing.T) {
 
 ## Finding a spec in the code
 
-Every annotation for a feature file, in code and tests:
+Every annotation for a feature file, in code, tests, and ADRs:
 
 ```sh
-grep -rn "\[features/call-reminders.feature" --include=*.go --include=*.ts --include=*.tsx .
+grep -rn "\[features/call-reminders.feature" --include=*.go --include=*.ts --include=*.tsx --include=*.md .
 ```
 
-Entry points and tests for one scenario:
+Entry points, tests, and ADRs for one scenario:
 
 ```sh
-grep -rn "#cancelled-no-reminder\]" --include=*.go --include=*.ts --include=*.tsx .
+grep -rn "#cancelled-no-reminder\]" --include=*.go --include=*.ts --include=*.tsx --include=*.md .
 ```
