@@ -17,6 +17,10 @@ Each entry links to the ADR that chose it.
   ([docs/adr/0006-run-database-migrations-with-goose.md](docs/adr/0006-run-database-migrations-with-goose.md))
 - **Frontend:** a React single page app in TypeScript, built with Vite. No meta-framework.
   ([docs/adr/0007-build-the-frontend-as-a-react-spa-with-typescript-and-vite.md](docs/adr/0007-build-the-frontend-as-a-react-spa-with-typescript-and-vite.md))
+- **Styling:** CSS Modules, one `*.module.css` per component, using CSS variables from a global
+  tokens file. No Tailwind or shadcn/ui. Write our own components, using native HTML elements
+  like `<dialog>` for accessible behavior.
+  ([docs/adr/0011-style-the-frontend-with-css-modules-and-css-variables.md](docs/adr/0011-style-the-frontend-with-css-modules-and-css-variables.md))
 - **Testing:** every change ships with unit tests that use hand-written fakes instead of storage.
   Only the storage layer is tested against a real temporary SQLite database and directory. On the
   frontend, Vitest and React Testing Library, with the Wails bindings mocked. No end-to-end tests
