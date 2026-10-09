@@ -24,6 +24,9 @@ Each entry links to the ADR that chose it.
 - **Drag and drop:** `@dnd-kit/core` and `@dnd-kit/sortable` for moving and reordering board
   cards, with keyboard support.
   ([docs/adr/0013-use-dnd-kit-for-moving-and-reordering-board-cards.md](docs/adr/0013-use-dnd-kit-for-moving-and-reordering-board-cards.md))
+- **Lint and format:** `gofmt` and `go vet` for Go. Biome and `tsc` for the frontend. One check
+  script runs every check. The Stop hook runs it without tests, and CI runs it with tests.
+  ([docs/adr/0014-check-code-with-one-script-run-by-the-stop-hook-and-ci.md](docs/adr/0014-check-code-with-one-script-run-by-the-stop-hook-and-ci.md))
 - **Styling:** CSS Modules, one `*.module.css` per component, using CSS variables from a global
   tokens file. No Tailwind or shadcn/ui. Write our own components, using native HTML elements
   like `<dialog>` for accessible behavior.
@@ -46,6 +49,12 @@ isn't feasible, but only when a package replaces work we can't reasonably do our
   hand, write it instead. See
   [docs/adr/0009-keep-user-data-in-the-os-conventional-app-data-directory.md](docs/adr/0009-keep-user-data-in-the-os-conventional-app-data-directory.md)
   for an example.
+
+## Tests
+
+Run the Go and frontend tests after your work, and fix any failures before you finish. The Stop
+hook doesn't run tests, so nothing else will catch a failure until CI. See
+[docs/adr/0014-check-code-with-one-script-run-by-the-stop-hook-and-ci.md](docs/adr/0014-check-code-with-one-script-run-by-the-stop-hook-and-ci.md).
 
 ## Grep-complete
 
