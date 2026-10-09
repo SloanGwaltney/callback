@@ -1,17 +1,22 @@
 ---
 name: bdd-feature
-description: Draft Gherkin feature definitions from a user's plain-language description of a feature, with a status label (not-implemented, implemented, deprecated, withdrawn) on every scenario. Use when the user describes a feature, behavior, or requirement and wants BDD/Gherkin specs written or updated, or invokes /bdd-feature.
+description: Draft Gherkin-like feature specs from a user's plain-language description of a feature, with a status label (not-implemented, implemented, deprecated, withdrawn) and a stable ID on every scenario. Use when the user describes a feature, behavior, or requirement and wants BDD or Gherkin-style specs written or updated, or invokes /bdd-feature.
 ---
 
 # bdd-feature
 
-Turn a user's description of a feature into Gherkin `.feature` files. Every scenario carries a
-**status** label, and the status controls what changes are allowed.
+Turn a user's description of a feature into Gherkin-like `.feature` specs. Every scenario carries a
+**status** label, which controls what changes are allowed, and an **ID**, which code and tests
+use to point back at it (see `AGENTS.md`).
+
+These files aren't run by a BDD test runner. They're the spec that code and tests link back to,
+written so an agent can read a scenario and follow it to the code. The format borrows from Gherkin
+because it's structured and readable. When a Gherkin convention gets in the way of clear linking, drop
+the convention.
 
 ## Status labels
 
-Status is a non-standard extension to Gherkin. It is written as a tag so the files still parse
-with standard tools such as godog and Cucumber:
+Status is written as a tag on the line above the scenario:
 
 | Tag                         | Meaning                                                                 |
 |-----------------------------|-------------------------------------------------------------------------|
@@ -24,6 +29,23 @@ Status goes on `Scenario` and `Scenario Outline` only, and every one of them get
 status tag. `Feature`, `Rule`, and `Examples` never get a status tag. They're just grouping.
 
 A scenario is a **behavior**. Its steps are the **criteria** for that behavior.
+
+## Scenario IDs
+
+Every `Scenario` and `Scenario Outline` also gets exactly one `@id:` tag, next to its status tag:
+
+```gherkin
+  @status:not-implemented @id:cancelled-no-reminder
+  Scenario: No reminder for a cancelled call
+```
+
+- IDs are short kebab-case (lowercase letters, digits, hyphens), derived from the title.
+- IDs are unique within their file. Code references them as `features/<file>.feature#<id>`.
+- **IDs never change.** Code and test annotations point at them, so keep the ID even if the
+  title is reworded.
+- **IDs are never reused.** A deprecated or withdrawn scenario keeps its ID, and a replacement
+  scenario gets a new one.
+- `Feature`, `Rule`, and `Examples` never get an ID.
 
 ## Change rules
 
@@ -40,8 +62,8 @@ These rules apply whenever you edit an existing `.feature` file. Read the file f
    remove an implemented scenario's existing steps.
 3. **Changing behavior means replacing it.** If the request changes what an implemented scenario
    does, tag the old one `@status:deprecated` and write the replacement as a new
-   `@status:not-implemented` scenario. Link them in a comment, e.g.
-   `# Replaces: "Old scenario title"`.
+   `@status:not-implemented` scenario with a new ID. Link them in a comment by ID, e.g.
+   `# Replaces: @id:reminder-default-sound`.
 4. **Deprecated can't be extended.** Don't add steps to a deprecated scenario. It can only move to
    `@status:withdrawn`.
 5. **Withdrawn is final.** Don't edit or un-withdraw a `@status:withdrawn` scenario. If the
@@ -63,6 +85,8 @@ and propose the compliant alternative (usually a new scenario, per rule 2 or 3).
    same area. If one exists, you're editing it, so apply the change rules above.
 3. **Draft.** Write or update the file(s):
    - One Feature per file, named in kebab-case, e.g. `features/call-scheduling.feature`.
+   - Every scenario gets a status tag and an `@id:` tag. Check the file for existing IDs so the
+     new one is unique.
    - A short user-story description under the Feature title (`As a ... I want ... So that ...`).
    - Optionally group scenarios into `Rule`s, one per distinct business rule.
    - Cover the happy path, the main alternate paths, and error/edge cases. Use a
@@ -70,9 +94,10 @@ and propose the compliant alternative (usually a new scenario, per rule 2 or 3).
    - Write steps in domain language, from the user's point of view. No UI selectors, API calls,
      or implementation details. `Given` sets state, `When` is the action, `Then` checks
      observable outcomes.
-   - Use `Background` only for setup shared by every scenario in the Feature (or Rule).
-4. **Report.** Summarize what you wrote: the files, the scenarios added or changed and their
-   status, any assumptions you made, and any requests you redirected because of the change rules.
+   - Don't use `Background`. Put each scenario's setup in its own `Given` steps, even when that
+     repeats steps from other scenarios, so every scenario reads on its own.
+4. **Report.** Summarize what you wrote: the files, the scenarios added or changed with their
+   IDs and status, any assumptions you made, and any requests you redirected because of the change rules.
    List open questions.
 
 ## Example
@@ -83,7 +108,7 @@ Feature: Call reminders
   I want to be reminded before a scheduled call
   So that I don't miss it
 
-  @status:implemented
+  @status:implemented @id:default-lead-time
   Scenario: Reminder fires at the default lead time
     Given I have a call scheduled for 3:00 PM
     When the time reaches 2:45 PM
@@ -91,28 +116,28 @@ Feature: Call reminders
     # Additional criterion on an implemented scenario (allowed: same behavior, more precise)
     And the reminder shows the call's title and start time
 
-  @status:not-implemented
+  @status:not-implemented @id:cancelled-no-reminder
   Scenario: No reminder for a cancelled call
     Given I had a call scheduled for 3:00 PM
     And I cancelled the call
     When the time reaches 2:45 PM
     Then I do not receive a reminder
 
-  @status:deprecated
+  @status:deprecated @id:reminder-default-sound
   Scenario: Reminder plays the default sound
     Given I have a call scheduled for 3:00 PM
     When the reminder fires
     Then the default reminder sound plays
 
-  # Replaces: "Reminder plays the default sound"
-  @status:not-implemented
+  # Replaces: @id:reminder-default-sound
+  @status:not-implemented @id:reminder-chosen-sound
   Scenario: Reminder plays the sound chosen in settings
     Given I have chosen the "chime" reminder sound
     And I have a call scheduled for 3:00 PM
     When the reminder fires
     Then the "chime" sound plays
 
-  @status:withdrawn
+  @status:withdrawn @id:sms-reminder
   Scenario: SMS reminder is sent
     Given I have a call scheduled for 3:00 PM
     And I have a verified phone number
