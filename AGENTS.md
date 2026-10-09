@@ -17,6 +17,10 @@ Each entry links to the ADR that chose it.
   ([docs/adr/0006-run-database-migrations-with-goose.md](docs/adr/0006-run-database-migrations-with-goose.md))
 - **Frontend:** a React single page app in TypeScript, built with Vite. No meta-framework.
   ([docs/adr/0007-build-the-frontend-as-a-react-spa-with-typescript-and-vite.md](docs/adr/0007-build-the-frontend-as-a-react-spa-with-typescript-and-vite.md))
+- **Frontend data:** custom React hooks wrap the Wails bindings, and only those hooks call
+  bindings. No TanStack Query. For shared state, use Context or a hand-written store first, then
+  Zustand only if justified.
+  ([docs/adr/0012-wrap-backend-calls-in-custom-react-hooks.md](docs/adr/0012-wrap-backend-calls-in-custom-react-hooks.md))
 - **Styling:** CSS Modules, one `*.module.css` per component, using CSS variables from a global
   tokens file. No Tailwind or shadcn/ui. Write our own components, using native HTML elements
   like `<dialog>` for accessible behavior.
