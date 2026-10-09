@@ -18,6 +18,19 @@ Each entry links to the ADR that chose it.
 - **Frontend:** a React single page app in TypeScript, built with Vite. No meta-framework.
   ([docs/adr/0007-build-the-frontend-as-a-react-spa-with-typescript-and-vite.md](docs/adr/0007-build-the-frontend-as-a-react-spa-with-typescript-and-vite.md))
 
+## Dependencies
+
+Every package is a supply chain risk: its code, its maintainers, and everything it pulls in ship
+to the user's machine. Some of that risk has to be accepted, because writing everything ourselves
+isn't feasible, but only when a package replaces work we can't reasonably do ourselves.
+
+- **Never install a package without asking.** This covers Go modules, npm packages, and tools.
+- **Justify every recommendation against that risk.** Say what the package saves us and why that's
+  worth the risk compared with writing the code ourselves. If the code is small enough to write by
+  hand, write it instead. See
+  [docs/adr/0009-keep-user-data-in-the-os-conventional-app-data-directory.md](docs/adr/0009-keep-user-data-in-the-os-conventional-app-data-directory.md)
+  for an example.
+
 ## Grep-complete
 
 This codebase aims to be grep-complete: starting from any point of entry, you should be able to
