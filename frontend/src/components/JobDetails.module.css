@@ -1,0 +1,39 @@
+.status {
+	margin: 0 0 var(--space-4);
+	color: var(--color-text-muted);
+}
+
+.error {
+	composes: error from "./form.module.css";
+}
+
+.saved {
+	margin: var(--space-3) 0 0;
+	color: var(--color-status-offer);
+	font-size: var(--font-size-sm);
+}
+
+.warning {
+	margin: 0;
+}
+
+.actions {
+	composes: actions from "./form.module.css";
+	flex-wrap: wrap;
+}
+
+.spacer {
+	flex: 1;
+}
+
+.button {
+	composes: button from "./form.module.css";
+}
+
+.primary {
+	composes: primary from "./form.module.css";
+}
+
+.danger {
+	composes: danger from "./form.module.css";
+}

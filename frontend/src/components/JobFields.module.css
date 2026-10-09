@@ -1,0 +1,34 @@
+.fields {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--space-3);
+}
+
+.field {
+	composes: field from "./form.module.css";
+}
+
+.wide {
+	grid-column: 1 / -1;
+}
+
+.required {
+	font-size: var(--font-size-xs);
+}
+
+.input {
+	composes: input from "./form.module.css";
+}
+
+.textarea {
+	composes: textarea from "./form.module.css";
+}
+
+.button {
+	composes: button from "./form.module.css";
+}
+
+.dateRow {
+	display: flex;
+	gap: var(--space-2);
+}

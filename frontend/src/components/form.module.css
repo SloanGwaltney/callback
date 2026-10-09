@@ -1,0 +1,80 @@
+/* Shared form and button styles, composed into components' own modules with `composes`. */
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-1);
+	font-size: var(--font-size-sm);
+	color: var(--color-text-muted);
+}
+
+.input {
+	width: 100%;
+	padding: var(--space-2) var(--space-3);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-sm);
+	background: var(--color-surface);
+	color: var(--color-text);
+	font-size: var(--font-size-md);
+}
+
+.textarea {
+	composes: input;
+	min-height: 5rem;
+	resize: vertical;
+}
+
+.button {
+	padding: var(--space-2) var(--space-4);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-sm);
+	background: var(--color-surface);
+	color: var(--color-text);
+	cursor: pointer;
+}
+
+.button:hover:not(:disabled) {
+	background: var(--color-surface-muted);
+}
+
+.button:disabled {
+	cursor: default;
+	opacity: 0.55;
+}
+
+.primary {
+	composes: button;
+	border-color: var(--color-accent);
+	background: var(--color-accent);
+	color: var(--color-accent-text);
+}
+
+.primary:hover:not(:disabled) {
+	background: var(--color-accent-hover);
+}
+
+.danger {
+	composes: button;
+	border-color: var(--color-danger);
+	background: var(--color-danger);
+	color: var(--color-accent-text);
+}
+
+.danger:hover:not(:disabled) {
+	background: var(--color-danger-hover);
+}
+
+.actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: var(--space-2);
+	margin-top: var(--space-4);
+}
+
+.error {
+	margin: var(--space-3) 0 0;
+	padding: var(--space-2) var(--space-3);
+	border-radius: var(--radius-sm);
+	background: var(--color-danger-bg);
+	color: var(--color-danger);
+	font-size: var(--font-size-sm);
+}

@@ -1,0 +1,24 @@
+.column {
+	composes: field from "./form.module.css";
+	margin-top: var(--space-3);
+}
+
+.select {
+	composes: input from "./form.module.css";
+}
+
+.error {
+	composes: error from "./form.module.css";
+}
+
+.actions {
+	composes: actions from "./form.module.css";
+}
+
+.button {
+	composes: button from "./form.module.css";
+}
+
+.primary {
+	composes: primary from "./form.module.css";
+}

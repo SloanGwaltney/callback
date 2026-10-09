@@ -1,0 +1,64 @@
+.card {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-1);
+	padding: var(--space-3);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	background: var(--color-surface);
+	box-shadow: var(--shadow-card);
+}
+
+.header {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--space-2);
+}
+
+.open {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-width: 0;
+	padding: 0;
+	border: none;
+	background: none;
+	text-align: left;
+	cursor: pointer;
+}
+
+.role {
+	font-weight: var(--font-weight-bold);
+	overflow-wrap: anywhere;
+}
+
+.company {
+	color: var(--color-text-muted);
+	overflow-wrap: anywhere;
+}
+
+.open:hover .role {
+	color: var(--color-accent);
+}
+
+.detail {
+	margin: 0;
+	color: var(--color-text-muted);
+	font-size: var(--font-size-sm);
+}
+
+.reason {
+	margin: 0;
+	color: var(--color-status-closed);
+	font-size: var(--font-size-sm);
+}
+
+.documents {
+	align-self: flex-start;
+	margin: var(--space-1) 0 0;
+	padding: 0 var(--space-2);
+	border-radius: var(--radius-sm);
+	background: var(--color-surface-muted);
+	color: var(--color-text-muted);
+	font-size: var(--font-size-xs);
+}

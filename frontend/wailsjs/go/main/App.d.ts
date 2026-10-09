@@ -14,8 +14,6 @@ export function GetBoard():Promise<jobs.Board>;
 
 export function GetJob(arg1:number):Promise<jobs.Job>;
 
-export function Greet(arg1:string):Promise<string>;
-
 export function MoveJob(arg1:jobs.Move):Promise<void>;
 
 export function OpenDocument(arg1:number):Promise<void>;
