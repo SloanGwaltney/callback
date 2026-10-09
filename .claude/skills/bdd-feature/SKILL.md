@@ -7,7 +7,7 @@ description: Draft Gherkin-like feature specs from a user's plain-language descr
 
 Turn a user's description of a feature into Gherkin-like `.feature` specs. Every scenario carries a
 **status** label, which controls what changes are allowed, and an **ID**, which code and tests
-use to point back at it (see `AGENTS.md`).
+use to point back at it (see `docs/spec-annotations.md`).
 
 These files aren't run by a BDD test runner. They're the spec that code and tests link back to,
 written so an agent can read a scenario and follow it to the code. The format borrows from Gherkin
