@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Runs every check on the codebase (docs/adr/0014-check-code-with-one-script-run-by-the-stop-hook-and-ci.md):
-# gofmt, go vet, speclint, tsc, and the Go tests. Every check runs even if an earlier one fails,
-# and the script exits 1 if any failed.
+# gofmt, go vet, speclint, tsc, Biome, and the Go and frontend tests. Every check runs even if an
+# earlier one fails, and the script exits 1 if any failed.
 #
 # Usage: scripts/check.sh [--no-tests]
 #   --no-tests  skip the tests (the Stop hook runs it this way; CI runs it without)
@@ -44,13 +44,12 @@ check "go vet" go vet ./...
 check speclint go run ./cmd/speclint
 check tsc npx --prefix frontend --no-install tsc --noEmit -p frontend
 
-# Biome isn't set up yet. The user will add it; uncomment this then.
-# check biome npx --prefix frontend --no-install biome check frontend
+# Runs from frontend/ so Biome finds frontend/biome.json. Warnings fail the check too.
+check biome npm --prefix frontend run --silent lint
 
 if [ "$run_tests" -eq 1 ]; then
   check "go test" go test ./...
-  # Frontend tests aren't set up yet. The user will add them; uncomment this then.
-  # check "frontend tests" npm --prefix frontend test
+  check "frontend tests" npm --prefix frontend test
 fi
 
 if [ ${#failed[@]} -gt 0 ]; then

@@ -64,8 +64,6 @@ following, which must be raised and settled first:
   justify it as `AGENTS.md` requires.
 - **A decision worth recording**, like a new library, a data model choice, or a pattern other
   features will copy. Suggest the user run `/adr`. Don't write ADRs yourself.
-- **Missing test tooling.** If frontend code is needed and Vitest or React Testing Library isn't
-  set up yet, stop and ask before installing them.
 
 ## 4. Implement
 
