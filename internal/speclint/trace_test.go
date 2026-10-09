@@ -1,0 +1,128 @@
+package speclint
+
+import (
+	"fmt"
+	"path/filepath"
+	"reflect"
+	"strings"
+	"testing"
+)
+
+func traceFixture(t *testing.T, ref string) *Trace {
+	t.Helper()
+	tr, err := TraceScenario(filepath.Join("testdata", "good"), ref)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return tr
+}
+
+// locations lists annotations as "file:line @keyword", in the order given.
+func locations(as []Annotation) []string {
+	var out []string
+	for _, a := range as {
+		out = append(out, fmt.Sprintf("%s:%d @%s", a.File, a.Line, a.Keyword))
+	}
+	return out
+}
+
+func TestTraceCollectsEntryPointsAndSteps(t *testing.T) {
+	tr := traceFixture(t, "cancelled-no-reminder")
+
+	if tr.Feature != "features/call-reminders.feature" || tr.Scenario.Title != "No reminder for a cancelled call" {
+		t.Fatalf("traced %s %q", tr.Feature, tr.Scenario.Title)
+	}
+	if got, want := locations(tr.Entry), []string{"scheduler.go:3 @scenario", "scheduler_test.go:3 @scenario"}; !reflect.DeepEqual(got, want) {
+		t.Errorf("entry points: got %v, want %v", got, want)
+	}
+	// The shared Given is linked once and counts for this scenario too.
+	if got, want := locations(tr.Steps[0].Links), []string{"scheduler.go:7 @given", "scheduler_test.go:6 @given"}; !reflect.DeepEqual(got, want) {
+		t.Errorf("given: got %v, want %v", got, want)
+	}
+	if m := tr.Missing(); len(m) != 0 {
+		t.Errorf("expected nothing missing, got %v", m)
+	}
+}
+
+// A step scoped to another scenario isn't part of this scenario's trace, even with the same text.
+func TestTraceSkipsStepsScopedToOtherScenarios(t *testing.T) {
+	tr := traceFixture(t, "features/call-reminders.feature#shown-in-list")
+
+	then := tr.Steps[1]
+	if then.Step.Text != "I receive a reminder" {
+		t.Fatalf("step 2 is %q", then.Step.Text)
+	}
+	want := []string{"frontend/src/List.tsx:6 @then", "frontend/src/List.test.tsx:4 @then"}
+	if got := locations(then.Links); !reflect.DeepEqual(got, want) {
+		t.Errorf("got %v, want %v", got, want)
+	}
+}
+
+// Links are ordered from the database up to the UI, each layer's code before its tests.
+func TestTraceOrdersLinksByLayer(t *testing.T) {
+	tr := traceFixture(t, "default-lead-time")
+
+	want := []string{"reminders.sql:2 @then", "scheduler.go:10 @then", "scheduler_test.go:10 @then"}
+	if got := locations(tr.Steps[2].Links); !reflect.DeepEqual(got, want) {
+		t.Errorf("got %v, want %v", got, want)
+	}
+}
+
+func TestTraceFindsADRs(t *testing.T) {
+	tr := traceFixture(t, "default-lead-time")
+
+	// The fenced example in the ADR names another feature and isn't read.
+	want := []ADRRef{
+		{File: "docs/adr/0001-poll-every-minute.md", Line: 5},
+		{File: "docs/adr/0001-poll-every-minute.md", Line: 6, Whole: true},
+	}
+	if !reflect.DeepEqual(tr.ADRs, want) {
+		t.Errorf("got %+v, want %+v", tr.ADRs, want)
+	}
+}
+
+func TestTraceReportsMissingLinks(t *testing.T) {
+	tr := traceFixture(t, "snooze")
+
+	want := []string{
+		"@scenario has no link in code",
+		"@scenario has no link in tests",
+		"When I snooze it has no link in code",
+		"When I snooze it has no link in tests",
+		"Then it fires again in 5 minutes has no link in code",
+		"Then it fires again in 5 minutes has no link in tests",
+	}
+	if got := tr.Missing(); !reflect.DeepEqual(got, want) {
+		t.Errorf("got:\n%s\nwant:\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))
+	}
+}
+
+func TestTraceRejectsUnknownScenarios(t *testing.T) {
+	root := filepath.Join("testdata", "good")
+	for _, ref := range []string{"no-such-id", "features/other.feature#snooze"} {
+		if _, err := TraceScenario(root, ref); err == nil {
+			t.Errorf("%s: expected an error", ref)
+		}
+	}
+}
+
+func TestLayer(t *testing.T) {
+	tests := []struct {
+		file string
+		test bool
+		want string
+	}{
+		{"internal/db/queries/jobs.sql", false, "SQL query"},
+		{"internal/db/store_test.go", true, "storage test"},
+		{"internal/jobs/board.go", false, "service"},
+		{"app.go", false, "Wails binding"},
+		{"frontend/src/hooks/useBoard.ts", false, "frontend hook"},
+		{"frontend/src/components/Board.test.tsx", true, "frontend test"},
+		{"cmd/speclint/main.go", false, "other"},
+	}
+	for _, tt := range tests {
+		if got := Layer(Annotation{File: tt.file, Test: tt.test}); got != tt.want {
+			t.Errorf("Layer(%s) = %q, want %q", tt.file, got, tt.want)
+		}
+	}
+}

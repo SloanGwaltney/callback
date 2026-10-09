@@ -149,6 +149,19 @@ Entry points, tests, and ADRs for one scenario:
 grep -rn "#cancelled-no-reminder\]" --include=*.go --include=*.ts --include=*.tsx --include=*.md .
 ```
 
+Everything linked to one scenario, layer by layer, from the SQL query up to the frontend:
+
+```sh
+go run ./cmd/spectrace move-card-forward
+go run ./cmd/spectrace features/job-board.feature#move-card-forward
+```
+
+It prints the scenario's `@scenario` entry points, the code and tests for each step, and the ADRs
+that list it, using the same matching rules as `speclint`: a step's annotation counts when it has
+no scenario ID or this scenario's ID. It exits 1 if the scenario or any step has no link in code
+or in tests, whatever the scenario's status, so it can check a scenario before it's marked
+`implemented`. Its code is in `cmd/spectrace/` and `internal/speclint/trace.go`.
+
 ## Checking the links
 
 `speclint` checks these rules. A Claude Code Stop hook (`.claude/hooks/check-stop.sh`) runs

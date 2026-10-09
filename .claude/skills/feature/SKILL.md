@@ -126,9 +126,17 @@ It runs gofmt, `go vet`, speclint, `tsc`, and the tests (see
 `docs/adr/0014-check-code-with-one-script-run-by-the-stop-hook-and-ci.md`).
 
 `speclint` only reports *missing* links for `@status:implemented` scenarios, so while the
-scenarios are still `not-implemented` it won't notice a step you forgot. Check coverage yourself:
-for each requested scenario, grep its `#<id>]` and each of its step texts, and confirm each one
-shows up in both production code and a test file.
+scenarios are still `not-implemented` it won't notice a step you forgot. Check coverage yourself
+by tracing each requested scenario:
+
+```sh
+go run ./cmd/spectrace <scenario-id>
+```
+
+It lists the scenario's entry points and each step's code and tests, layer by layer, with the
+same matching rules as `speclint`, and exits 1 with a `MISSING:` line for anything without a link
+in code or in tests. Fix every `MISSING:` line. Also read the breakdown: each step's links should
+sit in the layers that actually carry it out, and a UI scenario should reach the frontend.
 
 ## 7. Report
 
