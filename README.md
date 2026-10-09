@@ -5,6 +5,48 @@ agents can find, build, and check their own work. Each job you're applying to is
 Kanban board, laid out by status, with its details, closing reason, and the documents you sent
 attached.
 
+## How this was built
+
+callback went from an empty Wails template to a working app in one day, October 9, 2026, after
+the template and the `/bdd-feature` skill went in the night before. Most of
+that day went into the system for building it rather than the app itself: the harness and the
+decisions came first, and then the harness built the app. The commit history shows the order:
+
+| Time | Phase | What happened |
+|---|---|---|
+| 09:00–10:05 | **Harness** | Spec annotations linking code and tests to scenarios; the `/adr` skill; the grep-complete design (ADR 0001); `speclint`, run by a Stop hook on every agent turn |
+| 10:30 | **Spec** | The job board, job cards, and job documents written as scenarios with IDs and statuses |
+| 11:16–15:44 | **Decisions** | ADRs 0002–0014: the desktop shell, database, driver, queries, migrations, frontend, storage, testing, styling, data access, drag and drop, and checks, each with the alternatives rejected |
+| 16:11–17:01 | **Foundation** | Database opening and the first migration; speclint extended to SQL; the `/feature` skill; one check script, run by the Stop hook |
+| 17:01–18:58 | **Build** | The Go backend, then the React frontend, built by `/feature` against the specs, annotated and tested at every layer |
+| 19:28–19:45 | **Hardening** | `spectrace` to show each scenario's links layer by layer; package installs denied to the agent |
+
+The three features were built in about two hours, after about eight hours of setup, and every
+scenario traces from spec to SQL to UI. All of the app's code was built through `/feature`; only
+the tooling around it (speclint, spectrace, the hook, and the check script) was written outside
+it. See it with `git log --reverse`.
+
+**The eight hours weren't spent on this app. They were spent on a foundation, and the app was
+the first thing built on it.** None of it is thrown away when the next feature comes along:
+
+- **The next feature starts at the build step.** The stack, data model, testing approach, and
+  conventions are already decided and recorded, so the next feature doesn't revisit them. It goes
+  straight from `/bdd-feature` to `/feature`, with speclint and the Stop hook holding it to the
+  same standard as everything before it.
+- **The decisions are a base to build on, not a finished plan.** Each ADR records why a choice
+  was made and what was rejected, so a later feature can extend it with confidence, or supersede
+  it with a new ADR when it no longer fits, instead of guessing at intent.
+- **The harness carries over to other projects.** The annotation format, speclint, spectrace,
+  the check-on-every-turn Stop hook, the dependency guardrails, and the `/bdd-feature` and `/adr`
+  skills don't depend on this app; they need only specs in `features/`, ADRs in `docs/adr/`, and
+  code in Go, TypeScript or JavaScript, or SQL. `/feature`'s workflow (plan, build from storage
+  up, annotate, test, trace, then hand off for sign-off) carries over too; only its build steps
+  name this stack. The stack ADRs and spectrace's layer names are the parts specific to
+  callback.
+
+The two-hour build is the payoff: once the foundation exists, a detailed spec becomes working,
+tested, traceable code quickly, and keeps doing so for each feature after it.
+
 ## Built for AI agents
 
 Most of callback's code is written by Claude Code. The interesting part of this repo isn't the
