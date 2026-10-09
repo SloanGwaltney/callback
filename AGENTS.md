@@ -51,7 +51,11 @@ Every package is a supply chain risk: its code, its maintainers, and everything 
 to the user's machine. Some of that risk has to be accepted, because writing everything ourselves
 isn't feasible, but only when a package replaces work we can't reasonably do ourselves.
 
-- **Never install a package without asking.** This covers Go modules, npm packages, and tools.
+- **Never install a package yourself.** This covers Go modules, npm packages, and tools.
+  `.claude/settings.json` denies `npm install`/`i`/`add`/`update`, `npx`, `go get`, `go install`,
+  and `go mod tidy`. Recommend the package, and once the user agrees, give them the exact command
+  to run. Run frontend tools through the npm scripts instead of `npx`: `npm --prefix frontend
+  test`, `run lint`, `run typecheck`, or `bash scripts/check.sh`.
 - **Justify every recommendation against that risk.** Say what the package saves us and why that's
   worth the risk compared with writing the code ourselves. If the code is small enough to write by
   hand, write it instead. See

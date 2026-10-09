@@ -3,6 +3,28 @@
     "commit": "",
     "pr": ""
   },
+  "permissions": {
+    "deny": [
+      "Bash(npm install *)",
+      "Bash(npm i *)",
+      "Bash(npm add *)",
+      "Bash(npm update *)",
+      "Bash(npm --prefix * install *)",
+      "Bash(npx *)",
+      "Bash(go get *)",
+      "Bash(go install *)",
+      "Bash(go mod tidy *)",
+      "PowerShell(npm install *)",
+      "PowerShell(npm i *)",
+      "PowerShell(npm add *)",
+      "PowerShell(npm update *)",
+      "PowerShell(npm --prefix * install *)",
+      "PowerShell(npx *)",
+      "PowerShell(go get *)",
+      "PowerShell(go install *)",
+      "PowerShell(go mod tidy *)"
+    ]
+  },
   "hooks": {
     "Stop": [
       {
