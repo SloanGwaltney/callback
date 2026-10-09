@@ -1,2 +1,2 @@
-# Shell scripts must keep LF endings; Git Bash fails on CRLF (e.g. .claude/hooks/speclint-stop.sh).
+# Shell scripts must keep LF endings; Git Bash fails on CRLF (e.g. .claude/hooks/check-stop.sh).
 *.sh text eol=lf

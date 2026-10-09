@@ -117,24 +117,15 @@ cover.
 
 ## 6. Verify
 
-Run all of these from the repo root and fix every failure before finishing:
+Run the full check script from the repo root, tests included, and fix every failure before
+finishing:
 
 ```sh
-gofmt -l .                      # must print nothing
-go vet ./...
-go test ./...
-go run ./cmd/speclint
+bash scripts/check.sh
 ```
 
-If the frontend changed, also run in `frontend/`:
-
-```sh
-npx tsc --noEmit
-npm test                        # once a test script exists
-```
-
-Once the repo has the check script from `docs/adr/0014-check-code-with-one-script-run-by-the-stop-hook-and-ci.md`,
-run it with tests instead of the individual commands.
+It runs gofmt, `go vet`, speclint, `tsc`, and the tests (see
+`docs/adr/0014-check-code-with-one-script-run-by-the-stop-hook-and-ci.md`).
 
 `speclint` only reports *missing* links for `@status:implemented` scenarios, so while the
 scenarios are still `not-implemented` it won't notice a step you forgot. Check coverage yourself:

@@ -52,8 +52,9 @@ isn't feasible, but only when a package replaces work we can't reasonably do our
 
 ## Tests
 
-Run the Go and frontend tests after your work, and fix any failures before you finish. The Stop
-hook doesn't run tests, so nothing else will catch a failure until CI. See
+Run `bash scripts/check.sh` after your work, and fix any failures before you finish. It runs every
+check, including the tests. The Stop hook runs it with `--no-tests`, so nothing else will catch
+a failing test until CI. See
 [docs/adr/0014-check-code-with-one-script-run-by-the-stop-hook-and-ci.md](docs/adr/0014-check-code-with-one-script-run-by-the-stop-hook-and-ci.md).
 
 ## Grep-complete
@@ -76,5 +77,6 @@ How we do that:
   decisions, so grepping a scenario ID finds the decisions behind it. Only the user starts an
   ADR, by running `/adr`. Don't create or edit files in `docs/adr/` on your own; if a decision
   looks worth recording, suggest that the user run `/adr`.
-- **Linted links.** A Stop hook (`.claude/hooks/speclint-stop.sh`) runs `cmd/speclint` whenever
-  you finish a turn. If it reports problems, you'll be sent back to fix them.
+- **Linted links.** A Stop hook (`.claude/hooks/check-stop.sh`) runs `scripts/check.sh
+  --no-tests`, which includes `cmd/speclint`, whenever you finish a turn. If it reports problems,
+  you'll be sent back to fix them.

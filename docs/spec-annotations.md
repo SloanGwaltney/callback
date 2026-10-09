@@ -151,8 +151,8 @@ grep -rn "#cancelled-no-reminder\]" --include=*.go --include=*.ts --include=*.ts
 
 ## Checking the links
 
-`speclint` checks these rules. A Claude Code Stop hook (`.claude/hooks/speclint-stop.sh`) runs
-it at the end of every turn and sends the agent back once to fix any problems; if they remain
+`speclint` checks these rules. A Claude Code Stop hook (`.claude/hooks/check-stop.sh`) runs
+it, through `scripts/check.sh`, at the end of every turn and sends the agent back once to fix any problems; if they remain
 after that, they're shown to the user. To run it by hand from the repo root:
 
 ```sh
