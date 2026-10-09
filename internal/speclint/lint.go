@@ -26,6 +26,7 @@ func (p Problem) String() string {
 // sourceExts are the files scanned for annotations.
 var sourceExts = map[string]bool{
 	".go": true, ".ts": true, ".tsx": true, ".js": true, ".jsx": true, ".mjs": true, ".cjs": true,
+	".sql": true,
 }
 
 // skipDirs are never scanned: dependencies, build output, generated Wails bindings, and test

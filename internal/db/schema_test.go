@@ -110,6 +110,9 @@ func TestSchemaDocuments(t *testing.T) {
 
 	t.Run("deleting a job deletes its document rows", func(t *testing.T) {
 		mustExec(t, conn, `DELETE FROM jobs WHERE id = ?`, jobID)
+		// Covers the database rows only; deleting the files is the app's job. See
+		// docs/adr/0008-store-attached-documents-as-files-in-the-app-data-directory.md.
+		// @and [features/job-cards.feature] its attached documents are removed too
 		var n int
 		if err := conn.QueryRow(`SELECT COUNT(*) FROM documents`).Scan(&n); err != nil {
 			t.Fatal(err)
@@ -133,6 +136,7 @@ func TestListJobsOrdersByPositionWithinStatus(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// @then [features/job-board.feature] the "Saved" column shows "Initech", "Acme", and "Globex" in that order
 	var saved []string
 	for _, j := range jobs {
 		if j.Status == "saved" {

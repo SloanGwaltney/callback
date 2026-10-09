@@ -10,6 +10,7 @@ import (
 
 type Querier interface {
 	// Every job, grouped by status and in board order within each status.
+	// @then [features/job-board.feature] the "Saved" column shows "Initech", "Acme", and "Globex" in that order
 	ListJobs(ctx context.Context) ([]Job, error)
 }
 

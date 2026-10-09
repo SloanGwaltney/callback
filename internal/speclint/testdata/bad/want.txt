@@ -26,3 +26,4 @@ features/call-reminders.feature:14: scenario "Missing a status" has no @status: 
 features/call-reminders.feature:17: scenario "Bad status and ID" has unknown status "done"
 features/call-reminders.feature:17: scenario ID "Bad_ID" isn't kebab-case (lowercase letters, digits, hyphens)
 features/call-reminders.feature:20: scenario ID "no-status" is already used on line 14
+queries.sql:2: @then [features/call-reminders.feature] I receive a reminder soon: no such step in features/call-reminders.feature

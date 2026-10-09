@@ -15,6 +15,7 @@ ORDER BY status, position
 `
 
 // Every job, grouped by status and in board order within each status.
+// @then [features/job-board.feature] the "Saved" column shows "Initech", "Acme", and "Globex" in that order
 func (q *Queries) ListJobs(ctx context.Context) ([]Job, error) {
 	rows, err := q.db.QueryContext(ctx, listJobs)
 	if err != nil {

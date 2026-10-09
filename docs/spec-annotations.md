@@ -58,7 +58,15 @@ Rules:
   scenarios. Stack the comments.
 - **A `Then` checks an observable outcome.** Annotate the code that produces that outcome, such
   as the emitted event, the returned value, or the UI state change.
-- Use the language's line comment: `//` in Go and TypeScript, `{/* */}` inside JSX.
+- Use the language's line comment: `//` in Go and TypeScript, `{/* */}` inside JSX, `--` in SQL.
+- **SQL queries are annotated like code.** Put the annotation on the clause that does the step,
+  such as an `ORDER BY`. sqlc copies a query's comments into the Go it generates, so the
+  annotation also appears on the generated method. That copy is expected; change the `.sql`
+  file and regenerate rather than editing it.
+- **Don't annotate migrations.** A migration records a past change to the schema, and a later
+  migration can undo what an earlier one did, leaving its annotation pointing at code that no
+  longer runs. Annotate the storage tests that check the schema's behavior instead, since they run
+  against the current schema.
 - **Keep annotations in sync with the spec.** When a step is reworded, update its annotations in
   the same change. When a scenario is deprecated or withdrawn, remove its `@scenario` tags and
   any step tags no other active scenario still uses. Don't remove a shared step's tag while
@@ -164,6 +172,6 @@ It prints `file:line: problem` for each finding and exits 1 if there are any. It
 - **ADR Related sections** that are missing, empty, mix `universal` with feature references, or
   reference a file, ID, or title that doesn't match.
 
-Annotations must sit on their own comment line; a trailing comment after code isn't read. The
-linter skips `node_modules`, `vendor`, `dist`, `build`, `testdata`, `frontend/wailsjs`, and
+Annotations must sit on their own comment line; a trailing comment after code isn't read. It reads
+Go, TypeScript, JavaScript, and SQL files, and in SQL files only `--` comments. The linter skips `node_modules`, `vendor`, `dist`, `build`, `testdata`, `frontend/wailsjs`, and
 dot-directories. Its code is in `internal/speclint/`.

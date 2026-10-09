@@ -25,17 +25,25 @@ var annotationPattern = regexp.MustCompile(`@(scenario|given|when|then|and|but)\
 // comment, a block comment, a JSX comment, or a block comment continuation.
 var commentPrefix = regexp.MustCompile(`^\s*(//|/\*|\{/\*|\*)\s*$`)
 
+// sqlCommentPrefix is commentPrefix for SQL files, which use -- line comments.
+var sqlCommentPrefix = regexp.MustCompile(`^\s*--\s*$`)
+
 // parseAnnotations finds the spec annotations in a source file. An annotation must be the only
 // thing in its comment, on a line of its own, so a string that happens to look like one is
 // ignored.
 func parseAnnotations(file, src string, test bool) []Annotation {
+	prefix := commentPrefix
+	if strings.HasSuffix(file, ".sql") {
+		prefix = sqlCommentPrefix
+	}
+
 	var out []Annotation
 	for i, raw := range strings.Split(src, "\n") {
 		loc := annotationPattern.FindStringSubmatchIndex(raw)
 		if loc == nil {
 			continue
 		}
-		if !commentPrefix.MatchString(raw[:loc[0]]) {
+		if !prefix.MatchString(raw[:loc[0]]) {
 			continue
 		}
 		m := annotationPattern.FindStringSubmatch(raw)

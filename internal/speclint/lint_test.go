@@ -62,6 +62,30 @@ func TestParseAnnotationsOnlyReadsComments(t *testing.T) {
 	}
 }
 
+func TestParseAnnotationsInSQL(t *testing.T) {
+	src := strings.Join([]string{
+		"-- @then [features/a.feature] sql comment",
+		"    -- @then [features/a.feature] indented sql comment",
+		"// @then [features/a.feature] not a sql comment",
+		"SELECT 1; -- @then [features/a.feature] trailing comment",
+		"SELECT '-- @then [features/a.feature] in a string';",
+	}, "\n")
+
+	var got []string
+	for _, a := range parseAnnotations("queries/jobs.sql", src, false) {
+		got = append(got, a.Text)
+	}
+	want := []string{"sql comment", "indented sql comment"}
+	if strings.Join(got, "|") != strings.Join(want, "|") {
+		t.Errorf("got %q, want %q", got, want)
+	}
+
+	// -- isn't a comment in Go, so it doesn't count there.
+	if got := parseAnnotations("f.go", "-- @then [features/a.feature] x", false); len(got) != 0 {
+		t.Errorf("parsed %d annotations from -- in a .go file, want 0", len(got))
+	}
+}
+
 func TestIsTestFile(t *testing.T) {
 	for path, want := range map[string]bool{
 		"app_test.go":                   true,
