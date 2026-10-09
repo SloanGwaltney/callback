@@ -15,6 +15,8 @@ Each entry links to the ADR that chose it.
   ([docs/adr/0005-generate-database-queries-with-sqlc.md](docs/adr/0005-generate-database-queries-with-sqlc.md))
 - **Migrations:** goose, with migration files embedded in the app and run when it starts
   ([docs/adr/0006-run-database-migrations-with-goose.md](docs/adr/0006-run-database-migrations-with-goose.md))
+- **Frontend:** a React single page app in TypeScript, built with Vite. No meta-framework.
+  ([docs/adr/0007-build-the-frontend-as-a-react-spa-with-typescript-and-vite.md](docs/adr/0007-build-the-frontend-as-a-react-spa-with-typescript-and-vite.md))
 
 ## Grep-complete
 
