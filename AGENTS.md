@@ -4,7 +4,8 @@
 
 This codebase aims to be grep-complete: starting from any point of entry, you should be able to
 find everything related to it with a text search. Keep it that way by making everything you add
-searchable.
+searchable. For why, see
+[docs/adr/0001-design-the-codebase-to-be-grep-complete.md](docs/adr/0001-design-the-codebase-to-be-grep-complete.md).
 
 How we do that:
 
