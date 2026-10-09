@@ -2,17 +2,19 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 )
 
 // App struct
 type App struct {
 	ctx context.Context
+	db  *sql.DB
 }
 
 // NewApp creates a new App application struct
-func NewApp() *App {
-	return &App{}
+func NewApp(db *sql.DB) *App {
+	return &App{db: db}
 }
 
 // startup is called when the app starts. The context is saved
