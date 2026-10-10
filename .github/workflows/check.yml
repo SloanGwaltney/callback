@@ -17,8 +17,8 @@ concurrency:
 
 jobs:
   check:
-    # Windows, like development: Wails needs no WebKitGTK headers there, and the runner image
-    # ships the gcc that mattn/go-sqlite3 needs for CGO.
+    # Windows needs no setup: Wails needs no WebKitGTK headers there, and the runner image ships
+    # the gcc that mattn/go-sqlite3 needs for CGO.
     runs-on: windows-latest
     # A run takes about 2 minutes; cap a hung one well under the 6-hour default.
     timeout-minutes: 10
