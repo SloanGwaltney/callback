@@ -1,0 +1,50 @@
+# Runs scripts/check.sh, tests included, on every pull request and push to main
+# (docs/adr/0014-check-code-with-one-script-run-by-the-stop-hook-and-ci.md). A ruleset on main
+# requires the "check" job to pass before a pull request can merge.
+name: check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    # Windows, like development: Wails needs no WebKitGTK headers there, and the runner image
+    # ships the gcc that mattn/go-sqlite3 needs for CGO.
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      # Keep LF endings, or gofmt reports every .go file as unformatted.
+      - run: git config --global core.autocrlf false
+
+      # Actions are pinned to commit SHAs so a moved tag can't change what runs.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci --prefix frontend
+
+      # main.go embeds frontend/dist, which is gitignored, so go vet and go test need it built.
+      - run: npm --prefix frontend run build
+
+      - run: bash scripts/check.sh
