@@ -69,6 +69,26 @@ check, including the tests. The Stop hook runs it with `--no-tests`, so nothing 
 a failing test until CI. See
 [docs/adr/0014-check-code-with-one-script-run-by-the-stop-hook-and-ci.md](docs/adr/0014-check-code-with-one-script-run-by-the-stop-hook-and-ci.md).
 
+## Seeing the app
+
+You, the agent, can run the app and drive it in headless Chrome to see a change for yourself:
+take screenshots and read them, click, type, drag cards, and switch light and dark mode. It runs
+without the user: nothing opens on their screen, they don't need to watch, and their data isn't
+touched. Use it to check visual and interaction changes, which the unit tests can't see, before
+telling the user they work.
+
+1. Start the app in the background with `bash scripts/drive/dev.sh`. It runs `wails dev -s -m`
+   with `CALLBACK_START_HIDDEN` to keep the window hidden and `CALLBACK_DATA_DIR` pointed at
+   `temp/drive/appdata`, and serves the app at `http://localhost:34115`.
+2. Write a steps file and run it with `node scripts/drive/cdp.mjs <steps.mjs>`. See
+   `scripts/drive/example.mjs`. Screenshots land in `temp/drive/shots`; read them to look.
+3. Stop with `bash scripts/drive/dev.sh stop`. Stopping the background shell alone leaves the
+   app running.
+
+Don't click "Attach a document…" or anything else that opens a native dialog; it would appear
+on the user's screen. When `form.module.css` changes, re-save the stylesheets that `composes`
+from it, or Vite keeps serving their old copies of its rules.
+
 ## Grep-complete
 
 This codebase aims to be grep-complete: starting from any point of entry, you should be able to
