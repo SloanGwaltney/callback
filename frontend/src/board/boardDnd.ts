@@ -1,7 +1,12 @@
 // Pure helpers behind dragging cards on the board (docs/adr/0013-use-dnd-kit-for-moving-and-reordering-board-cards.md).
 // While a card is dragged, the board shows a preview: the card IDs in each column, keyed by
 // status. When it's dropped, the preview becomes a jobs.Move for the MoveJob binding.
-import type { UniqueIdentifier } from "@dnd-kit/core";
+import {
+	type CollisionDetection,
+	closestCorners,
+	pointerWithin,
+	type UniqueIdentifier,
+} from "@dnd-kit/core";
 import type { Board, Move } from "../hooks/types";
 
 // Items is the card IDs in each column, top to bottom, keyed by status.
@@ -14,6 +19,16 @@ export function itemsFromBoard(board: Board): Items {
 	}
 	return items;
 }
+
+// collision picks what a dragged card is over. With the mouse, it's whatever is under the pointer:
+// the card there, or the column when the pointer is between cards. closestCorners alone compares
+// the dragged card's corners with each column's, and a full-height column's bottom corners are far
+// from a card dragged near the top, so a card had to go well past a column's edge to land in it.
+// A keyboard drag has no pointer, so it, and a pointer off every column, use closestCorners.
+export const collision: CollisionDetection = (args) => {
+	const under = pointerWithin(args);
+	return under.length > 0 ? under : closestCorners(args);
+};
 
 // containerOf returns the status of the column id names, or of the column holding the card id
 // names. Columns are identified by their status and cards by their numeric job ID.

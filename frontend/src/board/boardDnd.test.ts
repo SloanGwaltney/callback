@@ -1,7 +1,15 @@
+import {
+	type ClientRect,
+	type CollisionDetection,
+	closestCorners,
+	type DroppableContainer,
+	type UniqueIdentifier,
+} from "@dnd-kit/core";
 import { describe, expect, it } from "vitest";
 import { board, card } from "../test/fixtures";
 import {
 	applyMove,
+	collision,
 	containerOf,
 	finishDrop,
 	itemsFromBoard,
@@ -123,5 +131,45 @@ describe("applyMove", () => {
 			closingReasonOther: "",
 		};
 		expect(applyMove(start, unknown)).toBe(start);
+	});
+});
+
+describe("what a dragged card is over", () => {
+	const rect = (left: number, top: number, width: number, height: number): ClientRect => ({
+		left,
+		top,
+		width,
+		height,
+		right: left + width,
+		bottom: top + height,
+	});
+	// Two full-height columns side by side: Saved holds Acme at its top, Applied is empty.
+	const rects = new Map<UniqueIdentifier, ClientRect>([
+		["saved", rect(0, 0, 300, 1000)],
+		[acme.id, rect(10, 10, 280, 80)],
+		["applied", rect(300, 0, 300, 1000)],
+	]);
+	const args = (pointer: { x: number; y: number } | null): Parameters<CollisionDetection>[0] => ({
+		active: { id: globex.id } as Parameters<CollisionDetection>[0]["active"],
+		// Acme's size, dragged so its left edge is still well inside Saved.
+		collisionRect: rect(220, 10, 280, 80),
+		droppableRects: rects,
+		droppableContainers: [...rects.keys()].map((id) => ({ id }) as DroppableContainer),
+		pointerCoordinates: pointer,
+	});
+	const first = (pointer: { x: number; y: number } | null) => collision(args(pointer))[0]?.id;
+
+	it("is the column under the pointer, even just past its edge", () => {
+		// Corners alone still pick the card in the column the pointer has left.
+		expect(closestCorners(args({ x: 310, y: 50 }))[0]?.id).toBe(acme.id);
+		expect(first({ x: 310, y: 50 })).toBe("applied");
+	});
+
+	it("is the card under the pointer before the column holding it", () => {
+		expect(first({ x: 100, y: 50 })).toBe(acme.id);
+	});
+
+	it("goes by the dragged card's corners when there's no pointer, as in a keyboard drag", () => {
+		expect(first(null)).toBe(acme.id);
 	});
 });

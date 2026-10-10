@@ -19,6 +19,11 @@ vi.mock("@dnd-kit/core", async (importOriginal) => {
 			dnd.props = props;
 			return <actual.DndContext {...props} />;
 		},
+		// The real overlay only draws during a drag dnd-kit itself started, so show what the board
+		// puts in it.
+		DragOverlay: ({ children }: { children?: React.ReactNode }) => (
+			<div data-testid="drag-overlay">{children}</div>
+		),
 	};
 });
 
@@ -133,6 +138,28 @@ describe("Board", () => {
 		const { onOpenCard } = renderBoard(board({ saved: [acme] }));
 		await userEvent.click(screen.getByRole("button", { name: /^Software Engineer/ }));
 		expect(onOpenCard).toHaveBeenCalledWith(acme.id);
+	});
+
+	it("draws the dragged card above the columns, hidden from screen readers, until it's dropped", () => {
+		renderBoard(board({ saved: [acme] }));
+		const overlay = screen.getByTestId("drag-overlay");
+		const active = { id: acme.id } as DragStartEvent["active"];
+
+		act(() => dnd.props?.onDragStart?.({ active } as DragStartEvent));
+		const picture = within(overlay).getByRole("article", { hidden: true });
+		expect(picture).toHaveAccessibleName("Software Engineer at Acme");
+		expect(picture.closest("[aria-hidden='true']")).not.toBeNull();
+		expect(cardsIn("Saved")).toEqual(["Software Engineer at Acme"]);
+
+		act(() =>
+			dnd.props?.onDragCancel?.({ active } as Parameters<
+				NonNullable<DndContextProps["onDragCancel"]>
+			>[0]),
+		);
+		expect(overlay).toBeEmptyDOMElement();
+
+		drag(acme.id, "applied");
+		expect(overlay).toBeEmptyDOMElement();
 	});
 
 	// @scenario [features/job-board.feature#move-card-forward] Move a card to the next status

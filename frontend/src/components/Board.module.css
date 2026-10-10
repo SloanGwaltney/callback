@@ -128,12 +128,16 @@
 	position: relative;
 }
 
+/* The card's place in the column while it's dragged. The card itself is drawn in .overlay. */
 .dragging {
-	z-index: 1;
-	opacity: 0.85;
+	opacity: 0.35;
 }
 
-.dragging > * {
+.overlay {
+	cursor: grabbing;
+}
+
+.overlay > * {
 	box-shadow: var(--shadow-raised);
 }
 

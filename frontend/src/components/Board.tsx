@@ -1,9 +1,9 @@
 import {
 	type Announcements,
-	closestCorners,
 	DndContext,
 	type DragEndEvent,
 	type DragOverEvent,
+	DragOverlay,
 	KeyboardSensor,
 	PointerSensor,
 	type UniqueIdentifier,
@@ -19,6 +19,7 @@ import {
 } from "@dnd-kit/sortable";
 import { useState } from "react";
 import {
+	collision,
 	containerOf,
 	finishDrop,
 	type Items,
@@ -69,6 +70,8 @@ type Props = {
 export function Board({ board, onMove, onOpenCard, onAddJob }: Props) {
 	// preview is where the cards are while one is dragged, or null when nothing is.
 	const [preview, setPreview] = useState<Items | null>(null);
+	// dragged is the card being dragged, drawn in the overlay above the columns.
+	const [dragged, setDragged] = useState<Card | null>(null);
 	// closing is a move into Closed waiting for its closing reason.
 	const [closing, setClosing] = useState<Move | null>(null);
 	const [error, setError] = useState("");
@@ -101,6 +104,7 @@ export function Board({ board, onMove, onOpenCard, onAddJob }: Props) {
 	const dragEnd = ({ active, over }: DragEndEvent) => {
 		const dropped = preview && over ? finishDrop(preview, active.id, over.id) : null;
 		setPreview(null);
+		setDragged(null);
 		if (!dropped) {
 			return;
 		}
@@ -167,12 +171,18 @@ export function Board({ board, onMove, onOpenCard, onAddJob }: Props) {
 			)}
 			<DndContext
 				sensors={sensors}
-				collisionDetection={closestCorners}
+				collisionDetection={collision}
 				accessibility={{ announcements }}
-				onDragStart={() => setPreview(itemsFromBoard(board))}
+				onDragStart={({ active }) => {
+					setPreview(itemsFromBoard(board));
+					setDragged(cards.get(Number(active.id)) ?? null);
+				}}
 				onDragOver={dragOver}
 				onDragEnd={dragEnd}
-				onDragCancel={() => setPreview(null)}
+				onDragCancel={() => {
+					setPreview(null);
+					setDragged(null);
+				}}
 			>
 				<div className={styles.columns}>
 					{/* @then [features/job-board.feature] I see the columns "Saved", "Applied", "Interviewing", "Offer", and "Closed" in that order */}
@@ -186,6 +196,20 @@ export function Board({ board, onMove, onOpenCard, onAddJob }: Props) {
 						/>
 					))}
 				</div>
+				{/* The dragged card is drawn here, above the board, so a column's scroll area doesn't
+				    clip it. It's only a picture of the card, so it's hidden from screen readers and
+				    can't be focused; the announcements describe the drag instead. */}
+				<DragOverlay>
+					{dragged && (
+						<div className={styles.overlay} aria-hidden="true" inert>
+							<JobCard
+								card={dragged}
+								onOpen={() => {}}
+								handle={<span className={styles.handle}>⠿</span>}
+							/>
+						</div>
+					)}
+				</DragOverlay>
 			</DndContext>
 			{closing && (
 				<ClosingReasonDialog
