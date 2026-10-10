@@ -1,12 +1,14 @@
 # Runs scripts/check.sh, tests included, on every pull request and push to main
 # (docs/adr/0014-check-code-with-one-script-run-by-the-stop-hook-and-ci.md). A ruleset on main
-# requires the "check" job to pass before a pull request can merge.
+# requires the "check" job to pass before a pull request can merge. release.yml calls it too, so a
+# release runs the same checks.
 name: check
 
 on:
   pull_request:
   push:
     branches: [main]
+  workflow_call:
 
 permissions:
   contents: read

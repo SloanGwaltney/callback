@@ -31,6 +31,10 @@ Each entry links to the ADR that chose it.
 - **CI:** GitHub Actions runs `scripts/check.sh` on a Windows runner for every pull request and
   push to `main`, and a ruleset on `main` blocks merging until it passes. Pin actions to commit SHAs.
   ([docs/adr/0018-enforce-the-check-script-in-github-actions-before-merging.md](docs/adr/0018-enforce-the-check-script-in-github-actions-before-merging.md))
+- **Releases:** SemVer. Pushing an annotated `vX.Y.Z` tag on `main` builds a draft GitHub Release
+  with unsigned Windows and Linux binaries and checksums attached. No macOS for now. Notes are written by hand in the draft before it's
+  published. No `CHANGELOG.md` and no third-party release actions. Never move a pushed tag.
+  ([docs/adr/0019-release-by-pushing-a-tag-that-builds-a-draft-github-release.md](docs/adr/0019-release-by-pushing-a-tag-that-builds-a-draft-github-release.md))
 - **Styling:** CSS Modules, one `*.module.css` per component, using CSS variables from a global
   tokens file. No Tailwind or shadcn/ui. Write our own components, using native HTML elements
   like `<dialog>` for accessible behavior.
