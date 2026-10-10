@@ -72,7 +72,7 @@ export function DocumentList({ jobId, documents, onChanged }: Props) {
 							<button
 								type="button"
 								className={styles.fileName}
-								title="Open"
+								title={`Open ${doc.fileName}`}
 								onClick={() => run(() => open(doc.id), false)}
 							>
 								{doc.fileName}

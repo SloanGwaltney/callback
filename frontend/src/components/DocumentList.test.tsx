@@ -198,6 +198,15 @@ describe("DocumentList", () => {
 		expect(docs.open).toHaveBeenCalledWith(1);
 	});
 
+	it("shows the full file name on hover, since long names are truncated", async () => {
+		const list = renderList();
+		await attach(list, "resume-2026.pdf", "Resume");
+		expect(within(list).getByRole("button", { name: "resume-2026.pdf" })).toHaveAttribute(
+			"title",
+			"Open resume-2026.pdf",
+		);
+	});
+
 	// @scenario [features/job-documents.feature#document-kept-if-original-moved] An attached document still opens after the original file is moved
 	it("opens the attachment by its ID, not the original file's path", async () => {
 		// @given [features/job-documents.feature] I have attached "resume-2026.pdf" to a job for "Software Engineer" at "Acme"

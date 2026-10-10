@@ -253,6 +253,8 @@ function Column({ column, cards, onOpenCard, onAddJob }: ColumnProps) {
 					</button>
 				)}
 			</header>
+			{/* @then [features/job-board.feature] every status column is empty */}
+			{cards.length === 0 && <p className={styles.emptyColumn}>No jobs</p>}
 			<SortableContext
 				id={column.status}
 				items={cards.map((card) => card.id)}
@@ -272,8 +274,6 @@ function Column({ column, cards, onOpenCard, onAddJob }: ColumnProps) {
 					))}
 				</ul>
 			</SortableContext>
-			{/* @then [features/job-board.feature] every status column is empty */}
-			{cards.length === 0 && <p className={styles.emptyColumn}>No jobs</p>}
 		</section>
 	);
 }
