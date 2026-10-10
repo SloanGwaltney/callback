@@ -22,6 +22,11 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
+// StartHiddenEnvVar keeps the window hidden when set, so an agent can drive a development run
+// through the dev server in a headless browser without a window opening on the user's screen.
+// Pair it with appdata.EnvVar so the run doesn't touch the user's real data.
+const StartHiddenEnvVar = "CALLBACK_START_HIDDEN"
+
 func main() {
 	dataDir, err := appdata.Dir()
 	if err != nil {
@@ -45,6 +50,7 @@ func main() {
 			Assets: assets,
 		},
 		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
+		StartHidden:      startHidden(os.Getenv),
 		OnStartup:        app.startup,
 		Bind: []interface{}{
 			app,
@@ -54,6 +60,11 @@ func main() {
 	if err != nil {
 		println("Error:", err.Error())
 	}
+}
+
+// startHidden reports whether StartHiddenEnvVar asks for the window to stay hidden.
+func startHidden(getenv func(string) string) bool {
+	return getenv(StartHiddenEnvVar) != ""
 }
 
 // fail reports a startup error and exits. It runs before the window exists, so the error only
