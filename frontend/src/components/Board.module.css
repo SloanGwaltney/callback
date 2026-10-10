@@ -50,15 +50,19 @@
 	flex-direction: column;
 	min-height: 0;
 	padding: var(--space-3);
+	/* The border, not the background, sets a column apart on a very dark background. */
+	border: 1px solid var(--color-border);
 	border-top: 4px solid var(--color-border);
 	border-radius: var(--radius-md);
 	background: var(--color-surface-muted);
 }
 
+/* The min-height is the add button's, so Closed, which has none, lines up with the others. */
 .columnHeader {
 	display: flex;
 	align-items: center;
 	gap: var(--space-2);
+	min-height: 1.75rem;
 	margin-bottom: var(--space-3);
 }
 
@@ -70,6 +74,7 @@
 .count {
 	min-width: 1.5rem;
 	padding: 0 var(--space-2);
+	border: 1px solid var(--color-control-border);
 	border-radius: var(--radius-lg);
 	background: var(--color-surface);
 	color: var(--color-text-muted);

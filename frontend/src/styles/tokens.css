@@ -24,28 +24,39 @@
 	--radius-md: 8px;
 	--radius-lg: 12px;
 
-	--color-bg: #f4f5f7;
+	--color-bg: #eceef2;
 	--color-surface: #ffffff;
-	--color-surface-muted: #ebedf0;
-	--color-border: #d5d9e0;
-	--color-text: #1d2433;
-	--color-text-muted: #5b6474;
-	--color-accent: #2f5bea;
-	--color-accent-hover: #2349c4;
-	--color-accent-text: #ffffff;
-	--color-danger: #c62f3c;
-	--color-danger-hover: #a52531;
+	--color-surface-muted: #e1e4ea;
+	--color-border: #b4bcc8;
+	/* Outlines cards and dialogs, so they stand out by their edges rather than their fill. */
+	--color-border-strong: #8e97a6;
+	/* Form controls. Fields and buttons share a border that meets WCAG's 3:1 for control outlines. */
+	--color-control-border: #858fa0;
+	--color-field: #ffffff;
+	--color-button: #e9ecf1;
+	--color-button-hover: #d9dee6;
+	--color-text: #0f1520;
+	--color-text-muted: #434c5b;
+	/* --color-accent and --color-danger are for text and links; the -fill colors are for solid
+	   buttons, with --color-on-fill text on them. */
+	--color-accent: #1f4fd8;
+	--color-accent-fill: #1f4fd8;
+	--color-accent-fill-hover: #183fae;
+	--color-danger: #b42330;
+	--color-danger-fill: #b42330;
+	--color-danger-fill-hover: #931c27;
+	--color-on-fill: #ffffff;
 	--color-danger-bg: #fdecee;
-	--color-focus: #2f5bea;
+	--color-focus: #1f4fd8;
 	--color-backdrop: rgb(15 20 30 / 45%);
 
-	--color-status-saved: #7a869a;
-	--color-status-applied: #2f5bea;
-	--color-status-interviewing: #8a4fd8;
-	--color-status-offer: #1f9d61;
-	--color-status-closed: #9a6b3c;
+	--color-status-saved: #5f6b7e;
+	--color-status-applied: #1f4fd8;
+	--color-status-interviewing: #7a3fd0;
+	--color-status-offer: #16824f;
+	--color-status-closed: #8a5a2b;
 
-	--shadow-card: 0 1px 2px rgb(15 20 30 / 12%);
+	--shadow-card: 0 1px 3px rgb(15 20 30 / 18%);
 	--shadow-raised: 0 8px 24px rgb(15 20 30 / 22%);
 
 	--column-width: 17rem;
@@ -53,20 +64,38 @@
 
 @media (prefers-color-scheme: dark) {
 	:root {
-		--color-bg: #151a23;
-		--color-surface: #1f2632;
-		--color-surface-muted: #19202a;
-		--color-border: #343d4d;
-		--color-text: #e7eaf0;
-		--color-text-muted: #9aa3b2;
-		--color-accent: #6b8cff;
-		--color-accent-hover: #8aa4ff;
-		--color-accent-text: #0e1320;
-		--color-danger: #ff6b76;
-		--color-danger-hover: #ff8a93;
-		--color-danger-bg: #3a1d22;
-		--color-focus: #8aa4ff;
-		--color-backdrop: rgb(0 0 0 / 60%);
+		/* Near-black, neutral backgrounds. Cards and dialogs stand out by bright borders rather
+		   than lighter fills; columns get a dim border so the board isn't a grid of bright boxes. */
+		--color-bg: #09090b;
+		--color-surface: #141418;
+		--color-surface-muted: #0e0e11;
+		--color-border: #34343c;
+		--color-border-strong: #d4d6dc;
+		/* Fields are darker than the dialog, so they look set into it, and buttons lighter, so
+		   they look raised from it. */
+		--color-control-border: #8e919b;
+		--color-field: #09090b;
+		--color-button: #232329;
+		--color-button-hover: #313139;
+		--color-text: #f5f5f7;
+		--color-text-muted: #b3b5bd;
+		/* Text colors are bright to read on near-black; fills are saturated, with white text. */
+		--color-accent: #82a0ff;
+		--color-accent-fill: #2563eb;
+		--color-accent-fill-hover: #1d4ed8;
+		--color-danger: #ff7c86;
+		--color-danger-fill: #dc2626;
+		--color-danger-fill-hover: #b91c1c;
+		--color-danger-bg: #21090d;
+		--color-focus: #a3b9ff;
+		--color-backdrop: rgb(0 0 0 / 70%);
+
+		--color-status-saved: #9aa6b8;
+		--color-status-applied: #82a0ff;
+		--color-status-interviewing: #b48cff;
+		--color-status-offer: #3fcf8e;
+		--color-status-closed: #d9a35e;
+
 		--shadow-card: 0 1px 2px rgb(0 0 0 / 40%);
 		--shadow-raised: 0 8px 24px rgb(0 0 0 / 55%);
 	}

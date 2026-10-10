@@ -10,9 +10,9 @@
 .input {
 	width: 100%;
 	padding: var(--space-2) var(--space-3);
-	border: 1px solid var(--color-border);
+	border: 1px solid var(--color-control-border);
 	border-radius: var(--radius-sm);
-	background: var(--color-surface);
+	background: var(--color-field);
 	color: var(--color-text);
 	font-size: var(--font-size-md);
 }
@@ -25,15 +25,15 @@
 
 .button {
 	padding: var(--space-2) var(--space-4);
-	border: 1px solid var(--color-border);
+	border: 1px solid var(--color-control-border);
 	border-radius: var(--radius-sm);
-	background: var(--color-surface);
+	background: var(--color-button);
 	color: var(--color-text);
 	cursor: pointer;
 }
 
 .button:hover:not(:disabled) {
-	background: var(--color-surface-muted);
+	background: var(--color-button-hover);
 }
 
 .button:disabled {
@@ -43,24 +43,26 @@
 
 .primary {
 	composes: button;
-	border-color: var(--color-accent);
-	background: var(--color-accent);
-	color: var(--color-accent-text);
+	border-color: var(--color-accent-fill);
+	background: var(--color-accent-fill);
+	color: var(--color-on-fill);
 }
 
 .primary:hover:not(:disabled) {
-	background: var(--color-accent-hover);
+	border-color: var(--color-accent-fill-hover);
+	background: var(--color-accent-fill-hover);
 }
 
 .danger {
 	composes: button;
-	border-color: var(--color-danger);
-	background: var(--color-danger);
-	color: var(--color-accent-text);
+	border-color: var(--color-danger-fill);
+	background: var(--color-danger-fill);
+	color: var(--color-on-fill);
 }
 
 .danger:hover:not(:disabled) {
-	background: var(--color-danger-hover);
+	border-color: var(--color-danger-fill-hover);
+	background: var(--color-danger-fill-hover);
 }
 
 .actions {
