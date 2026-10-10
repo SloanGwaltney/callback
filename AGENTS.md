@@ -28,6 +28,9 @@ Each entry links to the ADR that chose it.
 - **Lint and format:** `gofmt` and `go vet` for Go. Biome and `tsc` for the frontend. One check
   script runs every check. The Stop hook runs it without tests, and CI runs it with tests.
   ([docs/adr/0014-check-code-with-one-script-run-by-the-stop-hook-and-ci.md](docs/adr/0014-check-code-with-one-script-run-by-the-stop-hook-and-ci.md))
+- **CI:** GitHub Actions runs `scripts/check.sh` on a Windows runner for every pull request and
+  push to `main`, and a ruleset on `main` blocks merging until it passes. Pin actions to commit SHAs.
+  ([docs/adr/0018-enforce-the-check-script-in-github-actions-before-merging.md](docs/adr/0018-enforce-the-check-script-in-github-actions-before-merging.md))
 - **Styling:** CSS Modules, one `*.module.css` per component, using CSS variables from a global
   tokens file. No Tailwind or shadcn/ui. Write our own components, using native HTML elements
   like `<dialog>` for accessible behavior.

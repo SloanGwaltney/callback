@@ -81,3 +81,10 @@ looked at:
 - [docs/adr/0001-design-the-codebase-to-be-grep-complete.md] Design the codebase to be grep-complete
 - [docs/adr/0010-require-unit-tests-and-test-storage-against-real-sqlite.md] Require unit tests and test storage against real SQLite
 - [docs/adr/0012-wrap-backend-calls-in-custom-react-hooks.md] Wrap backend calls in custom React hooks
+
+## Notes
+
+- **2026-10-10:** The repository now has a GitHub remote, so the "GitHub Actions now" alternative's
+  reason for rejection no longer applies. CI runs the full check script as decision 5 planned, and
+  a ruleset blocks merges until it passes; see
+  [docs/adr/0018-enforce-the-check-script-in-github-actions-before-merging.md].
