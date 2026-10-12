@@ -70,6 +70,39 @@ describe("AddJobDialog", () => {
 		expect(screen.getByRole("alert")).toHaveTextContent(`${missing} is required`);
 	});
 
+	// @scenario [features/job-interest.feature#rate-interest-when-adding] Rate my interest while adding a job
+	it("adds a job with an interest rating", async () => {
+		// @given [features/job-interest.feature] I open the job search board
+		const { onAdd } = renderDialog();
+
+		// @when [features/job-interest.feature] I add a job with company "Acme" and role "Software Engineer"
+		await userEvent.type(field(/^Company/), "Acme");
+		await userEvent.type(field(/^Role/), "Software Engineer");
+		// @and [features/job-interest.feature] I answer "How interested are you in this job?" with 4 stars
+		await userEvent.click(screen.getByRole("radio", { name: "4 stars" }));
+		await userEvent.click(screen.getByRole("button", { name: "Add job" }));
+
+		// @then [features/job-interest.feature] a card for "Software Engineer" at "Acme" appears with an interest rating of 4 stars
+		expect(onAdd).toHaveBeenCalledWith(
+			expect.objectContaining({ company: "Acme", role: "Software Engineer", interest: 4 }),
+			"saved",
+		);
+	});
+
+	// @scenario [features/job-interest.feature#unrated-by-default] A job has no interest rating until I give it one
+	it("adds a job with no interest rating when none is chosen", async () => {
+		// @given [features/job-interest.feature] I open the job search board
+		const { onAdd } = renderDialog();
+
+		// @when [features/job-interest.feature] I add a job with company "Acme" and role "Software Engineer" and nothing else
+		await userEvent.type(field(/^Company/), "Acme");
+		await userEvent.type(field(/^Role/), "Software Engineer");
+		await userEvent.click(screen.getByRole("button", { name: "Add job" }));
+
+		// @then [features/job-interest.feature] the job has no interest rating
+		expect(onAdd.mock.calls[0][0].interest).toBeUndefined();
+	});
+
 	it("starts in the column it was opened from", () => {
 		renderDialog("offer");
 		expect(field(/^Column/)).toHaveValue("offer");

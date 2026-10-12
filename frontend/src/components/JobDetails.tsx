@@ -120,6 +120,8 @@ function DetailsForm({ job, onSave, onOpenLink, onDelete, onClose }: FormProps) 
 		location: job.location,
 		notes: job.notes,
 		dateApplied: job.dateApplied,
+		// The backend sends null for no rating; the form uses undefined.
+		interest: job.interest ?? undefined,
 	});
 	const [error, setError] = useState("");
 	const [saved, setSaved] = useState(false);

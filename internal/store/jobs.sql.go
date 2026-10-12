@@ -11,8 +11,8 @@ import (
 )
 
 const createJob = `-- name: CreateJob :one
-INSERT INTO jobs (company, role, description, link, salary, location, notes, status, position, date_applied)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO jobs (company, role, description, link, salary, location, notes, status, position, date_applied, interest)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 RETURNING id
 `
 
@@ -27,6 +27,7 @@ type CreateJobParams struct {
 	Status      string
 	Position    int64
 	DateApplied sql.NullString
+	Interest    sql.NullInt64
 }
 
 func (q *Queries) CreateJob(ctx context.Context, arg CreateJobParams) (int64, error) {
@@ -41,6 +42,7 @@ func (q *Queries) CreateJob(ctx context.Context, arg CreateJobParams) (int64, er
 		arg.Status,
 		arg.Position,
 		arg.DateApplied,
+		arg.Interest,
 	)
 	var id int64
 	err := row.Scan(&id)
@@ -60,7 +62,7 @@ func (q *Queries) DeleteJob(ctx context.Context, id int64) error {
 }
 
 const getJob = `-- name: GetJob :one
-SELECT id, company, role, description, link, salary, location, notes, status, position, date_applied, closing_reason, closing_reason_other FROM jobs
+SELECT id, company, role, description, link, salary, location, notes, status, position, date_applied, closing_reason, closing_reason_other, interest FROM jobs
 WHERE id = ?
 `
 
@@ -81,6 +83,7 @@ func (q *Queries) GetJob(ctx context.Context, id int64) (Job, error) {
 		&i.DateApplied,
 		&i.ClosingReason,
 		&i.ClosingReasonOther,
+		&i.Interest,
 	)
 	return i, err
 }
@@ -117,7 +120,7 @@ func (q *Queries) ListJobIDsInStatus(ctx context.Context, status string) ([]int6
 
 const listJobs = `-- name: ListJobs :many
 SELECT
-    jobs.id, jobs.company, jobs.role, jobs.description, jobs.link, jobs.salary, jobs.location, jobs.notes, jobs.status, jobs.position, jobs.date_applied, jobs.closing_reason, jobs.closing_reason_other,
+    jobs.id, jobs.company, jobs.role, jobs.description, jobs.link, jobs.salary, jobs.location, jobs.notes, jobs.status, jobs.position, jobs.date_applied, jobs.closing_reason, jobs.closing_reason_other, jobs.interest,
     (SELECT COUNT(*) FROM documents WHERE documents.job_id = jobs.id) AS document_count
 FROM jobs
 ORDER BY status, position
@@ -137,6 +140,7 @@ type ListJobsRow struct {
 	DateApplied        sql.NullString
 	ClosingReason      sql.NullString
 	ClosingReasonOther sql.NullString
+	Interest           sql.NullInt64
 	DocumentCount      int64
 }
 
@@ -165,6 +169,7 @@ func (q *Queries) ListJobs(ctx context.Context) ([]ListJobsRow, error) {
 			&i.DateApplied,
 			&i.ClosingReason,
 			&i.ClosingReasonOther,
+			&i.Interest,
 			&i.DocumentCount,
 		); err != nil {
 			return nil, err
@@ -215,7 +220,7 @@ func (q *Queries) SetJobPosition(ctx context.Context, arg SetJobPositionParams) 
 
 const updateJobDetails = `-- name: UpdateJobDetails :exec
 UPDATE jobs
-SET company = ?, role = ?, description = ?, link = ?, salary = ?, location = ?, notes = ?, date_applied = ?
+SET company = ?, role = ?, description = ?, link = ?, salary = ?, location = ?, notes = ?, date_applied = ?, interest = ?
 WHERE id = ?
 `
 
@@ -228,6 +233,7 @@ type UpdateJobDetailsParams struct {
 	Location    string
 	Notes       string
 	DateApplied sql.NullString
+	Interest    sql.NullInt64
 	ID          int64
 }
 
@@ -241,6 +247,7 @@ func (q *Queries) UpdateJobDetails(ctx context.Context, arg UpdateJobDetailsPara
 		arg.Location,
 		arg.Notes,
 		arg.DateApplied,
+		arg.Interest,
 		arg.ID,
 	)
 	return err

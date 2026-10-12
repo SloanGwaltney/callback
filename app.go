@@ -35,6 +35,9 @@ func (a *App) startup(ctx context.Context) {
 // @scenario [features/job-board.feature#board-persists] Board is the same after reopening the app
 // @scenario [features/job-board.feature#card-order-persists] Card order is the same after reopening the app
 // @scenario [features/job-documents.feature#card-shows-document-count] The card shows that documents are attached
+// @scenario [features/job-interest.feature#card-shows-interest] The card shows the interest rating as stars
+// @scenario [features/job-interest.feature#card-unrated] An unrated card shows no stars
+// @scenario [features/job-interest.feature#interest-persists] The interest rating is the same after reopening the app
 func (a *App) GetBoard() (jobs.Board, error) {
 	return a.jobs.Board(a.ctx)
 }
@@ -46,6 +49,8 @@ func (a *App) GetBoard() (jobs.Board, error) {
 // @scenario [features/job-cards.feature#add-job-missing-required] A job can't be saved without a company or a role
 // @scenario [features/job-board.feature#new-card-at-top] A newly added job goes to the top of its column
 // @scenario [features/job-cards.feature#add-job-not-closed] A job can't be added straight to Closed
+// @scenario [features/job-interest.feature#rate-interest-when-adding] Rate my interest while adding a job
+// @scenario [features/job-interest.feature#unrated-by-default] A job has no interest rating until I give it one
 func (a *App) AddJob(details jobs.Details, status jobs.Status) (jobs.Job, error) {
 	return a.jobs.AddJob(a.ctx, details, status)
 }
@@ -53,6 +58,7 @@ func (a *App) AddJob(details jobs.Details, status jobs.Status) (jobs.Job, error)
 // GetJob returns a job with all its details and documents.
 // @scenario [features/job-cards.feature#view-job-details] View a job's full details
 // @scenario [features/job-documents.feature#attach-multiple-documents] Attach several documents to one job
+// @scenario [features/job-interest.feature#view-interest] See the interest rating when opening the card
 func (a *App) GetJob(id int64) (jobs.Job, error) {
 	return a.jobs.Job(a.ctx, id)
 }
@@ -67,6 +73,12 @@ func (a *App) GetJob(id int64) (jobs.Job, error) {
 // @scenario [features/job-cards.feature#date-applied-any-status] The date applied can be set in any status
 // @scenario [features/job-cards.feature#clear-date-applied] Clear the date applied
 // @scenario [features/job-cards.feature#future-date-applied] The date applied can't be in the future
+// @scenario [features/job-interest.feature#rate-interest] Rate how interested I am in a job
+// @scenario [features/job-interest.feature#interest-rating-range] An interest rating must be from one to five stars
+// @scenario [features/job-interest.feature#interest-any-status] A job in any status can be rated
+// @scenario [features/job-interest.feature#change-interest] Change my interest rating
+// @scenario [features/job-interest.feature#clear-interest] Clear my interest rating
+// @scenario [features/job-interest.feature#rating-doesnt-reorder] Rating a job doesn't change the order of its column
 func (a *App) UpdateJob(id int64, details jobs.Details) (jobs.Job, error) {
 	return a.jobs.UpdateJob(a.ctx, id, details)
 }
@@ -87,6 +99,7 @@ func (a *App) UpdateJob(id int64, details jobs.Details) (jobs.Job, error) {
 // @scenario [features/job-board.feature#reorder-applied-no-date] Reordering a card within Applied doesn't fill in a date applied
 // @scenario [features/job-board.feature#close-other-needs-text] Closing with Other needs a written reason
 // @scenario [features/job-board.feature#reorder-closed-keeps-reason] Reordering a card within Closed keeps its closing reason
+// @scenario [features/job-interest.feature#move-keeps-interest] Moving a card keeps its interest rating
 func (a *App) MoveJob(move jobs.Move) error {
 	return a.jobs.MoveJob(a.ctx, move)
 }

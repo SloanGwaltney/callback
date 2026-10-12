@@ -41,6 +41,17 @@
 	color: var(--color-accent);
 }
 
+.interest {
+	margin: 0;
+	color: var(--color-star);
+	font-size: var(--font-size-sm);
+	letter-spacing: 0.05em;
+}
+
+.unfilled {
+	color: var(--color-text-muted);
+}
+
 .detail {
 	margin: 0;
 	color: var(--color-text-muted);

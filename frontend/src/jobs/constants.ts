@@ -1,5 +1,5 @@
-// Values the backend uses for statuses, closing reasons, and document kinds, with their labels.
-// They mirror the constants in internal/jobs/jobs.go; keep the two in step.
+// Values the backend uses for statuses, closing reasons, document kinds, and interest ratings, with
+// their labels. They mirror the constants in internal/jobs/jobs.go; keep the two in step.
 
 export const STATUS_SAVED = "saved";
 export const STATUS_APPLIED = "applied";
@@ -33,6 +33,16 @@ export const DOCUMENT_KINDS = [
 	{ value: "cover_letter", label: "Cover letter" },
 	{ value: "other", label: "Other" },
 ];
+
+// The most stars an interest rating can have, matching jobs.MaxInterest. The fewest is 1.
+export const MAX_INTEREST = 5;
+
+export const INTEREST_QUESTION = "How interested are you in this job?";
+
+// starsLabel names a rating for screen readers: "1 star", "4 stars".
+export function starsLabel(n: number): string {
+	return n === 1 ? "1 star" : `${n} stars`;
+}
 
 // today returns the local date as YYYY-MM-DD, the format of dates applied.
 export function today(now: Date = new Date()): string {

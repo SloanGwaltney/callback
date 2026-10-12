@@ -4,10 +4,14 @@
 // (docs/adr/0012-wrap-backend-calls-in-custom-react-hooks.md).
 import type { jobs } from "../../wailsjs/go/models";
 
-export type Card = jobs.Card;
+// Go sends a job with no interest rating as null, which the generated models leave out of the type.
+type Rating = { interest?: number | null };
+
+export type Card = Omit<jobs.Card, "interest"> & Rating;
 export type Column = Omit<jobs.Column, "convertValues" | "cards"> & { cards: Card[] };
 export type Board = { columns: Column[] };
 export type JobDocument = jobs.Document;
-export type Job = Omit<jobs.Job, "convertValues" | "documents"> & { documents: JobDocument[] };
+export type Job = Omit<jobs.Job, "convertValues" | "documents" | "interest"> &
+	Rating & { documents: JobDocument[] };
 export type Details = jobs.Details;
 export type Move = jobs.Move;

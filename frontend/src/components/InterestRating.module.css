@@ -1,0 +1,56 @@
+.rating {
+	margin: 0;
+	padding: 0;
+	border: none;
+	min-width: 0;
+}
+
+.legend {
+	composes: field from "./form.module.css";
+	margin-bottom: var(--space-1);
+	padding: 0;
+}
+
+.row {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+}
+
+.stars {
+	display: flex;
+}
+
+.star {
+	position: relative;
+	padding: 0 var(--space-1);
+	font-size: var(--font-size-xl);
+	line-height: 1;
+	cursor: pointer;
+}
+
+/* The radio is hidden but stays focusable; its star shows the focus ring. */
+.input {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	opacity: 0;
+}
+
+.input:focus-visible + span {
+	border-radius: var(--radius-sm);
+	outline: 2px solid var(--color-focus);
+	outline-offset: 1px;
+}
+
+.filled {
+	color: var(--color-star);
+}
+
+.empty {
+	color: var(--color-text-muted);
+}
+
+.button {
+	composes: button from "./form.module.css";
+}

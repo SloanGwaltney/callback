@@ -279,6 +279,53 @@ func TestBoardPersistsAcrossReopen(t *testing.T) {
 	}
 }
 
+// @scenario [features/job-interest.feature#interest-persists] The interest rating is the same after reopening the app
+func TestInterestPersistsAcrossReopen(t *testing.T) {
+	dataDir := t.TempDir()
+	s, conn := openStore(t, dataDir)
+	ctx := context.Background()
+	// @given [features/job-interest.feature] I have a job for "Software Engineer" at "Acme" with an interest rating of 4 stars
+	_, err := s.CreateJob(ctx, store.CreateJobParams{
+		Company: "Acme", Role: "Software Engineer", Status: "saved", Interest: sql.NullInt64{Int64: 4, Valid: true},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// @when [features/job-interest.feature] I close and reopen the app
+	conn.Close()
+	reopened, _ := openStore(t, dataDir)
+
+	// @then [features/job-interest.feature] the card shows 4 of 5 stars
+	rows, err := reopened.ListJobs(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rows) != 1 || rows[0].Interest != (sql.NullInt64{Int64: 4, Valid: true}) {
+		t.Errorf("after reopening: %+v", rows)
+	}
+}
+
+func TestUpdateJobDetailsSetsAndClearsInterest(t *testing.T) {
+	s, _ := openStore(t, t.TempDir())
+	ctx := context.Background()
+	id := createJob(t, s, "Acme", "saved", 0)
+
+	for _, want := range []sql.NullInt64{{Int64: 2, Valid: true}, {}} {
+		err := s.UpdateJobDetails(ctx, store.UpdateJobDetailsParams{ID: id, Company: "Acme", Role: "Software Engineer", Interest: want})
+		if err != nil {
+			t.Fatal(err)
+		}
+		job, err := s.GetJob(ctx, id)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if job.Interest != want {
+			t.Errorf("interest = %+v, want %+v", job.Interest, want)
+		}
+	}
+}
+
 // @scenario [features/job-board.feature#card-order-persists] Card order is the same after reopening the app
 func TestCardOrderPersistsAcrossReopen(t *testing.T) {
 	dataDir := t.TempDir()

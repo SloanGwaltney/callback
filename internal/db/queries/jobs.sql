@@ -18,13 +18,13 @@ WHERE status = ?
 ORDER BY position;
 
 -- name: CreateJob :one
-INSERT INTO jobs (company, role, description, link, salary, location, notes, status, position, date_applied)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO jobs (company, role, description, link, salary, location, notes, status, position, date_applied, interest)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 RETURNING id;
 
 -- name: UpdateJobDetails :exec
 UPDATE jobs
-SET company = ?, role = ?, description = ?, link = ?, salary = ?, location = ?, notes = ?, date_applied = ?
+SET company = ?, role = ?, description = ?, link = ?, salary = ?, location = ?, notes = ?, date_applied = ?, interest = ?
 WHERE id = ?;
 
 -- name: UpdateJobPlacement :exec
