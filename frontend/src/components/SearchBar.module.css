@@ -1,0 +1,38 @@
+.search {
+	position: relative;
+	flex: 1;
+	max-width: 28rem;
+}
+
+/* Room on the right for the clear button. */
+.input {
+	composes: input from "./form.module.css";
+	padding-right: 2.25rem;
+}
+
+/* The clear button below replaces the browser's own, which not every engine draws. */
+.input::-webkit-search-cancel-button {
+	appearance: none;
+}
+
+.clear {
+	position: absolute;
+	top: 50%;
+	right: var(--space-1);
+	width: 1.75rem;
+	height: 1.75rem;
+	transform: translateY(-50%);
+	border: 1px solid transparent;
+	border-radius: var(--radius-sm);
+	background: none;
+	color: var(--color-text-muted);
+	font-size: var(--font-size-lg);
+	line-height: 1;
+	cursor: pointer;
+}
+
+.clear:hover {
+	border-color: var(--color-border);
+	background: var(--color-surface-muted);
+	color: var(--color-text);
+}

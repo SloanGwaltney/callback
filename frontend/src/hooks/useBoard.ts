@@ -18,6 +18,7 @@ export function useBoard() {
 			// @given [features/job-board.feature] I open the job search board
 			// @when [features/job-board.feature] I open the job search board
 			// @given [features/job-cards.feature] I open the job search board
+			// @when [features/board-pagination.feature] I open the job search board
 			setBoard(await GetBoard());
 			setError("");
 		} catch (err) {

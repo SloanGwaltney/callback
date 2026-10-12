@@ -60,6 +60,7 @@
 	--shadow-raised: 0 8px 24px rgb(15 20 30 / 22%);
 
 	--column-width: 17rem;
+	--page-slide-duration: 220ms;
 }
 
 @media (prefers-color-scheme: dark) {

@@ -16,6 +16,7 @@ import {
 	moveAcross,
 	moveFor,
 	statusOf,
+	toTop,
 } from "./boardDnd";
 
 const acme = card(1, "Acme");
@@ -83,6 +84,17 @@ describe("dropping a card", () => {
 			closingReason: "",
 			closingReasonOther: "",
 		});
+	});
+});
+
+describe("toTop", () => {
+	it("moves a card to the top of the column holding it", () => {
+		expect(toTop({ saved: [], applied: [2, 3, 1] }, 1)).toEqual({ saved: [], applied: [1, 2, 3] });
+	});
+
+	it("leaves the items as they are for a card that isn't there", () => {
+		const items = { saved: [2] };
+		expect(toTop(items, 9)).toBe(items);
 	});
 });
 

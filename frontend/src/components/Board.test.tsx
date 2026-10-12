@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { applyMove } from "../board/boardDnd";
+import type { Pages } from "../board/boardView";
 import type { Board as BoardData, Move } from "../hooks/types";
 import { board, card } from "../test/fixtures";
 import { Board } from "./Board";
@@ -38,23 +39,43 @@ function drag(cardId: number, ...overs: (number | string)[]) {
 }
 
 // renderBoard shows the board with a parent that applies moves like useBoard: the card moves at
-// once, then the board is replaced by what the backend returns, when a reload is given.
-function renderBoard(start: BoardData, reload?: (move: Move) => BoardData) {
+// once, then the board is replaced by what the backend returns, when a reload is given. Like App,
+// the parent keeps the search and each column's page; view sets where they start.
+function renderBoard(
+	start: BoardData,
+	reload?: (move: Move) => BoardData,
+	view: { search?: string; pages?: Pages } = {},
+) {
 	const onMove = vi.fn<(move: Move) => Promise<void>>();
 	const onOpenCard = vi.fn();
 	const onAddJob = vi.fn();
+	const controls = { setSearch: (_: string) => {} };
 	function Parent() {
 		const [current, setCurrent] = useState(start);
+		const [search, setSearch] = useState(view.search ?? "");
+		const [pages, setPages] = useState<Pages>(view.pages ?? {});
+		controls.setSearch = setSearch;
 		onMove.mockImplementation(async (move) => {
 			setCurrent((b) => applyMove(b, move));
 			if (reload) {
 				setCurrent(reload(move));
 			}
 		});
-		return <Board board={current} onMove={onMove} onOpenCard={onOpenCard} onAddJob={onAddJob} />;
+		return (
+			<Board
+				board={current}
+				onMove={onMove}
+				onOpenCard={onOpenCard}
+				onAddJob={onAddJob}
+				search={search}
+				pages={pages}
+				onPageChange={(status, page) => setPages((p) => ({ ...p, [status]: page }))}
+			/>
+		);
 	}
 	render(<Parent />);
-	return { onMove, onOpenCard, onAddJob };
+	const clearSearch = () => act(() => controls.setSearch(""));
+	return { onMove, onOpenCard, onAddJob, clearSearch };
 }
 
 function column(label: string) {
@@ -69,6 +90,23 @@ function cardsIn(label: string) {
 }
 
 const acme = card(1, "Acme");
+
+// many makes n cards at "Company <id>", with IDs from first.
+function many(n: number, first = 1) {
+	return Array.from({ length: n }, (_, i) => card(first + i, `Company ${first + i}`));
+}
+
+// names is how cardsIn names the cards with IDs from first to last.
+function names(first: number, last: number) {
+	return Array.from(
+		{ length: last - first + 1 },
+		(_, i) => `Software Engineer at Company ${first + i}`,
+	);
+}
+
+const arrow = (label: string, which: "Previous" | "Next") =>
+	within(column(label)).getByRole("button", { name: `${which} page of ${label}` });
+
 const acmeIn = (label: string) => cardsIn(label).includes("Software Engineer at Acme");
 
 describe("Board", () => {
@@ -545,5 +583,375 @@ describe("Board", () => {
 		onMove.mockRejectedValueOnce("database is locked");
 		drag(acme.id, "offer");
 		expect(await screen.findByRole("alert")).toHaveTextContent("database is locked");
+	});
+
+	describe("searching", () => {
+		// @scenario [features/board-search.feature#search-move-card] Move a matching card to another status while searching
+		it("moves a matching card to another status while searching", () => {
+			// @given [features/board-search.feature] I have a job for "Software Engineer" at "Acme" in "Saved"
+			// @and [features/board-search.feature] I have searched the board for "Acme"
+			const { onMove } = renderBoard(board({ saved: [acme, card(2, "Globex")] }), undefined, {
+				search: "Acme",
+			});
+
+			// @when [features/board-search.feature] I move the card to "Applied"
+			drag(acme.id, "applied");
+
+			expect(onMove).toHaveBeenCalledWith(expect.objectContaining({ jobId: 1, status: "applied" }));
+			// @then [features/board-search.feature] the card appears in the "Applied" column
+			expect(acmeIn("Applied")).toBe(true);
+			// @and [features/board-search.feature] the search for "Acme" is still applied
+			expect(cardsIn("Saved")).toEqual([]);
+		});
+
+		// @scenario [features/board-search.feature#search-move-to-top] A card moved to another status while searching goes to the top of that column
+		it("puts a card moved while searching at the top of its new column", () => {
+			// @given [features/board-search.feature] the "Applied" column holds the jobs at "Globex" and "Initech" in that order
+			// @and [features/board-search.feature] I have a job at "Acme" in "Saved"
+			// @and [features/board-search.feature] I have searched the board for "Acme"
+			const { onMove, clearSearch } = renderBoard(
+				board({ saved: [acme], applied: [card(2, "Globex"), card(3, "Initech")] }),
+				undefined,
+				{ search: "Acme" },
+			);
+
+			// @when [features/board-search.feature] I move the "Acme" card to "Applied"
+			drag(acme.id, "applied");
+			expect(onMove).toHaveBeenCalledWith(
+				expect.objectContaining({ jobId: 1, status: "applied", index: 0 }),
+			);
+			// @and [features/board-search.feature] I clear the search
+			clearSearch();
+
+			// @then [features/board-search.feature] the "Applied" column shows "Acme", "Globex", and "Initech" in that order
+			expect(cardsIn("Applied")).toEqual([
+				"Software Engineer at Acme",
+				"Software Engineer at Globex",
+				"Software Engineer at Initech",
+			]);
+		});
+
+		// @scenario [features/board-search.feature#search-no-reorder] Cards can't be reordered within a column while searching
+		it("doesn't reorder a card within its column while searching", () => {
+			// @given [features/board-search.feature] the "Saved" column holds the jobs at "Acme", "Globex", and "Acme Robotics" in that order
+			// @and [features/board-search.feature] I have searched the board for "Acme"
+			const robotics = card(3, "Acme Robotics");
+			const { onMove, clearSearch } = renderBoard(
+				board({ saved: [acme, card(2, "Globex"), robotics] }),
+				undefined,
+				{ search: "Acme" },
+			);
+
+			// @when [features/board-search.feature] I try to move the "Acme Robotics" card above the "Acme" card
+			drag(robotics.id, acme.id);
+
+			// @then [features/board-search.feature] the "Acme Robotics" card stays where it was
+			expect(onMove).not.toHaveBeenCalled();
+			expect(cardsIn("Saved")).toEqual([
+				"Software Engineer at Acme",
+				"Software Engineer at Acme Robotics",
+			]);
+			// @and [features/board-search.feature] I am told cards can't be reordered while searching
+			expect(screen.getByRole("alert")).toHaveTextContent(
+				"Cards can't be reordered while searching.",
+			);
+			// @and [features/board-search.feature] after I clear the search the "Saved" column shows "Acme", "Globex", and "Acme Robotics" in that order
+			clearSearch();
+			expect(cardsIn("Saved")).toEqual([
+				"Software Engineer at Acme",
+				"Software Engineer at Globex",
+				"Software Engineer at Acme Robotics",
+			]);
+		});
+
+		it("still reorders a card once the search is only spaces", () => {
+			const globex = card(2, "Globex");
+			const { onMove } = renderBoard(board({ saved: [acme, globex] }), undefined, {
+				search: "   ",
+			});
+			drag(globex.id, acme.id);
+			expect(onMove).toHaveBeenCalledWith(expect.objectContaining({ jobId: 2, index: 0 }));
+		});
+	});
+
+	describe("pages", () => {
+		// @scenario [features/board-pagination.feature#column-first-page] A column with more than 10 cards shows its first page
+		it("shows the first page of a column with more than 10 cards", () => {
+			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
+			// @when [features/board-pagination.feature] I open the job search board
+			renderBoard(board({ saved: many(25) }));
+
+			// @then [features/board-pagination.feature] the "Saved" column shows its first 10 cards in order
+			expect(cardsIn("Saved")).toEqual(names(1, 10));
+			// @and [features/board-pagination.feature] the "Saved" column shows that it is on page 1 of 3
+			expect(within(column("Saved")).getByText("Page 1 of 3")).toBeInTheDocument();
+		});
+
+		// @scenario [features/board-pagination.feature#column-fits-one-page] A column with 10 cards or fewer has no pages to move between
+		it("has no pages to move between in a column of 10 cards", () => {
+			// @given [features/board-pagination.feature] the "Applied" column holds 10 jobs
+			// @when [features/board-pagination.feature] I open the job search board
+			renderBoard(board({ applied: many(10) }));
+
+			// @then [features/board-pagination.feature] the "Applied" column shows all 10 cards
+			expect(cardsIn("Applied")).toEqual(names(1, 10));
+			// @and [features/board-pagination.feature] the "Applied" column offers no other pages
+			expect(
+				within(column("Applied")).queryByRole("navigation", { name: "Pages of Applied" }),
+			).not.toBeInTheDocument();
+		});
+
+		// @scenario [features/board-pagination.feature#count-shows-column-total] The column count shows every card in the column, not just the page
+		it("counts every card in the column on a later page", () => {
+			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
+			// @and [features/board-pagination.feature] the "Saved" column is on page 2
+			renderBoard(board({ saved: many(25) }), undefined, { pages: { saved: 2 } });
+
+			// @then [features/board-pagination.feature] the "Saved" column shows a count of 25
+			expect(within(column("Saved")).getByText("25 jobs")).toBeInTheDocument();
+			expect(cardsIn("Saved")).toHaveLength(10);
+		});
+
+		// @scenario [features/board-pagination.feature#next-page] Go to a column's next page
+		it("goes to a column's next page", async () => {
+			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
+			// @and [features/board-pagination.feature] the "Saved" column is on page 1
+			renderBoard(board({ saved: many(25) }));
+
+			// @when [features/board-pagination.feature] I go to the next page of the "Saved" column
+			await userEvent.click(arrow("Saved", "Next"));
+
+			// @then [features/board-pagination.feature] the "Saved" column shows cards 11 to 20
+			expect(cardsIn("Saved")).toEqual(names(11, 20));
+			// @and [features/board-pagination.feature] the "Saved" column shows that it is on page 2 of 3
+			expect(within(column("Saved")).getByText("Page 2 of 3")).toBeInTheDocument();
+		});
+
+		// @scenario [features/board-pagination.feature#previous-page] Go to a column's previous page
+		it("goes to a column's previous page", async () => {
+			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
+			// @and [features/board-pagination.feature] the "Saved" column is on page 3
+			renderBoard(board({ saved: many(25) }), undefined, { pages: { saved: 3 } });
+			expect(cardsIn("Saved")).toEqual(names(21, 25));
+
+			// @when [features/board-pagination.feature] I go to the previous page of the "Saved" column
+			await userEvent.click(arrow("Saved", "Previous"));
+
+			// @then [features/board-pagination.feature] the "Saved" column shows cards 11 to 20
+			expect(cardsIn("Saved")).toEqual(names(11, 20));
+			// @and [features/board-pagination.feature] the "Saved" column shows that it is on page 2 of 3
+			expect(within(column("Saved")).getByText("Page 2 of 3")).toBeInTheDocument();
+		});
+
+		// @scenario [features/board-pagination.feature#page-bounds] A column can't page past its first or last page
+		it.each([
+			[1, "Previous" as const],
+			[3, "Next" as const],
+		])("can't leave page %i with the %s arrow", async (page, which) => {
+			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
+			// @and [features/board-pagination.feature] the "Saved" column is on page <page>
+			renderBoard(board({ saved: many(25) }), undefined, { pages: { saved: page } });
+
+			// @then [features/board-pagination.feature] I can't go to the <direction> page of the "Saved" column
+			expect(arrow("Saved", which)).toHaveAttribute("aria-disabled", "true");
+			await userEvent.click(arrow("Saved", which));
+			expect(within(column("Saved")).getByText(`Page ${page} of 3`)).toBeInTheDocument();
+		});
+
+		// @scenario [features/board-pagination.feature#columns-page-independently] Paging one column leaves the other columns where they are
+		it("pages one column without moving the others", async () => {
+			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
+			// @and [features/board-pagination.feature] the "Applied" column holds 15 jobs
+			renderBoard(board({ saved: many(25), applied: many(15, 101) }));
+
+			// @when [features/board-pagination.feature] I go to the next page of the "Saved" column
+			await userEvent.click(arrow("Saved", "Next"));
+
+			// @then [features/board-pagination.feature] the "Saved" column is on page 2
+			expect(within(column("Saved")).getByText("Page 2 of 3")).toBeInTheDocument();
+			// @and [features/board-pagination.feature] the "Applied" column is still on page 1
+			expect(within(column("Applied")).getByText("Page 1 of 2")).toBeInTheDocument();
+			expect(cardsIn("Applied")).toEqual(
+				Array.from({ length: 10 }, (_, i) => `Software Engineer at Company ${101 + i}`),
+			);
+		});
+
+		// @scenario [features/board-pagination.feature#one-page-per-column] A column shows only one page of cards at a time
+		it("shows only the current page of a column", () => {
+			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
+			// @when [features/board-pagination.feature] I open the job search board
+			renderBoard(board({ saved: many(25) }));
+
+			// @then [features/board-pagination.feature] the "Saved" column shows only the cards on its current page
+			expect(cardsIn("Saved")).toHaveLength(10);
+			// @and [features/board-pagination.feature] cards on other pages of the "Saved" column can't be seen or moved until I page to them
+			expect(
+				screen.queryByRole("button", { name: "Move Software Engineer at Company 11" }),
+			).not.toBeInTheDocument();
+		});
+	});
+
+	describe("page arrows", () => {
+		// @scenario [features/board-pagination.feature#page-arrows] A column with more than one page shows previous and next arrows
+		it("shows previous and next arrows on a column with more than one page", () => {
+			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
+			// @when [features/board-pagination.feature] I open the job search board
+			renderBoard(board({ saved: many(25) }));
+
+			// @then [features/board-pagination.feature] the "Saved" column shows a previous arrow and a next arrow
+			expect(arrow("Saved", "Next")).toHaveAttribute("aria-disabled", "false");
+			// @and [features/board-pagination.feature] the previous arrow can't be used on page 1
+			expect(arrow("Saved", "Previous")).toHaveAttribute("aria-disabled", "true");
+		});
+
+		// @scenario [features/board-pagination.feature#page-transition] Changing page slides the cards in the direction of the arrow
+		it.each([
+			["next" as const, "Next" as const, "left", 3, "right", names(21, 25)],
+			["previous" as const, "Previous" as const, "right", 1, "left", names(1, 10)],
+		])("slides the cards when the %s arrow is used", async (_, which, out, page, into, shown) => {
+			vi.spyOn(window, "matchMedia").mockReturnValue({ matches: false } as MediaQueryList);
+			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
+			// @and [features/board-pagination.feature] the "Saved" column is on page 2
+			renderBoard(board({ saved: many(25), applied: many(15, 101) }), undefined, {
+				pages: { saved: 2 },
+			});
+
+			// @when [features/board-pagination.feature] I use the <arrow> arrow of the "Saved" column
+			await userEvent.click(arrow("Saved", which));
+
+			// @then [features/board-pagination.feature] the cards on page 2 slide out toward the <out> side of the column
+			const leaving = column("Saved").querySelector(`[data-slide="out-${out}"]`);
+			expect(leaving).not.toBeNull();
+			expect(
+				within(leaving as HTMLElement)
+					.getAllByRole("article", { hidden: true })
+					.map((a) => a.getAttribute("aria-label")),
+			).toEqual(names(11, 20));
+			// @and [features/board-pagination.feature] the cards on page <page> slide in from the <in> side of the column
+			expect(within(column("Saved")).getByText(`Page ${page} of 3`)).toBeInTheDocument();
+			expect(cardsIn("Saved")).toEqual(shown);
+			expect(column("Saved").querySelector(`[data-slide="in-${into}"]`)).not.toBeNull();
+			// @and [features/board-pagination.feature] the other columns don't move
+			expect(column("Applied").querySelector("[data-slide]")).toBeNull();
+		});
+
+		it("removes the page that slid out once its animation ends", async () => {
+			vi.spyOn(window, "matchMedia").mockReturnValue({ matches: false } as MediaQueryList);
+			renderBoard(board({ saved: many(25) }));
+			await userEvent.click(arrow("Saved", "Next"));
+			const leaving = column("Saved").querySelector('[data-slide="out-left"]') as HTMLElement;
+			const entering = column("Saved").querySelector('[data-slide="in-right"]') as HTMLElement;
+
+			act(() => {
+				leaving.dispatchEvent(new Event("animationend", { bubbles: true }));
+				entering.dispatchEvent(new Event("animationend", { bubbles: true }));
+			});
+
+			expect(column("Saved").querySelector("[data-slide]")).toBeNull();
+			expect(cardsIn("Saved")).toEqual(names(11, 20));
+		});
+
+		// @scenario [features/board-pagination.feature#page-transition-reduced-motion] Changing page doesn't animate when my system asks for reduced motion
+		it("changes page without sliding when the system asks for reduced motion", async () => {
+			// @given [features/board-pagination.feature] my system is set to reduce motion
+			vi.spyOn(window, "matchMedia").mockReturnValue({ matches: true } as MediaQueryList);
+			// @and [features/board-pagination.feature] the "Saved" column holds 25 jobs
+			renderBoard(board({ saved: many(25) }));
+
+			// @when [features/board-pagination.feature] I use the next arrow of the "Saved" column
+			await userEvent.click(arrow("Saved", "Next"));
+
+			// @then [features/board-pagination.feature] the "Saved" column shows cards 11 to 20 without sliding
+			expect(cardsIn("Saved")).toEqual(names(11, 20));
+			expect(column("Saved").querySelector("[data-slide]")).toBeNull();
+		});
+	});
+
+	describe("moving cards between pages", () => {
+		// @scenario [features/board-pagination.feature#move-card-onto-page] Place a moved card at a chosen position on a later page
+		it("places a moved card at a chosen position on a later page", () => {
+			// @given [features/board-pagination.feature] the "Applied" column holds 25 jobs
+			// @and [features/board-pagination.feature] the "Applied" column is on page 2, showing the jobs at "Globex" and "Initech" next to each other
+			// @and [features/board-pagination.feature] I have a job at "Acme" in "Saved"
+			const applied = many(25, 101);
+			applied[10] = card(2, "Globex");
+			applied[11] = card(3, "Initech");
+			const { onMove } = renderBoard(board({ saved: [acme], applied }), undefined, {
+				pages: { applied: 2 },
+			});
+
+			// @when [features/board-pagination.feature] I move the "Acme" card into "Applied" between "Globex" and "Initech"
+			drag(acme.id, 3, acme.id);
+
+			expect(onMove).toHaveBeenCalledWith(
+				expect.objectContaining({ jobId: 1, status: "applied", index: 11 }),
+			);
+			// @then [features/board-pagination.feature] the "Applied" column shows "Globex", "Acme", and "Initech" in that order on page 2
+			expect(within(column("Applied")).getByText("Page 2 of 3")).toBeInTheDocument();
+			expect(cardsIn("Applied").slice(0, 3)).toEqual([
+				"Software Engineer at Globex",
+				"Software Engineer at Acme",
+				"Software Engineer at Initech",
+			]);
+		});
+
+		it("reorders a card within a later page at its place in the whole column", () => {
+			const { onMove } = renderBoard(board({ saved: many(25) }), undefined, {
+				pages: { saved: 2 },
+			});
+			drag(15, 11);
+			expect(onMove).toHaveBeenCalledWith(
+				expect.objectContaining({ jobId: 15, status: "saved", index: 10 }),
+			);
+			expect(cardsIn("Saved").slice(0, 2)).toEqual([
+				"Software Engineer at Company 15",
+				"Software Engineer at Company 11",
+			]);
+		});
+
+		// @scenario [features/board-pagination.feature#last-card-leaves-page] Moving the only card off the last page shows the page before it
+		it("shows the page before when the only card on the last page moves away", () => {
+			// @given [features/board-pagination.feature] the "Saved" column holds 21 jobs
+			// @and [features/board-pagination.feature] the "Saved" column is on page 3, showing 1 card
+			renderBoard(board({ saved: many(21) }), undefined, { pages: { saved: 3 } });
+			expect(cardsIn("Saved")).toEqual(names(21, 21));
+
+			// @when [features/board-pagination.feature] I move that card to "Applied"
+			drag(21, "applied");
+
+			// @then [features/board-pagination.feature] the "Saved" column is on page 2 of 2
+			expect(within(column("Saved")).getByText("Page 2 of 2")).toBeInTheDocument();
+			expect(cardsIn("Saved")).toEqual(names(11, 20));
+		});
+
+		// @scenario [features/board-pagination.feature#page-filled-after-move] A page fills back up after a card moves out of it
+		it("fills a page back up after a card moves out of it", () => {
+			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
+			// @and [features/board-pagination.feature] the "Saved" column is on page 1
+			renderBoard(board({ saved: many(25) }));
+
+			// @when [features/board-pagination.feature] I move a card on page 1 to "Applied"
+			drag(1, "applied");
+
+			// @then [features/board-pagination.feature] the "Saved" column still shows 10 cards on page 1
+			expect(cardsIn("Saved")).toHaveLength(10);
+			// @and [features/board-pagination.feature] the card that was first on page 2 is now last on page 1
+			expect(cardsIn("Saved").at(-1)).toBe("Software Engineer at Company 11");
+		});
+
+		// @scenario [features/board-pagination.feature#search-results-paged] Matching cards are shown a page at a time
+		it("shows matching cards a page at a time", () => {
+			// @given [features/board-pagination.feature] the "Saved" column holds 15 jobs at "Acme" and 10 jobs at "Globex"
+			const acmes = Array.from({ length: 15 }, (_, i) => card(i + 1, `Acme ${i + 1}`));
+			const globexes = Array.from({ length: 10 }, (_, i) => card(i + 16, `Globex ${i + 1}`));
+			// @when [features/board-pagination.feature] I search the board for "Acme"
+			renderBoard(board({ saved: [...globexes, ...acmes] }), undefined, { search: "Acme" });
+
+			// @then [features/board-pagination.feature] the "Saved" column shows that it is on page 1 of 2
+			expect(within(column("Saved")).getByText("Page 1 of 2")).toBeInTheDocument();
+			expect(cardsIn("Saved")[0]).toBe("Software Engineer at Acme 1");
+			// @and [features/board-pagination.feature] the "Saved" column shows a count of 15
+			expect(within(column("Saved")).getByText("15 jobs")).toBeInTheDocument();
+		});
 	});
 });

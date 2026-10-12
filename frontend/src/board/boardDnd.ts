@@ -62,6 +62,17 @@ export function moveAcross(
 	};
 }
 
+// toTop moves a card to the top of the column holding it. While searching, a card dragged into
+// another column is previewed there, since that's where it lands.
+export function toTop(items: Items, activeId: UniqueIdentifier): Items {
+	const status = containerOf(items, activeId);
+	if (!status) {
+		return items;
+	}
+	const card = Number(activeId);
+	return { ...items, [status]: [card, ...items[status].filter((id) => id !== card)] };
+}
+
 // finishDrop places a dropped card. Over another card in its column, it takes that card's place;
 // moveAcross has already put it in the right column.
 export function finishDrop(
