@@ -140,12 +140,14 @@ const page = {
 		writeFileSync(file, Buffer.from(r.data, "base64"));
 		console.log(`shot: ${file}`);
 	},
-	async click(selector) {
+	// click clicks an element, then waits for what it set off to settle. Pass { wait: 0 } to
+	// screenshot partway through an animation it starts.
+	async click(selector, { wait = 300 } = {}) {
 		const { x, y } = await center(selector);
 		await mouse("mouseMoved", x, y, { buttons: 0 });
 		await mouse("mousePressed", x, y);
 		await mouse("mouseReleased", x, y);
-		await sleep(300);
+		await sleep(wait);
 	},
 	async type(selector, text) {
 		await page.click(selector);
@@ -172,6 +174,33 @@ const page = {
 		const { x, y } = await center(selector);
 		await mouse("mouseMoved", x, y, { buttons: 0 });
 		await sleep(200);
+	},
+	// clearBoard deletes every job, with its documents, through the app's own bindings, then
+	// reloads the page. It only touches temp/drive/appdata, the data dev.sh points the app at.
+	async clearBoard() {
+		await evaluate(`(async () => {
+			const app = window.go.main.App;
+			const board = await app.GetBoard();
+			for (const column of board.columns) {
+				for (const card of column.cards) await app.DeleteJob(card.id);
+			}
+		})()`);
+		await page.goto();
+	},
+	// seed adds jobs through the app's own bindings, then reloads the page. Each job is
+	// { company, role, status, ...other details }, with status defaulting to "saved". Jobs show in
+	// each column in the order given, since a new job goes to the top of its column.
+	async seed(jobs) {
+		await evaluate(`(async () => {
+			const jobs = ${JSON.stringify(jobs)};
+			for (const { status = "saved", ...details } of jobs.reverse()) {
+				await window.go.main.App.AddJob(
+					{ description: "", link: "", salary: "", location: "", notes: "", dateApplied: "", ...details },
+					status,
+				);
+			}
+		})()`);
+		await page.goto();
 	},
 };
 

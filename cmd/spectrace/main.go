@@ -1,10 +1,16 @@
-// Command spectrace shows everything linked to one scenario, layer by layer: its entry points,
-// the code and tests for each step, and the ADRs behind it. Run it from the repository root:
+// Command spectrace shows everything linked to a scenario, layer by layer: its entry points, the
+// code and tests for each step, and the ADRs behind it. Name one scenario, or a feature file to
+// trace each of its scenarios that isn't withdrawn. Run it from the repository root:
 //
 //	go run ./cmd/spectrace move-card-forward
 //	go run ./cmd/spectrace features/job-board.feature#move-card-forward
+//	go run ./cmd/spectrace features/job-board.feature
+//	go run ./cmd/spectrace -missing features/job-board.feature
 //
-// It exits 1 if the scenario or any step has no link in code or in tests, whatever the
+// With -missing, it prints only the links that are missing, under the scenario they belong to,
+// and nothing for a fully linked scenario.
+//
+// It exits 1 if any traced scenario or step has no link in code or in tests, whatever the
 // scenario's status. It reads annotations the way speclint does; see docs/spec-annotations.md.
 package main
 
@@ -13,6 +19,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"text/tabwriter"
 
 	"callback/internal/speclint"
@@ -20,25 +27,77 @@ import (
 
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintln(os.Stderr, "usage: spectrace [-root dir] <scenario-id | features/x.feature#scenario-id>")
+		fmt.Fprintln(os.Stderr, "usage: spectrace [-root dir] [-missing] <scenario-id | features/x.feature#scenario-id | features/x.feature>")
 		flag.PrintDefaults()
 	}
 	root := flag.String("root", ".", "repository root")
+	onlyMissing := flag.Bool("missing", false, "print only the missing links")
 	flag.Parse()
 	if flag.NArg() != 1 {
 		flag.Usage()
 		os.Exit(2)
 	}
 
-	t, err := speclint.TraceScenario(*root, flag.Arg(0))
+	traces, err := trace(*root, flag.Arg(0))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "spectrace:", err)
 		os.Exit(2)
 	}
-	missing := report(os.Stdout, t)
+	missing := 0
+	for i, t := range traces {
+		if *onlyMissing {
+			missing += reportMissing(os.Stdout, t)
+			continue
+		}
+		if i > 0 {
+			fmt.Fprintf(os.Stdout, "\n%s\n\n", strings.Repeat("-", 72))
+		}
+		missing += report(os.Stdout, t)
+	}
+	if len(traces) > 1 {
+		summary(os.Stdout, traces)
+	}
 	if missing > 0 {
 		os.Exit(1)
 	}
+}
+
+// trace traces the scenario ref names, or every scenario in a feature file when ref is a path to
+// one with no "#<id>".
+func trace(root, ref string) ([]*speclint.Trace, error) {
+	if strings.HasSuffix(ref, ".feature") {
+		return speclint.TraceFeature(root, ref)
+	}
+	t, err := speclint.TraceScenario(root, ref)
+	if err != nil {
+		return nil, err
+	}
+	return []*speclint.Trace{t}, nil
+}
+
+// reportMissing writes the scenario's missing links under its ID, or nothing when it's fully
+// linked, and returns how many are missing.
+func reportMissing(out io.Writer, t *speclint.Trace) int {
+	missing := t.Missing()
+	if len(missing) == 0 {
+		return 0
+	}
+	fmt.Fprintf(out, "%s#%s  %s\n", t.Feature, t.Scenario.ID, t.Scenario.Title)
+	for _, m := range missing {
+		fmt.Fprintln(out, "  MISSING:", m)
+	}
+	return len(missing)
+}
+
+// summary writes how many of the traced scenarios are fully linked.
+func summary(out io.Writer, traces []*speclint.Trace) {
+	linked := 0
+	for _, t := range traces {
+		if len(t.Missing()) == 0 {
+			linked++
+		}
+	}
+	fmt.Fprintf(out, "\n%d of %d scenarios fully linked.\n", linked, len(traces))
 }
 
 // report writes the trace and returns how many links are missing.

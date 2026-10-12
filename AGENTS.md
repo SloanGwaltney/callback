@@ -93,6 +93,11 @@ telling the user they work.
 3. Stop with `bash scripts/drive/dev.sh stop`. Stopping the background shell alone leaves the
    app running.
 
+To set up the data a check needs, call `page.clearBoard()` and `page.seed([...jobs])` from the
+steps file while the app runs, or delete it all with `bash scripts/drive/dev.sh reset` while it's
+stopped. `page.click(selector, { wait: 0 })` returns right away, to screenshot an animation
+partway through.
+
 Don't click "Attach a document…" or anything else that opens a native dialog; it would appear
 on the user's screen. When `form.module.css` changes, re-save the stylesheets that `composes`
 from it, or Vite keeps serving their old copies of its rules.

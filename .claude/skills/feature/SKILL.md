@@ -127,15 +127,18 @@ It runs gofmt, `go vet`, speclint, `tsc`, and the tests (see
 
 `speclint` only reports *missing* links for `@status:implemented` scenarios, so while the
 scenarios are still `not-implemented` it won't notice a step you forgot. Check coverage yourself
-by tracing each requested scenario:
+by tracing the requested scenarios. List what's missing across a whole feature file, then trace a
+scenario to read its breakdown:
 
 ```sh
+go run ./cmd/spectrace -missing features/<file>.feature
 go run ./cmd/spectrace <scenario-id>
 ```
 
 It lists the scenario's entry points and each step's code and tests, layer by layer, with the
 same matching rules as `speclint`, and exits 1 with a `MISSING:` line for anything without a link
-in code or in tests. Fix every `MISSING:` line. Also read the breakdown: each step's links should
+in code or in tests. With `-missing` it prints only those lines, under each scenario's ID, and a
+count of the scenarios fully linked. Fix every `MISSING:` line. Also read the breakdown: each step's links should
 sit in the layers that actually carry it out, and a UI scenario should reach the frontend.
 
 ## 7. Report

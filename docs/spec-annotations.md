@@ -154,13 +154,17 @@ Everything linked to one scenario, layer by layer, from the SQL query up to the 
 ```sh
 go run ./cmd/spectrace move-card-forward
 go run ./cmd/spectrace features/job-board.feature#move-card-forward
+go run ./cmd/spectrace features/job-board.feature
+go run ./cmd/spectrace -missing features/job-board.feature
 ```
 
 It prints the scenario's `@scenario` entry points, the code and tests for each step, and the ADRs
 that list it, using the same matching rules as `speclint`: a step's annotation counts when it has
 no scenario ID or this scenario's ID. It exits 1 if the scenario or any step has no link in code
 or in tests, whatever the scenario's status, so it can check a scenario before it's marked
-`implemented`. Its code is in `cmd/spectrace/` and `internal/speclint/trace.go`.
+`implemented`. Given a feature file, it traces each of its scenarios that isn't withdrawn and ends
+with how many are fully linked. `-missing` prints only the missing links, under the scenario they
+belong to. Its code is in `cmd/spectrace/` and `internal/speclint/trace.go`.
 
 ## Checking the links
 
