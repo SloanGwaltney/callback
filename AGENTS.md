@@ -25,6 +25,9 @@ Each entry links to the ADR that chose it.
 - **Drag and drop:** `@dnd-kit/core` and `@dnd-kit/sortable` for moving and reordering board
   cards, with keyboard support.
   ([docs/adr/0013-use-dnd-kit-for-moving-and-reordering-board-cards.md](docs/adr/0013-use-dnd-kit-for-moving-and-reordering-board-cards.md))
+- **AI agents:** agent features are an MCP server that users drive from their own agent, outside
+  the app. No agent, model, or API key inside the app.
+  ([docs/adr/0022-let-users-drive-agent-tasks-from-their-own-agent-over-mcp.md](docs/adr/0022-let-users-drive-agent-tasks-from-their-own-agent-over-mcp.md))
 - **Lint and format:** `gofmt` and `go vet` for Go. Biome and `tsc` for the frontend. One check
   script runs every check. The Stop hook runs it without tests, and CI runs it with tests.
   ([docs/adr/0014-check-code-with-one-script-run-by-the-stop-hook-and-ci.md](docs/adr/0014-check-code-with-one-script-run-by-the-stop-hook-and-ci.md))
