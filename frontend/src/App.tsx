@@ -20,16 +20,11 @@ export default function App() {
 	// adding is the column a new job is being added to, "" for Saved, or null when not adding.
 	const [adding, setAdding] = useState<string | null>(null);
 	const [openJob, setOpenJob] = useState<number | null>(null);
-	// @when [features/board-search.feature] I close and reopen the app
-	// @then [features/board-search.feature#search-not-kept] the search is empty
 	const [search, setSearch] = useState("");
-	// @when [features/board-pagination.feature] I close and reopen the app
-	// @then [features/board-pagination.feature#pages-reset-on-reopen] the "Saved" column is on page 1
 	const [pages, setPages] = useState<Pages>({});
 
 	const changeSearch = (value: string) => {
 		setSearch(value);
-		// @then [features/board-pagination.feature#search-resets-pages] the "Saved" column is on page 1
 		setPages({});
 	};
 
@@ -65,12 +60,8 @@ export default function App() {
 					columns={board.columns}
 					initialStatus={adding}
 					onAdd={async (details, status) => {
-						// @when [features/board-search.feature] I add a job at "Globex" to the "Saved" column
-						// @when [features/board-pagination.feature] I add a job at "Acme" to the "Saved" column
 						await addJob(details, status);
 						// Clearing the search shows every column's first page, where the new job is at the top.
-						// @then [features/board-search.feature#add-job-clears-search] the search is empty
-						// @then [features/board-pagination.feature#new-card-shows-first-page] the "Saved" column is on page 1
 						changeSearch("");
 						setAdding(null);
 					}}

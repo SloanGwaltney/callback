@@ -18,7 +18,6 @@ export function useJob(id: number) {
 		}
 	}, [id]);
 
-	// @when [features/job-cards.feature] I open the card
 	useEffect(() => {
 		void reload();
 	}, [reload]);

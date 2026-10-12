@@ -24,13 +24,6 @@ export type BoardView = { columns: ColumnView[] };
 
 // searching reports whether query filters the board. A query of only spaces doesn't, so every job
 // shows.
-// @then [features/board-search.feature#search-blank-shows-all] I see the card for "Software Engineer" at "Acme"
-// @and [features/board-search.feature#search-blank-shows-all] I see the card for "Product Designer" at "Globex"
-// @then [features/board-search.feature#clear-search] I see the card for "Software Engineer" at "Acme"
-// @and [features/board-search.feature#clear-search] I see the card for "Product Designer" at "Globex"
-// @and [features/board-search.feature#search-not-kept] I see the card for "Product Designer" at "Globex"
-// @and [features/board-search.feature#add-job-clears-search] I see the card for "Software Engineer" at "Acme"
-// @and [features/board-search.feature#add-job-clears-search] I see the card for the job at "Globex"
 export function searching(query: string): boolean {
 	return query.trim() !== "";
 }
@@ -39,12 +32,6 @@ export function searching(query: string): boolean {
 // Only the role and the company are searched, not the job's other details.
 export function matches(card: Card, query: string): boolean {
 	const text = query.trim().toLocaleLowerCase();
-	// @then [features/board-search.feature#search-by-role] I see the card for "Software Engineer" at "Acme"
-	// @then [features/board-search.feature#search-partial-any-case] I see the card for "Software Engineer" at "Acme"
-	// @and [features/board-search.feature] I don't see the card for "Product Designer" at "Globex"
-	// @then [features/board-search.feature#search-by-company] I see the card for "Product Designer" at "Globex"
-	// @and [features/board-search.feature] I don't see the card for "Software Engineer" at "Acme"
-	// @then [features/board-search.feature] I don't see the card for "Software Engineer" at "Globex"
 	return (
 		card.role.toLocaleLowerCase().includes(text) || card.company.toLocaleLowerCase().includes(text)
 	);
@@ -57,14 +44,8 @@ export function filterBoard(board: Board, query: string): Board {
 		return board;
 	}
 	return {
-		// @and [features/board-search.feature] I still see every status column
 		columns: board.columns.map((column) => {
-			// @then [features/board-search.feature] the card for "Software Engineer" at "Acme" is in the "Saved" column
-			// @and [features/board-search.feature] the card for "Data Engineer" at "Globex" is in the "Interviewing" column
 			const cards = column.cards.filter((card) => matches(card, query));
-			// @then [features/board-search.feature] the "Saved" column shows a count of 2
-			// @and [features/board-search.feature] the "Applied" column shows a count of 0
-			// @and [features/board-pagination.feature] the "Saved" column shows a count of 15
 			return { ...column, cards, count: cards.length };
 		}),
 	};
@@ -81,16 +62,8 @@ export function pageBoard(board: Board, pages: Pages): BoardView {
 	return {
 		columns: board.columns.map((column) => {
 			const count = pageCount(column.cards.length);
-			// @then [features/board-pagination.feature] the "Saved" column is on page 2 of 2
 			const page = Math.min(Math.max(pages[column.status] ?? 1, 1), count);
 			const offset = (page - 1) * PAGE_SIZE;
-			// @then [features/board-pagination.feature] the "Saved" column shows its first 10 cards in order
-			// @then [features/board-pagination.feature] the "Applied" column shows all 10 cards
-			// @then [features/board-pagination.feature] the "Saved" column shows cards 11 to 20
-			// @then [features/board-pagination.feature] the "Saved" column shows only the cards on its current page
-			// @and [features/board-pagination.feature] cards on other pages of the "Saved" column can't be seen or moved until I page to them
-			// @then [features/board-pagination.feature] the "Saved" column still shows 10 cards on page 1
-			// @and [features/board-pagination.feature] the card that was first on page 2 is now last on page 1
 			const cards = column.cards.slice(offset, offset + PAGE_SIZE);
 			return { ...column, cards, page, pageCount: count, offset };
 		}),
@@ -100,7 +73,6 @@ export function pageBoard(board: Board, pages: Pages): BoardView {
 // placeInColumn turns a move made on a column's page into a move in the whole column: a drop at
 // index 1 on page 2 lands at index 11. The index still counts with the card already in the column,
 // as jobs.Move expects.
-// @then [features/board-pagination.feature] the "Applied" column shows "Globex", "Acme", and "Initech" in that order on page 2
 export function placeInColumn(view: BoardView, move: Move): Move {
 	const column = view.columns.find((c) => c.status === move.status);
 	return { ...move, index: move.index + (column?.offset ?? 0) };

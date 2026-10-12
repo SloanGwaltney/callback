@@ -23,7 +23,6 @@ type Querier interface {
 	ListJobIDsInStatus(ctx context.Context, status string) ([]int64, error)
 	// Every job with how many documents it has, grouped by status and in board order within each
 	// status.
-	// @then [features/job-board.feature] the "Saved" column shows "Initech", "Acme", and "Globex" in that order
 	ListJobs(ctx context.Context) ([]ListJobsRow, error)
 	SetClosingReason(ctx context.Context, arg SetClosingReasonParams) error
 	SetDocumentKind(ctx context.Context, arg SetDocumentKindParams) error

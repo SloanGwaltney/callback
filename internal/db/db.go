@@ -28,7 +28,6 @@ func Open(ctx context.Context, dataDir string, migrations fs.FS) (*sql.DB, error
 
 	// An existing database file is opened as is, so everything saved in an earlier session is
 	// still there.
-	// @when [features/job-board.feature] I close and reopen the app
 	conn, err := sql.Open("sqlite3", dsn(filepath.Join(dataDir, FileName)))
 	if err != nil {
 		return nil, fmt.Errorf("db: open: %w", err)

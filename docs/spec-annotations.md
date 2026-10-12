@@ -23,7 +23,7 @@ it from the tests that prove it
 ([docs/adr/0021-link-spec-steps-from-tests-and-scenarios-from-code.md](adr/0021-link-spec-steps-from-tests-and-scenarios-from-code.md)):
 
 - **In code,** put a `@scenario` annotation on each entry point. Step annotations in code aren't
-  required. Don't add new ones; the ones already there are being removed separately.
+  required, so don't add them.
 - **In tests,** put a `@scenario` annotation on the test and a step annotation on the test code
   for each step (see section 3).
 

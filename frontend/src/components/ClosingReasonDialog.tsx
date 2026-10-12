@@ -35,19 +35,13 @@ export function ClosingReasonDialog({
 			setError("Choose why the job was closed.");
 			return;
 		}
-		// @and [features/job-board.feature] I choose the closing reason "Other" without writing a reason
 		if (reason === REASON_OTHER && other.trim() === "") {
 			// Nothing is saved, so the card stays where it was.
-			// @then [features/job-board.feature#close-other-needs-text] the card stays in the "Interviewing" column
-			// @and [features/job-board.feature] I am told to write why the job was closed
 			setError("Write why the job was closed.");
 			return;
 		}
 		setSaving(true);
 		try {
-			// @and [features/job-board.feature] I choose the closing reason "<reason>"
-			// @and [features/job-board.feature] I choose the closing reason "Other" and write "Company went through layoffs"
-			// @when [features/job-board.feature] I change the closing reason to "Rejected"
 			await onChoose(reason, reason === REASON_OTHER ? other : "");
 		} catch (err) {
 			setError(errorMessage(err));
@@ -89,7 +83,6 @@ export function ClosingReasonDialog({
 					</p>
 				)}
 				<div className={styles.actions}>
-					{/* @but [features/job-board.feature] I cancel instead of choosing a closing reason */}
 					<button type="button" className={styles.button} onClick={onCancel}>
 						Cancel
 					</button>
