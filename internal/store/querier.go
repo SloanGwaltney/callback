@@ -9,14 +9,20 @@ import (
 )
 
 type Querier interface {
+	CreateContact(ctx context.Context, arg CreateContactParams) (Contact, error)
 	CreateDocument(ctx context.Context, arg CreateDocumentParams) (Document, error)
 	CreateJob(ctx context.Context, arg CreateJobParams) (int64, error)
+	DeleteContact(ctx context.Context, id int64) error
 	DeleteDocument(ctx context.Context, id int64) error
-	// Deletes the job and, through ON DELETE CASCADE, its document rows. The document files are the
+	// Deletes the job and, through ON DELETE CASCADE, its document and contact rows. The document files are the
 	// caller's to delete.
 	DeleteJob(ctx context.Context, id int64) error
+	GetContact(ctx context.Context, id int64) (Contact, error)
 	GetDocument(ctx context.Context, id int64) (Document, error)
 	GetJob(ctx context.Context, id int64) (Job, error)
+	// A job's contacts in the order they were added.
+	// @scenario [features/job-contacts.feature#view-contacts] See a job's contacts when opening its card
+	ListContactsForJob(ctx context.Context, jobID int64) ([]Contact, error)
 	// A job's documents in the order they were attached.
 	ListDocumentsForJob(ctx context.Context, jobID int64) ([]Document, error)
 	// The jobs in one status column, top to bottom.
@@ -27,6 +33,7 @@ type Querier interface {
 	SetClosingReason(ctx context.Context, arg SetClosingReasonParams) error
 	SetDocumentKind(ctx context.Context, arg SetDocumentKindParams) error
 	SetJobPosition(ctx context.Context, arg SetJobPositionParams) error
+	UpdateContact(ctx context.Context, arg UpdateContactParams) error
 	UpdateJobDetails(ctx context.Context, arg UpdateJobDetailsParams) error
 	// Moves a job to a status and position, with the date applied and closing reason that go with it.
 	// Status and closing reason change together so the schema's checks hold after the statement.

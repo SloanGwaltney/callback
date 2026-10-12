@@ -49,6 +49,7 @@ export function job(fields: Partial<Job> = {}): Job {
 		closingReasonOther: "",
 		closingReasonText: "",
 		documents: [],
+		contacts: [],
 		...fields,
 	};
 }

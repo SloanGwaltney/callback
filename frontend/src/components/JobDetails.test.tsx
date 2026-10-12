@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Details, Job } from "../hooks/types";
+import { useContacts } from "../hooks/useContacts";
 import { useDocuments } from "../hooks/useDocuments";
 import { useJob } from "../hooks/useJob";
 import { job } from "../test/fixtures";
@@ -10,6 +11,7 @@ import { JobDetails } from "./JobDetails";
 
 vi.mock("../hooks/useJob", () => ({ useJob: vi.fn() }));
 vi.mock("../hooks/useDocuments", () => ({ useDocuments: vi.fn() }));
+vi.mock("../hooks/useContacts", () => ({ useContacts: vi.fn() }));
 
 // The mocked useJob keeps the job in state, like the real one: saving details replaces it with
 // what the backend returns, here the saved details themselves.
@@ -47,6 +49,12 @@ beforeEach(() => {
 	backend.update.mockResolvedValue();
 	backend.setClosingReason.mockResolvedValue(undefined);
 	backend.openLink.mockResolvedValue();
+	vi.mocked(useContacts).mockReturnValue({
+		add: vi.fn(),
+		update: vi.fn(),
+		remove: vi.fn(),
+		openLink: vi.fn(),
+	});
 	vi.mocked(useDocuments).mockReturnValue({
 		attach: vi.fn(),
 		setKind: vi.fn(),
@@ -295,6 +303,35 @@ describe("JobDetails", () => {
 
 		// @then [features/job-cards.feature] the card for "Software Engineer" at "Acme" no longer appears on the board
 		// @and [features/job-cards.feature] its attached documents are removed too
+		expect(onDelete).toHaveBeenCalledWith(4);
+	});
+
+	// @scenario [features/job-contacts.feature#contacts-deleted-with-job] Deleting a job deletes its contacts
+	it("warns that deleting a job deletes its contacts", async () => {
+		// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme" with the contact "Dana Smith"
+		const dana = {
+			id: 7,
+			jobId: 4,
+			name: "Dana Smith",
+			relationship: "recruiter",
+			email: "",
+			phone: "",
+			profileLink: "",
+			notes: "",
+		};
+		const { onDelete } = renderDetails(job({ id: 4, contacts: [dana] }));
+		expect(screen.getByRole("listitem", { name: "Dana Smith" })).toBeInTheDocument();
+
+		// @when [features/job-contacts.feature] I delete the job
+		await userEvent.click(screen.getByRole("button", { name: "Delete job" }));
+		const confirm = screen.getByRole("dialog", { name: "Delete Software Engineer at Acme?" });
+		// @and [features/job-contacts.feature] I confirm the deletion
+		await userEvent.click(within(confirm).getByRole("button", { name: "Delete" }));
+
+		// @then [features/job-contacts.feature] its contacts are removed too
+		// The backend deletes them with the job (TestDeleteJobDeletesItsContacts); the confirmation
+		// says so.
+		expect(confirm).toHaveTextContent("its contacts");
 		expect(onDelete).toHaveBeenCalledWith(4);
 	});
 

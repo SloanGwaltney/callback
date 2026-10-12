@@ -1,5 +1,6 @@
-// Values the backend uses for statuses, closing reasons, document kinds, and interest ratings, with
-// their labels. They mirror the constants in internal/jobs/jobs.go; keep the two in step.
+// Values the backend uses for statuses, closing reasons, document kinds, interest ratings, and
+// contact relationships, with their labels. They mirror the constants in internal/jobs/jobs.go and
+// internal/jobs/contacts.go; keep them in step.
 
 export const STATUS_SAVED = "saved";
 export const STATUS_APPLIED = "applied";
@@ -33,6 +34,20 @@ export const DOCUMENT_KINDS = [
 	{ value: "cover_letter", label: "Cover letter" },
 	{ value: "other", label: "Other" },
 ];
+
+// How a contact can relate to a job, in the order they're offered, matching jobs.Relationship.
+export const RELATIONSHIPS = [
+	{ value: "recruiter", label: "Recruiter" },
+	{ value: "hiring_manager", label: "Hiring manager" },
+	{ value: "referrer", label: "Referrer" },
+	{ value: "interviewer", label: "Interviewer" },
+	{ value: "other", label: "Other" },
+];
+
+// relationshipLabel is how a relationship is shown, or the value itself if it isn't known.
+export function relationshipLabel(value: string): string {
+	return RELATIONSHIPS.find((r) => r.value === value)?.label ?? value;
+}
 
 // The most stars an interest rating can have, matching jobs.MaxInterest. The fewest is 1.
 export const MAX_INTEREST = 5;

@@ -44,6 +44,7 @@ func TestAddJobWithAllDetails(t *testing.T) {
 		ID: added.ID, Company: "Acme", Role: "Software Engineer", Description: "Build and maintain internal tools.",
 		Link: "https://acme.example.com/jobs/123", Salary: "$120k - $140k", Location: "Remote (US)",
 		Notes: "Referred by Dana from the meetup.", Status: StatusSaved, Documents: []Document{},
+		Contacts: []Contact{},
 	}
 	if !jobsEqual(got, want) {
 		t.Errorf("job = %+v, want %+v", got, want)
@@ -208,6 +209,7 @@ func TestViewJobDetails(t *testing.T) {
 		Notes: "Referred by Dana.", DateApplied: "2026-10-01", Status: StatusApplied,
 		// @and [features/job-cards.feature] I see the documents attached to the job
 		Documents: []Document{{ID: resume, JobID: id, Kind: KindResume, FileName: "resume-2026.pdf"}},
+		Contacts:  []Contact{},
 	}
 	if !jobsEqual(got, want) {
 		t.Errorf("job = %+v, want %+v", got, want)

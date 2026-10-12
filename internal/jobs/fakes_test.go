@@ -23,9 +23,10 @@ import (
 // fakeStore is an in-memory Store. InTx snapshots the data and restores it if fn fails, so
 // rollback can be checked too.
 type fakeStore struct {
-	jobs   map[int64]store.Job
-	docs   map[int64]store.Document
-	nextID int64
+	jobs     map[int64]store.Job
+	docs     map[int64]store.Document
+	contacts map[int64]store.Contact
+	nextID   int64
 	// fail makes the named method return errFake.
 	fail string
 }
@@ -35,13 +36,13 @@ var errFake = errors.New("fake failure")
 var _ Store = (*fakeStore)(nil)
 
 func newFakeStore() *fakeStore {
-	return &fakeStore{jobs: map[int64]store.Job{}, docs: map[int64]store.Document{}}
+	return &fakeStore{jobs: map[int64]store.Job{}, docs: map[int64]store.Document{}, contacts: map[int64]store.Contact{}}
 }
 
 func (f *fakeStore) InTx(ctx context.Context, fn func(store.Querier) error) error {
-	jobs, docs, next := maps.Clone(f.jobs), maps.Clone(f.docs), f.nextID
+	jobs, docs, contacts, next := maps.Clone(f.jobs), maps.Clone(f.docs), maps.Clone(f.contacts), f.nextID
 	if err := fn(f); err != nil {
-		f.jobs, f.docs, f.nextID = jobs, docs, next
+		f.jobs, f.docs, f.contacts, f.nextID = jobs, docs, contacts, next
 		return err
 	}
 	return nil
@@ -52,6 +53,22 @@ func (f *fakeStore) failing(method string) error {
 		return errFake
 	}
 	return nil
+}
+
+func (f *fakeStore) CreateContact(ctx context.Context, arg store.CreateContactParams) (store.Contact, error) {
+	if err := f.failing("CreateContact"); err != nil {
+		return store.Contact{}, err
+	}
+	if _, ok := f.jobs[arg.JobID]; !ok {
+		return store.Contact{}, errors.New("FOREIGN KEY constraint failed")
+	}
+	f.nextID++
+	c := store.Contact{
+		ID: f.nextID, JobID: arg.JobID, Name: arg.Name, Relationship: arg.Relationship, Email: arg.Email,
+		Phone: arg.Phone, ProfileLink: arg.ProfileLink, Notes: arg.Notes,
+	}
+	f.contacts[c.ID] = c
+	return c, nil
 }
 
 func (f *fakeStore) CreateDocument(ctx context.Context, arg store.CreateDocumentParams) (store.Document, error) {
@@ -80,6 +97,11 @@ func (f *fakeStore) CreateJob(ctx context.Context, arg store.CreateJobParams) (i
 	return f.nextID, nil
 }
 
+func (f *fakeStore) DeleteContact(ctx context.Context, id int64) error {
+	delete(f.contacts, id)
+	return nil
+}
+
 func (f *fakeStore) DeleteDocument(ctx context.Context, id int64) error {
 	delete(f.docs, id)
 	return nil
@@ -88,7 +110,16 @@ func (f *fakeStore) DeleteDocument(ctx context.Context, id int64) error {
 func (f *fakeStore) DeleteJob(ctx context.Context, id int64) error {
 	delete(f.jobs, id)
 	maps.DeleteFunc(f.docs, func(_ int64, d store.Document) bool { return d.JobID == id })
+	maps.DeleteFunc(f.contacts, func(_ int64, c store.Contact) bool { return c.JobID == id })
 	return nil
+}
+
+func (f *fakeStore) GetContact(ctx context.Context, id int64) (store.Contact, error) {
+	c, ok := f.contacts[id]
+	if !ok {
+		return store.Contact{}, sql.ErrNoRows
+	}
+	return c, nil
 }
 
 func (f *fakeStore) GetDocument(ctx context.Context, id int64) (store.Document, error) {
@@ -105,6 +136,17 @@ func (f *fakeStore) GetJob(ctx context.Context, id int64) (store.Job, error) {
 		return store.Job{}, sql.ErrNoRows
 	}
 	return job, nil
+}
+
+func (f *fakeStore) ListContactsForJob(ctx context.Context, jobID int64) ([]store.Contact, error) {
+	var out []store.Contact
+	for _, c := range f.contacts {
+		if c.JobID == jobID {
+			out = append(out, c)
+		}
+	}
+	slices.SortFunc(out, func(a, b store.Contact) int { return cmp.Compare(a.ID, b.ID) })
+	return out, nil
 }
 
 func (f *fakeStore) ListDocumentsForJob(ctx context.Context, jobID int64) ([]store.Document, error) {
@@ -177,6 +219,19 @@ func (f *fakeStore) SetDocumentKind(ctx context.Context, arg store.SetDocumentKi
 
 func (f *fakeStore) SetJobPosition(ctx context.Context, arg store.SetJobPositionParams) error {
 	return f.update(arg.ID, func(j *store.Job) { j.Position = arg.Position })
+}
+
+func (f *fakeStore) UpdateContact(ctx context.Context, arg store.UpdateContactParams) error {
+	if err := f.failing("UpdateContact"); err != nil {
+		return err
+	}
+	c, ok := f.contacts[arg.ID]
+	if ok {
+		c.Name, c.Relationship, c.Email = arg.Name, arg.Relationship, arg.Email
+		c.Phone, c.ProfileLink, c.Notes = arg.Phone, arg.ProfileLink, arg.Notes
+		f.contacts[arg.ID] = c
+	}
+	return nil
 }
 
 func (f *fakeStore) UpdateJobDetails(ctx context.Context, arg store.UpdateJobDetailsParams) error {
@@ -304,6 +359,17 @@ func (h *harness) seedDoc(jobID int64, fileName string, kind DocumentKind) int64
 	h.files.copies[stored] = fileName
 	h.store.docs[h.store.nextID] = store.Document{ID: h.store.nextID, JobID: jobID, Kind: string(kind), FileName: fileName, StoredPath: stored}
 	return h.store.nextID
+}
+
+// seedContact adds a contact straight in the store, bypassing the service.
+func (h *harness) seedContact(jobID int64, c store.Contact) int64 {
+	h.store.nextID++
+	c.ID, c.JobID = h.store.nextID, jobID
+	if c.Relationship == "" {
+		c.Relationship = string(RelationshipRecruiter)
+	}
+	h.store.contacts[c.ID] = c
+	return c.ID
 }
 
 func (h *harness) acme(status Status) int64 {

@@ -4,6 +4,7 @@ import type { Details, Job } from "../hooks/types";
 import { useJob } from "../hooks/useJob";
 import { STATUS_CLOSED, STATUS_LABELS } from "../jobs/constants";
 import { ClosingReasonDialog } from "./ClosingReasonDialog";
+import { ContactList } from "./ContactList";
 import { Dialog } from "./Dialog";
 import { DocumentList } from "./DocumentList";
 import styles from "./JobDetails.module.css";
@@ -18,7 +19,8 @@ type Props = {
 	onDelete: (id: number) => Promise<void>;
 };
 
-// JobDetails shows everything about a job when its card is opened, and edits it.
+// JobDetails shows everything about a job when its card is opened, including its contacts and
+// documents, and edits it.
 // @scenario [features/job-cards.feature#view-job-details] View a job's full details
 // @scenario [features/job-board.feature#change-closing-reason] Change the closing reason of a closed job
 export function JobDetails({ jobId, onClose, onChanged, onDelete }: Props) {
@@ -60,6 +62,14 @@ export function JobDetails({ jobId, onClose, onChanged, onDelete }: Props) {
 						onOpenLink={openLink}
 						onDelete={() => onDelete(job.id)}
 						onClose={onClose}
+					/>
+					<ContactList
+						jobId={job.id}
+						contacts={job.contacts}
+						onChanged={() => {
+							void reload();
+							onChanged();
+						}}
 					/>
 					<DocumentList
 						jobId={job.id}
@@ -218,7 +228,7 @@ function ConfirmDelete({ name, onConfirm, onCancel }: ConfirmProps) {
 	return (
 		<Dialog title={`Delete ${name}?`} onClose={onCancel}>
 			<p className={styles.warning}>
-				The job and its attached documents will be removed. This can't be undone.
+				The job, its contacts, and its attached documents will be removed. This can't be undone.
 			</p>
 			{error !== "" && (
 				<p role="alert" className={styles.error}>

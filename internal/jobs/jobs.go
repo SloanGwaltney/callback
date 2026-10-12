@@ -1,6 +1,6 @@
-// Package jobs holds the business rules for the job board, job cards, and job documents. The
-// Wails bindings in app.go call it, and it reaches storage only through the Store and Files
-// interfaces. See docs/adr/0016-put-business-rules-in-services-over-a-transactional-store-interface.md.
+// Package jobs holds the business rules for the job board, job cards, job documents, and job
+// contacts. The Wails bindings in app.go call it, and it reaches storage only through the Store
+// and Files interfaces. See docs/adr/0016-put-business-rules-in-services-over-a-transactional-store-interface.md.
 package jobs
 
 import (
@@ -37,7 +37,8 @@ type Opener interface {
 	Open(target string) error
 }
 
-// Service carries out what the user does on the board, on job cards, and with documents.
+// Service carries out what the user does on the board, on job cards, and with documents and
+// contacts.
 type Service struct {
 	store  Store
 	files  Files
@@ -73,6 +74,8 @@ var (
 	ErrJobNotFound = errors.New("job not found")
 	// ErrDocumentNotFound means no document has the given ID.
 	ErrDocumentNotFound = errors.New("document not found")
+	// ErrContactNotFound means no contact has the given ID.
+	ErrContactNotFound = errors.New("contact not found")
 )
 
 // notFound turns sql.ErrNoRows from a lookup into want.

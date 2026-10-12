@@ -55,10 +55,13 @@ func (a *App) AddJob(details jobs.Details, status jobs.Status) (jobs.Job, error)
 	return a.jobs.AddJob(a.ctx, details, status)
 }
 
-// GetJob returns a job with all its details and documents.
+// GetJob returns a job with all its details, documents, and contacts.
 // @scenario [features/job-cards.feature#view-job-details] View a job's full details
 // @scenario [features/job-documents.feature#attach-multiple-documents] Attach several documents to one job
 // @scenario [features/job-interest.feature#view-interest] See the interest rating when opening the card
+// @scenario [features/job-contacts.feature#view-contacts] See a job's contacts when opening its card
+// @scenario [features/job-contacts.feature#no-contacts] A job with no contacts says so
+// @scenario [features/job-contacts.feature#contacts-persist] Contacts are the same after reopening the app
 func (a *App) GetJob(id int64) (jobs.Job, error) {
 	return a.jobs.Job(a.ctx, id)
 }
@@ -100,6 +103,7 @@ func (a *App) UpdateJob(id int64, details jobs.Details) (jobs.Job, error) {
 // @scenario [features/job-board.feature#close-other-needs-text] Closing with Other needs a written reason
 // @scenario [features/job-board.feature#reorder-closed-keeps-reason] Reordering a card within Closed keeps its closing reason
 // @scenario [features/job-interest.feature#move-keeps-interest] Moving a card keeps its interest rating
+// @scenario [features/job-contacts.feature#move-keeps-contacts] Moving a card keeps its contacts
 func (a *App) MoveJob(move jobs.Move) error {
 	return a.jobs.MoveJob(a.ctx, move)
 }
@@ -110,8 +114,10 @@ func (a *App) SetClosingReason(id int64, reason jobs.ClosingReason, other string
 	return a.jobs.SetClosingReason(a.ctx, id, reason, other)
 }
 
-// DeleteJob deletes a job and its attached documents. The frontend asks for confirmation first.
+// DeleteJob deletes a job, its contacts, and its attached documents. The frontend asks for
+// confirmation first.
 // @scenario [features/job-cards.feature#delete-job] Delete a job after confirming
+// @scenario [features/job-contacts.feature#contacts-deleted-with-job] Deleting a job deletes its contacts
 func (a *App) DeleteJob(id int64) error {
 	return a.jobs.DeleteJob(a.ctx, id)
 }
@@ -170,4 +176,37 @@ func (a *App) RemoveDocument(id int64) error {
 // @scenario [features/job-documents.feature#document-kept-if-original-moved] An attached document still opens after the original file is moved
 func (a *App) OpenDocument(id int64) error {
 	return a.jobs.OpenDocument(a.ctx, id)
+}
+
+// AddContact adds a contact to a job, after its other contacts.
+// @scenario [features/job-contacts.feature#add-contact] Add a contact with all their details
+// @scenario [features/job-contacts.feature#add-contact-minimum] Add a contact with only a name and a relationship
+// @scenario [features/job-contacts.feature#contact-relationships] Choose how a contact relates to the job
+// @scenario [features/job-contacts.feature#contact-missing-required] A contact can't be saved without a name or a relationship
+// @scenario [features/job-contacts.feature#contact-invalid-email] A contact's email must be an email address
+// @scenario [features/job-contacts.feature#contact-invalid-profile-link] A contact's profile link must be a web address
+// @scenario [features/job-contacts.feature#contact-phone-free-text] A phone number is written however I have it
+// @scenario [features/job-contacts.feature#contact-any-status] Contacts can be added to a job in any status
+// @scenario [features/job-contacts.feature#same-person-many-jobs] The same person can be a contact on more than one job
+func (a *App) AddContact(jobID int64, details jobs.ContactDetails) (jobs.Contact, error) {
+	return a.jobs.AddContact(a.ctx, jobID, details)
+}
+
+// UpdateContact replaces a contact's details.
+// @scenario [features/job-contacts.feature#edit-contact] Edit a contact
+// @scenario [features/job-contacts.feature#contacts-edited-separately] Editing a contact on one job doesn't change it on another
+func (a *App) UpdateContact(id int64, details jobs.ContactDetails) (jobs.Contact, error) {
+	return a.jobs.UpdateContact(a.ctx, id, details)
+}
+
+// RemoveContact removes a contact from its job. The frontend asks for confirmation first.
+// @scenario [features/job-contacts.feature#remove-contact] Remove a contact after confirming
+func (a *App) RemoveContact(id int64) error {
+	return a.jobs.RemoveContact(a.ctx, id)
+}
+
+// OpenContactLink opens a contact's profile link in the web browser.
+// @scenario [features/job-contacts.feature#open-contact-profile-link] Open a contact's profile link
+func (a *App) OpenContactLink(id int64) error {
+	return a.jobs.OpenContactLink(a.ctx, id)
 }
