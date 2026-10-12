@@ -8,9 +8,13 @@ export function AddInterview(arg1:number,arg2:jobs.InterviewDetails):Promise<job
 
 export function AddJob(arg1:jobs.Details,arg2:jobs.Status):Promise<jobs.Job>;
 
+export function AddLibraryDocument(arg1:string,arg2:string):Promise<jobs.LibraryDocument>;
+
 export function AttachDocument(arg1:number,arg2:string,arg3:jobs.DocumentKind):Promise<jobs.Document>;
 
 export function ChooseDocumentFile():Promise<string>;
+
+export function ChooseLibraryFile():Promise<string>;
 
 export function ClearNextAction(arg1:number):Promise<jobs.Job>;
 
@@ -20,6 +24,8 @@ export function GetBoard():Promise<jobs.Board>;
 
 export function GetJob(arg1:number):Promise<jobs.Job>;
 
+export function GetLibrary():Promise<Array<jobs.LibraryDocument>>;
+
 export function MoveJob(arg1:jobs.Move):Promise<void>;
 
 export function OpenContactLink(arg1:number):Promise<void>;
@@ -28,15 +34,21 @@ export function OpenDocument(arg1:number):Promise<void>;
 
 export function OpenJobLink(arg1:number):Promise<void>;
 
+export function OpenLibraryDocument(arg1:number):Promise<void>;
+
 export function RemoveContact(arg1:number):Promise<void>;
 
 export function RemoveDocument(arg1:number):Promise<void>;
 
 export function RemoveInterview(arg1:number):Promise<void>;
 
+export function RemoveLibraryDocument(arg1:number):Promise<void>;
+
 export function SetClosingReason(arg1:number,arg2:jobs.ClosingReason,arg3:string):Promise<void>;
 
 export function SetDocumentKind(arg1:number,arg2:jobs.DocumentKind):Promise<void>;
+
+export function SetLibraryDescription(arg1:number,arg2:string):Promise<jobs.LibraryDocument>;
 
 export function SetNextAction(arg1:number,arg2:string,arg3:string):Promise<jobs.Job>;
 

@@ -395,6 +395,36 @@ describe("JobDetails", () => {
 		},
 	);
 
+	// @scenario [features/document-library.feature#library-not-on-jobs] Library documents aren't attached to any job
+	it("shows no attached documents on a job, whatever the library holds", () => {
+		// @given [features/document-library.feature] I have a job for "Software Engineer" at "Acme" with no attached documents
+		// The library's documents are never on a job (TestLibraryDocumentsAreNotOnJobs), so the job
+		// comes from the backend with none.
+		const acme = job({ documents: [] });
+
+		// @when [features/document-library.feature] I open the card
+		renderDetails(acme);
+
+		// @then [features/document-library.feature] the job has no attached documents
+		const documents = screen.getByRole("region", { name: "Documents" });
+		expect(within(documents).getByText("No documents attached.")).toBeInTheDocument();
+		expect(within(documents).queryByRole("listitem")).not.toBeInTheDocument();
+	});
+
+	// @scenario [features/document-library.feature#delete-job-keeps-library] Deleting a job doesn't touch the library
+	it("deletes a job without asking about the document library", async () => {
+		const { onDelete } = renderDetails(job({ id: 4 }));
+
+		// @when [features/document-library.feature] I delete the job
+		await userEvent.click(screen.getByRole("button", { name: "Delete job" }));
+		const confirm = screen.getByRole("dialog", { name: "Delete Software Engineer at Acme?" });
+		// @and [features/document-library.feature] I confirm the deletion
+		await userEvent.click(within(confirm).getByRole("button", { name: "Delete" }));
+
+		// The backend leaves the library alone (TestDeleteJobKeepsTheLibrary).
+		expect(onDelete).toHaveBeenCalledWith(4);
+	});
+
 	it("shows why a job couldn't be deleted", async () => {
 		const { onDelete } = renderDetails(job());
 		onDelete.mockRejectedValue("job not found");

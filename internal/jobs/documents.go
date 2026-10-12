@@ -11,10 +11,11 @@ import (
 	"callback/internal/store"
 )
 
-// MaxDocumentBytes is the largest file that can be attached: 10 MB.
+// MaxDocumentBytes is the largest file that can be attached or added to the library: 10 MB.
 const MaxDocumentBytes = 10 << 20
 
-// AllowedDocumentTypes are the file extensions that can be attached, all text-like documents.
+// AllowedDocumentTypes are the file extensions that can be attached or added to the library, all
+// text-like documents.
 var AllowedDocumentTypes = []string{".txt", ".pdf", ".md", ".docx", ".doc", ".rtf", ".odt"}
 
 // Document is a file attached to a job.
@@ -36,15 +37,8 @@ func (s *Service) AttachDocument(ctx context.Context, jobID int64, src string, k
 	if !kind.valid() {
 		return Document{}, invalid("choose whether the document is a resume, a cover letter, or other")
 	}
-	if !allowedType(src) {
-		return Document{}, invalid("only these document types can be attached: " + strings.Join(AllowedDocumentTypes, ", "))
-	}
-	size, err := s.files.Size(src)
-	if err != nil {
+	if err := s.checkDocumentFile(src, "attached"); err != nil {
 		return Document{}, err
-	}
-	if size > MaxDocumentBytes {
-		return Document{}, invalid("files can be at most 10 MB")
 	}
 	if _, err := s.store.GetJob(ctx, jobID); err != nil {
 		return Document{}, notFound(err, ErrJobNotFound)
@@ -69,6 +63,22 @@ func (s *Service) AttachDocument(ctx context.Context, jobID int64, src string, k
 		return Document{}, err
 	}
 	return documentFromRow(row), nil
+}
+
+// checkDocumentFile checks that the file at src can be attached to a job or added to the library:
+// one of AllowedDocumentTypes, and at most MaxDocumentBytes. verb says which, for the message.
+func (s *Service) checkDocumentFile(src, verb string) error {
+	if !allowedType(src) {
+		return invalid("only these document types can be " + verb + ": " + strings.Join(AllowedDocumentTypes, ", "))
+	}
+	size, err := s.files.Size(src)
+	if err != nil {
+		return err
+	}
+	if size > MaxDocumentBytes {
+		return invalid("files can be at most 10 MB")
+	}
+	return nil
 }
 
 // allowedType reports whether the file's extension is one of AllowedDocumentTypes, ignoring case.

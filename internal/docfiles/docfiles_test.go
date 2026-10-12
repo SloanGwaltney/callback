@@ -195,3 +195,68 @@ func TestSaveMissingFileLeavesNothingBehind(t *testing.T) {
 		t.Errorf("left %d files in the documents folder", len(entries))
 	}
 }
+
+func TestExists(t *testing.T) {
+	d := New(t.TempDir())
+	stored, err := d.Save(writeOriginal(t, "resume-base-2026.docx", "resume"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ok, err := d.Exists(stored); !ok || err != nil {
+		t.Errorf("Exists(saved copy) = %v, %v, want true", ok, err)
+	}
+	if err := d.Remove(stored); err != nil {
+		t.Fatal(err)
+	}
+	if ok, err := d.Exists(stored); ok || err != nil {
+		t.Errorf("Exists(removed copy) = %v, %v, want false", ok, err)
+	}
+	if ok, err := d.Exists(Folder); ok || err != nil {
+		t.Errorf("Exists(the folder itself) = %v, %v, want false", ok, err)
+	}
+}
+
+// @scenario [features/document-library.feature#library-document-kept-if-original-moved] A library document still opens after the original file is moved
+func TestLibraryCopySurvivesTheOriginalBeingDeleted(t *testing.T) {
+	d := New(t.TempDir())
+	// @given [features/document-library.feature] I added "resume-base-2026.docx" to the library
+	original := writeOriginal(t, "resume-base-2026.docx", "base resume as added")
+	stored, err := d.Save(original)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// @and [features/document-library.feature] I have since moved or deleted the original "resume-base-2026.docx" on my computer
+	if err := os.Remove(original); err != nil {
+		t.Fatal(err)
+	}
+
+	// @when [features/document-library.feature] I open "resume-base-2026.docx" from the library
+	got := readStored(t, d, stored)
+
+	// @then [features/document-library.feature] the document opens with the content it had when I added it
+	if got != "base resume as added" {
+		t.Errorf("copy holds %q", got)
+	}
+}
+
+// @scenario [features/document-library.feature#remove-library-document] Remove a library document after confirming
+func TestRemoveLibraryCopyKeepsTheOriginal(t *testing.T) {
+	d := New(t.TempDir())
+	// @given [features/document-library.feature] the library lists "resume-base-2026.docx"
+	original := writeOriginal(t, "resume-base-2026.docx", "resume")
+	stored, err := d.Save(original)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// @when [features/document-library.feature] I remove "resume-base-2026.docx" from the library
+	if err := d.Remove(stored); err != nil {
+		t.Fatal(err)
+	}
+
+	// @and [features/document-library.feature] the original "resume-base-2026.docx" on my computer is not deleted
+	if _, err := os.Stat(original); err != nil {
+		t.Errorf("original gone: %v", err)
+	}
+}

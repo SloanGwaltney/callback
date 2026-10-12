@@ -253,6 +253,34 @@ const page = {
 		})()`);
 		await page.goto();
 	},
+	// clearLibrary removes every document from the document library through the app's own
+	// bindings, then reloads the page. Like clearBoard, it only touches temp/drive/appdata.
+	async clearLibrary() {
+		await evaluate(`(async () => {
+			const app = window.go.main.App;
+			for (const doc of await app.GetLibrary()) await app.RemoveLibraryDocument(doc.id);
+		})()`);
+		await page.goto();
+	},
+	// seedLibrary adds documents to the document library through the app's own bindings, then
+	// reloads the page. Each is { fileName, description?, content? }. Adding copies a real file, so
+	// each is first written to temp/drive/originals. The library lists the last one first.
+	async seedLibrary(docs) {
+		const originals = join(out, "originals");
+		mkdirSync(originals, { recursive: true });
+		const added = docs.map(({ fileName, description = "", content = fileName }) => {
+			const path = join(originals, fileName);
+			writeFileSync(path, content);
+			return { path, description };
+		});
+		await evaluate(`(async () => {
+			const app = window.go.main.App;
+			for (const { path, description } of ${JSON.stringify(added)}) {
+				await app.AddLibraryDocument(path, description);
+			}
+		})()`);
+		await page.goto();
+	},
 };
 
 try {

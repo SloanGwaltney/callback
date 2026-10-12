@@ -84,6 +84,7 @@ func (a *App) AddJob(details jobs.Details, status jobs.Status) (jobs.Job, error)
 // @scenario [features/job-interviews.feature#no-interviews] A job with no interviews says so
 // @scenario [features/job-interviews.feature#interviews-persist] Interviews are the same after reopening the app
 // @scenario [features/job-next-action.feature#view-next-action] See the next action when opening the card
+// @scenario [features/document-library.feature#library-not-on-jobs] Library documents aren't attached to any job
 func (a *App) GetJob(id int64) (jobs.Job, error) {
 	return a.jobs.Job(a.ctx, id)
 }
@@ -139,10 +140,11 @@ func (a *App) SetClosingReason(id int64, reason jobs.ClosingReason, other string
 }
 
 // DeleteJob deletes a job, its contacts, its interviews, and its attached documents. The frontend asks for
-// confirmation first.
+// confirmation first. The document library is never touched.
 // @scenario [features/job-cards.feature#delete-job] Delete a job after confirming
 // @scenario [features/job-contacts.feature#contacts-deleted-with-job] Deleting a job deletes its contacts
 // @scenario [features/job-interviews.feature#interviews-deleted-with-job] Deleting a job deletes its interviews
+// @scenario [features/document-library.feature#delete-job-keeps-library] Deleting a job doesn't touch the library
 func (a *App) DeleteJob(id int64) error {
 	return a.jobs.DeleteJob(a.ctx, id)
 }
@@ -157,12 +159,17 @@ func (a *App) OpenJobLink(id int64) error {
 // attached, and returns the chosen path, or "" if the user cancelled. The webview can't hand Go
 // a file's real path, so the frontend passes this path to AttachDocument.
 func (a *App) ChooseDocumentFile() (string, error) {
+	return a.chooseDocument("Attach a document")
+}
+
+// chooseDocument shows the native file dialog with title, limited to jobs.AllowedDocumentTypes.
+func (a *App) chooseDocument(title string) (string, error) {
 	patterns := make([]string, len(jobs.AllowedDocumentTypes))
 	for i, ext := range jobs.AllowedDocumentTypes {
 		patterns[i] = "*" + ext
 	}
 	return runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
-		Title: "Attach a document",
+		Title: title,
 		Filters: []runtime.FileFilter{{
 			DisplayName: "Documents (" + strings.Join(patterns, ", ") + ")",
 			Pattern:     strings.Join(patterns, ";"),
@@ -275,4 +282,56 @@ func (a *App) SetNextAction(jobID int64, text, expectedDate string) (jobs.Job, e
 // @scenario [features/job-next-action.feature#clear-next-action] Clear the next action once it's done
 func (a *App) ClearNextAction(jobID int64) (jobs.Job, error) {
 	return a.jobs.ClearNextAction(a.ctx, jobID)
+}
+
+// GetLibrary returns every document in the document library, newest first.
+// @scenario [features/document-library.feature#open-library] Go from the board to the document library
+// @scenario [features/document-library.feature#empty-library] An empty library prompts me to add my first document
+// @scenario [features/document-library.feature#library-newest-first] The newest documents are listed first
+// @scenario [features/document-library.feature#library-persists] The library is the same after reopening the app
+func (a *App) GetLibrary() ([]jobs.LibraryDocument, error) {
+	return a.jobs.Library(a.ctx)
+}
+
+// ChooseLibraryFile shows the native file dialog for adding to the library, limited to the
+// document types that can be added, and returns the chosen path, or "" if the user cancelled.
+// The frontend passes this path to AddLibraryDocument.
+func (a *App) ChooseLibraryFile() (string, error) {
+	return a.chooseDocument("Add a document to the library")
+}
+
+// AddLibraryDocument adds a copy of the file at path to the library, with an optional description.
+// @scenario [features/document-library.feature#add-library-document] Add a document with a description
+// @scenario [features/document-library.feature#add-library-document-no-description] Add a document without a description
+// @scenario [features/document-library.feature#library-same-file-twice] The same file can be added more than once
+// @scenario [features/document-library.feature#library-allowed-file-types] Text-like document types can be added
+// @scenario [features/document-library.feature#library-file-type-any-case] A document's type is recognized whatever the letter case of its extension
+// @scenario [features/document-library.feature#library-disallowed-file-types] Other file types can't be added
+// @scenario [features/document-library.feature#library-file-size-limit] A file larger than 10 MB can't be added
+// @scenario [features/document-library.feature#library-file-size-at-limit] A file of exactly 10 MB can be added
+func (a *App) AddLibraryDocument(path, description string) (jobs.LibraryDocument, error) {
+	return a.jobs.AddLibraryDocument(a.ctx, path, description)
+}
+
+// SetLibraryDescription changes a library document's description, or clears it when it's blank.
+// @scenario [features/document-library.feature#edit-library-description] Change a document's description
+// @scenario [features/document-library.feature#clear-library-description] Clear a document's description
+func (a *App) SetLibraryDescription(id int64, description string) (jobs.LibraryDocument, error) {
+	return a.jobs.SetLibraryDescription(a.ctx, id, description)
+}
+
+// RemoveLibraryDocument removes a document from the library, never from a job. The frontend asks
+// for confirmation first.
+// @scenario [features/document-library.feature#remove-library-document] Remove a library document after confirming
+// @scenario [features/document-library.feature#remove-library-keeps-attachments] Removing a library document doesn't remove it from jobs
+func (a *App) RemoveLibraryDocument(id int64) error {
+	return a.jobs.RemoveLibraryDocument(a.ctx, id)
+}
+
+// OpenLibraryDocument opens a library document in the OS default app for its file type.
+// @scenario [features/document-library.feature#open-library-document] Open a library document
+// @scenario [features/document-library.feature#library-document-kept-if-original-moved] A library document still opens after the original file is moved
+// @scenario [features/document-library.feature#open-missing-library-document] Told when a library document's file is missing
+func (a *App) OpenLibraryDocument(id int64) error {
+	return a.jobs.OpenLibraryDocument(a.ctx, id)
 }

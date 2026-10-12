@@ -8,11 +8,13 @@ import type { Board, Details } from "./hooks/types";
 import { useBoard } from "./hooks/useBoard";
 import { useDocuments } from "./hooks/useDocuments";
 import { useJob } from "./hooks/useJob";
+import { useLibrary } from "./hooks/useLibrary";
 import { board, card, fakeUseJob, job } from "./test/fixtures";
 
 vi.mock("./hooks/useBoard", () => ({ useBoard: vi.fn() }));
 vi.mock("./hooks/useJob", () => ({ useJob: vi.fn() }));
 vi.mock("./hooks/useDocuments", () => ({ useDocuments: vi.fn() }));
+vi.mock("./hooks/useLibrary", () => ({ useLibrary: vi.fn() }));
 
 // mockBoard makes useBoard keep the board in state, adding a job at the top of its column and
 // deleting it as the backend would.
@@ -58,6 +60,16 @@ beforeEach(() => {
 	vi.mocked(useDocuments).mockReturnValue({
 		attach: vi.fn(),
 		setKind: vi.fn(),
+		remove: vi.fn(),
+		open: vi.fn(),
+	});
+	vi.mocked(useLibrary).mockReturnValue({
+		documents: [{ id: 1, fileName: "resume-base-2026.docx", description: "Base resume" }],
+		error: "",
+		reload: vi.fn(),
+		chooseFile: vi.fn(),
+		add: vi.fn(),
+		setDescription: vi.fn(),
 		remove: vi.fn(),
 		open: vi.fn(),
 	});
@@ -781,6 +793,56 @@ describe("App", () => {
 			expect(filterBox()).toHaveValue("all");
 			expect(shown("Globex")).toBeInTheDocument();
 			expect(shown("Initech")).toBeInTheDocument();
+		});
+	});
+
+	describe("document library", () => {
+		const boardShown = () => screen.queryByRole("heading", { name: "Job search" });
+		const libraryShown = () => screen.queryByRole("heading", { name: "Document library" });
+
+		// @scenario [features/document-library.feature#open-library] Go from the board to the document library
+		it("goes from the board to the document library", async () => {
+			// @given [features/document-library.feature] I open the job search board
+			mockBoard(board({ saved: [card(1, "Acme")] }));
+			render(<App />);
+			expect(boardShown()).toBeInTheDocument();
+
+			// @when [features/document-library.feature] I go to the document library
+			await userEvent.click(screen.getByRole("button", { name: "Document library" }));
+
+			// @then [features/document-library.feature] I see the document library
+			expect(libraryShown()).toBeInTheDocument();
+			expect(screen.getByRole("listitem", { name: "resume-base-2026.docx" })).toBeInTheDocument();
+			expect(boardShown()).not.toBeInTheDocument();
+			expect(screen.queryByRole("region", { name: "Saved" })).not.toBeInTheDocument();
+		});
+
+		// @scenario [features/document-library.feature#back-to-board] Go back to the board from the document library
+		it("goes back to the board from the document library", async () => {
+			mockBoard(board({ saved: [card(1, "Acme")] }));
+			render(<App />);
+			// @given [features/document-library.feature] I am in the document library
+			await userEvent.click(screen.getByRole("button", { name: "Document library" }));
+
+			// @when [features/document-library.feature] I go back to the board
+			await userEvent.click(screen.getByRole("button", { name: "← Back to board" }));
+
+			// @then [features/document-library.feature] I see the job search board
+			expect(boardShown()).toBeInTheDocument();
+			expect(acmeIn("Saved")).toBeInTheDocument();
+			expect(libraryShown()).not.toBeInTheDocument();
+		});
+
+		it("keeps the board's search after visiting the library", async () => {
+			mockBoard(board({ saved: [card(1, "Acme"), card(2, "Globex")] }));
+			render(<App />);
+			await userEvent.type(screen.getByRole("searchbox"), "Globex");
+
+			await userEvent.click(screen.getByRole("button", { name: "Document library" }));
+			await userEvent.click(screen.getByRole("button", { name: "← Back to board" }));
+
+			expect(screen.getByRole("searchbox")).toHaveValue("Globex");
+			expect(acmeIn("Saved")).not.toBeInTheDocument();
 		});
 	});
 });

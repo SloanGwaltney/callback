@@ -15,6 +15,7 @@ type Querier interface {
 	CreateDocument(ctx context.Context, arg CreateDocumentParams) (Document, error)
 	CreateInterview(ctx context.Context, arg CreateInterviewParams) (Interview, error)
 	CreateJob(ctx context.Context, arg CreateJobParams) (int64, error)
+	CreateLibraryDocument(ctx context.Context, arg CreateLibraryDocumentParams) (LibraryDocument, error)
 	DeleteContact(ctx context.Context, id int64) error
 	DeleteDocument(ctx context.Context, id int64) error
 	DeleteInterview(ctx context.Context, id int64) error
@@ -23,10 +24,12 @@ type Querier interface {
 	// @scenario [features/job-contacts.feature#contacts-deleted-with-job] Deleting a job deletes its contacts
 	// @scenario [features/job-interviews.feature#interviews-deleted-with-job] Deleting a job deletes its interviews
 	DeleteJob(ctx context.Context, id int64) error
+	DeleteLibraryDocument(ctx context.Context, id int64) error
 	GetContact(ctx context.Context, id int64) (Contact, error)
 	GetDocument(ctx context.Context, id int64) (Document, error)
 	GetInterview(ctx context.Context, id int64) (Interview, error)
 	GetJob(ctx context.Context, id int64) (Job, error)
+	GetLibraryDocument(ctx context.Context, id int64) (LibraryDocument, error)
 	// A job's contacts in the order they were added.
 	// @scenario [features/job-contacts.feature#view-contacts] See a job's contacts when opening its card
 	ListContactsForJob(ctx context.Context, jobID int64) ([]Contact, error)
@@ -42,6 +45,9 @@ type Querier interface {
 	// Every job with how many documents it has, grouped by status and in board order within each
 	// status.
 	ListJobs(ctx context.Context) ([]ListJobsRow, error)
+	// The library, newest first. IDs only grow, so the highest is the latest added.
+	// @scenario [features/document-library.feature#library-newest-first] The newest documents are listed first
+	ListLibraryDocuments(ctx context.Context) ([]LibraryDocument, error)
 	// Every interview on or after a date, for every job, in the same order as ListInterviewsForJob
 	// within each job. The board takes each job's first as its next interview.
 	// @scenario [features/job-interviews.feature#card-shows-next-interview] The card shows the date of the next upcoming interview
@@ -49,6 +55,7 @@ type Querier interface {
 	SetClosingReason(ctx context.Context, arg SetClosingReasonParams) error
 	SetDocumentKind(ctx context.Context, arg SetDocumentKindParams) error
 	SetJobPosition(ctx context.Context, arg SetJobPositionParams) error
+	SetLibraryDocumentDescription(ctx context.Context, arg SetLibraryDocumentDescriptionParams) error
 	// Sets what's next on a job and when it's expected, or NULL for no expected date. Nothing else on
 	// the job changes, so its column and place in it stay the same.
 	// @scenario [features/job-next-action.feature#set-next-action] Set a next action with an expected date

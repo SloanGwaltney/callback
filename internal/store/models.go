@@ -54,3 +54,10 @@ type Job struct {
 	NextAction         sql.NullString
 	NextActionDate     sql.NullString
 }
+
+type LibraryDocument struct {
+	ID          int64
+	FileName    string
+	Description string
+	StoredPath  string
+}

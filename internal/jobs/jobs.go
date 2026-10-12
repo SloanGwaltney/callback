@@ -1,5 +1,5 @@
 // Package jobs holds the business rules for the job board, job cards, job documents, job
-// contacts, and job interviews. The Wails bindings in app.go call it, and it reaches storage only through the Store
+// contacts, job interviews, and the document library. The Wails bindings in app.go call it, and it reaches storage only through the Store
 // and Files interfaces. See docs/adr/0016-put-business-rules-in-services-over-a-transactional-store-interface.md.
 package jobs
 
@@ -27,6 +27,8 @@ type Files interface {
 	Save(src string) (stored string, err error)
 	// Remove deletes a stored copy.
 	Remove(stored string) error
+	// Exists reports whether a stored copy is still there.
+	Exists(stored string) (bool, error)
 	// Path returns the absolute path of a stored copy.
 	Path(stored string) string
 }
@@ -37,8 +39,8 @@ type Opener interface {
 	Open(target string) error
 }
 
-// Service carries out what the user does on the board, on job cards, and with documents,
-// contacts, and interviews.
+// Service carries out what the user does on the board, on job cards, with documents, contacts,
+// and interviews, and in the document library.
 type Service struct {
 	store  Store
 	files  Files
@@ -79,6 +81,8 @@ var (
 	ErrContactNotFound = errors.New("contact not found")
 	// ErrInterviewNotFound means no interview has the given ID.
 	ErrInterviewNotFound = errors.New("interview not found")
+	// ErrLibraryDocumentNotFound means no library document has the given ID.
+	ErrLibraryDocumentNotFound = errors.New("library document not found")
 )
 
 // notFound turns sql.ErrNoRows from a lookup into want.
