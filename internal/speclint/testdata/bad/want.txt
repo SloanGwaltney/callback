@@ -4,7 +4,7 @@ app.go:5: @scenario [features/call-reminders.feature#nope]: features/call-remind
 app.go:6: @scenario [features/missing.feature#x]: features/missing.feature doesn't exist
 app.go:7: @scenario [features\call-reminders.feature#cancelled-no-reminder]: the path must be repo-relative with forward slashes, like [features/x.feature]
 app.go:8: @given [features/call-reminders.feature] I had a call scheduled for 3 PM: no such step in features/call-reminders.feature
-app.go:9: @given [features/call-reminders.feature] I cancelled the call: the spec writes this step with "And"; use @and
+app.go:9: @then [features/call-reminders.feature] I cancelled the call: the spec's step takes @and or @given
 app.go:10: @then [features/call-reminders.feature] I receive an SMS reminder: step is only used by withdrawn scenarios; remove this annotation
 app.go:11: @then [features/call-reminders.feature#sms-reminder]: scenario is withdrawn; remove this annotation
 docs/adr/0001-bad-refs.md:3: Related mixes universal with feature references; use one or the other
@@ -19,7 +19,7 @@ docs/adr/0002-no-related.md:1: ADR has no ## Related section
 docs/adr/0003-empty-related.md:3: Related lists no features and isn't universal
 features/call-reminders.feature:1: @status:implemented goes on a Scenario, not on Feature
 features/call-reminders.feature:6: step "Given I had a call scheduled for 3:00 PM" of implemented scenario cancelled-no-reminder has no @given [features/call-reminders.feature] annotation in code
-features/call-reminders.feature:7: step "And I cancelled the call" of implemented scenario cancelled-no-reminder has no @and [features/call-reminders.feature] annotation in code or tests
+features/call-reminders.feature:7: step "And I cancelled the call" of implemented scenario cancelled-no-reminder has no @and or @given [features/call-reminders.feature] annotation in code or tests
 features/call-reminders.feature:8: step "Then I do not receive a reminder" of implemented scenario cancelled-no-reminder has no @then [features/call-reminders.feature] annotation in code or tests
 features/call-reminders.feature:11: scenario "Missing an ID" has no @id: tag
 features/call-reminders.feature:14: scenario "Missing a status" has no @status: tag

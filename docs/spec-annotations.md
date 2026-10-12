@@ -40,6 +40,10 @@ Rules:
 
 - **Copy the text exactly** from the `.feature` file, keyword removed. That includes outline
   placeholders like `<sound>`. The text is the search key, so don't paraphrase it.
+- **`And` and `But` take their own keyword or the one they continue.** "And I clear the search"
+  after a `When` is linked by `@and` or `@when`, so one `@when` annotation covers the step in a
+  scenario that writes it with `When` and in one that writes it with `And`. An `And` or `But` that
+  starts a scenario takes only its own keyword.
 - **Use the repo-relative path** with forward slashes, e.g. `[features/call-reminders.feature]`.
 - **`@scenario` always carries the scenario's ID**, taken from its `@id:` tag:
   `[features/call-reminders.feature#cancelled-no-reminder]`.

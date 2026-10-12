@@ -155,7 +155,7 @@ func (l *linter) link(root string, t *Trace) error {
 			continue
 		}
 		for i, st := range t.Scenario.Steps {
-			if a.Keyword == strings.ToLower(st.Keyword) && a.Text == st.Text {
+			if st.Accepts(a.Keyword) && a.Text == st.Text {
 				t.Steps[i].Links = append(t.Steps[i].Links, a)
 			}
 		}

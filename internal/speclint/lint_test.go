@@ -3,6 +3,7 @@ package speclint
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -83,6 +84,39 @@ func TestParseAnnotationsInSQL(t *testing.T) {
 	// -- isn't a comment in Go, so it doesn't count there.
 	if got := parseAnnotations("f.go", "-- @then [features/a.feature] x", false); len(got) != 0 {
 		t.Errorf("parsed %d annotations from -- in a .go file, want 0", len(got))
+	}
+}
+
+// And and But continue the kind of the step before them, so they take either keyword.
+func TestStepKindContinuesTheStepBefore(t *testing.T) {
+	f, problems := parseFeature("features/x.feature", `Feature: X
+  @status:not-implemented @id:x
+  Scenario: X
+    And something already true
+    Given I have a call
+    And I cancelled it
+    When I move the card
+    But I cancel
+    Then it stays
+    And nothing is sent
+`)
+	if len(problems) != 0 {
+		t.Fatalf("problems: %v", problems)
+	}
+	var kinds []string
+	for _, st := range f.Scenarios[0].Steps {
+		kinds = append(kinds, st.Keyword+":"+st.Kind)
+	}
+	want := []string{"And:and", "Given:given", "And:given", "When:when", "But:when", "Then:then", "And:then"}
+	if !reflect.DeepEqual(kinds, want) {
+		t.Errorf("got %v, want %v", kinds, want)
+	}
+
+	cancelled := f.Scenarios[0].Steps[2]
+	for kw, want := range map[string]bool{"and": true, "given": true, "when": false, "but": false} {
+		if got := cancelled.Accepts(kw); got != want {
+			t.Errorf("Accepts(%q) = %v, want %v", kw, got, want)
+		}
 	}
 }
 

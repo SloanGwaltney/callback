@@ -39,7 +39,6 @@ export function SearchBar({ value, onChange }: Props) {
 			/>
 			{value !== "" && (
 				// @when [features/board-search.feature] I clear the search
-				// @and [features/board-search.feature] I clear the search
 				<button
 					type="button"
 					className={styles.clear}
