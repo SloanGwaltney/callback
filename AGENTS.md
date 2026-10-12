@@ -50,6 +50,7 @@ Each entry links to the ADR that chose it.
 One line each. Each entry links to the ADR that set it.
 
 - **Business rules:** in service packages under `internal/`, over a `store.Querier` + `InTx` interface; `app.go` bindings only call services ([docs/adr/0016-put-business-rules-in-services-over-a-transactional-store-interface.md](docs/adr/0016-put-business-rules-in-services-over-a-transactional-store-interface.md))
+- **Board search and pagination:** done in the frontend over the whole board from `GetBoard`; card order stays in the jobs service ([docs/adr/0020-search-and-paginate-the-board-in-the-frontend.md](docs/adr/0020-search-and-paginate-the-board-in-the-frontend.md))
 - **Opening files and links:** only through the hand-written opener in `internal/desktop`, never Wails' `BrowserOpenURL`, and only `http`/`https` links ([docs/adr/0017-open-documents-and-links-with-a-hand-written-os-opener.md](docs/adr/0017-open-documents-and-links-with-a-hand-written-os-opener.md))
 
 ## Dependencies
