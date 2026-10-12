@@ -16,11 +16,20 @@ Before writing code for a new feature, find the scenarios it covers:
 - Don't change a scenario's status to `@status:implemented` yourself. That happens only when the
   user says the feature is built (see the skill's change rules).
 
-## 2. Annotate the code that executes each step
+## 2. Where links go
 
-Every scenario you implement, and every step in it, must be traceable from the source code.
-Put a comment directly above the line or block of code that carries out that part of the
-scenario, in this format:
+Every scenario you implement must be traceable from the code where it starts, and every step in
+it from the tests that prove it
+([docs/adr/0021-link-spec-steps-from-tests-and-scenarios-from-code.md](adr/0021-link-spec-steps-from-tests-and-scenarios-from-code.md)):
+
+- **In code,** put a `@scenario` annotation on each entry point. Step annotations in code aren't
+  required. Don't add new ones; the ones already there are being removed separately.
+- **In tests,** put a `@scenario` annotation on the test and a step annotation on the test code
+  for each step (see section 3).
+
+Grepping a step's text finds its test, and the test leads to the code it calls.
+
+Each annotation is a comment directly above the line or block it links, in this format:
 
 ```
 @<keyword> [<path to .feature file>#<scenario id>] <exact text from the file>
@@ -55,16 +64,16 @@ Rules:
   a reminder`.
 - **`@scenario` goes on the entry point**: the function, handler, or Wails-bound method where the
   behavior starts.
-- **Step annotations go on the code that does the step**, not on the function that wraps it. If
-  you have to read past the comment to find the code that does the step, the comment is in the
-  wrong place.
+- **Step annotations go on the test code that does the step:** the setup, the action, or the
+  assertion. If you have to read past the comment to find that code, the comment is in the wrong
+  place.
 - **One piece of code can carry more than one annotation** when it fulfills several steps or
   scenarios. Stack the comments.
-- **A `Then` checks an observable outcome.** Annotate the code that produces that outcome, such
-  as the emitted event, the returned value, or the UI state change.
+- **A `Then` checks an observable outcome.** Annotate the assertion on that outcome, such as the
+  emitted event, the returned value, or the UI state.
 - Use the language's line comment: `//` in Go and TypeScript, `{/* */}` inside JSX, `--` in SQL.
-- **SQL queries are annotated like code.** Put the annotation on the clause that does the step,
-  such as an `ORDER BY`. sqlc copies a query's comments into the Go it generates, so the
+- **SQL queries are annotated like code.** A query that's a scenario's entry point gets its
+  `@scenario` annotation. sqlc copies a query's comments into the Go it generates, so the
   annotation also appears on the generated method. That copy is expected; change the `.sql`
   file and regenerate rather than editing it.
 - **Don't annotate migrations.** A migration records a past change to the schema, and a later
@@ -89,16 +98,12 @@ Spec (`features/call-reminders.feature`):
     Then I do not receive a reminder
 ```
 
-Code:
+Code, with only the entry point linked:
 
 ```go
 // @scenario [features/call-reminders.feature#cancelled-no-reminder] No reminder for a cancelled call
-// @when [features/call-reminders.feature] the time reaches 2:45 PM
 func (s *Scheduler) onTick(now time.Time) {
-	// @given [features/call-reminders.feature] I had a call scheduled for 3:00 PM
 	for _, call := range s.callsDueForReminder(now) {
-		// @and [features/call-reminders.feature] I cancelled the call
-		// @then [features/call-reminders.feature] I do not receive a reminder
 		if call.Cancelled {
 			continue
 		}
@@ -107,10 +112,10 @@ func (s *Scheduler) onTick(now time.Time) {
 }
 ```
 
-## 3. Annotate tests the same way
+## 3. Annotate the tests
 
-Tests use the same annotations, so a grep for a scenario finds its tests next to its
-implementation.
+Tests carry the scenario and every step, so a grep for a scenario finds its tests next to its
+entry points, and a grep for a step finds the test that proves it.
 
 - Put `@scenario` on the test function, or on the subtest/`it` block when one test function
   covers several scenarios.
@@ -162,10 +167,10 @@ go run ./cmd/spectrace features/job-board.feature
 go run ./cmd/spectrace -missing features/job-board.feature
 ```
 
-It prints the scenario's `@scenario` entry points, the code and tests for each step, and the ADRs
-that list it, using the same matching rules as `speclint`: a step's annotation counts when it has
-no scenario ID or this scenario's ID. It exits 1 if the scenario or any step has no link in code
-or in tests, whatever the scenario's status, so it can check a scenario before it's marked
+It prints the scenario's `@scenario` entry points, the tests (and any code) for each step, and the
+ADRs that list it, using the same matching rules as `speclint`: a step's annotation counts when it
+has no scenario ID or this scenario's ID. It exits 1 if the scenario has no `@scenario` link in
+code or in tests, or any step has no link in tests, whatever the scenario's status, so it can check a scenario before it's marked
 `implemented`. Given a feature file, it traces each of its scenarios that isn't withdrawn and ends
 with how many are fully linked. `-missing` prints only the missing links, under the scenario they
 belong to. Its code is in `cmd/spectrace/` and `internal/speclint/trace.go`.
@@ -182,10 +187,10 @@ go run ./cmd/speclint
 
 It prints `file:line: problem` for each finding and exits 1 if there are any. It reports:
 
-- **Missing links.** Every `@status:implemented` scenario needs a `@scenario` annotation, and
-  each of its steps a step annotation, in both code and tests. A test file is `*_test.go`,
+- **Missing links.** Every `@status:implemented` scenario needs a `@scenario` annotation in both
+  code and tests, and each of its steps a step annotation in tests. A test file is `*_test.go`,
   `*.test.*`, `*.spec.*`, or anything under `__tests__/`.
-- **Broken links.** Annotations that point at a missing file or ID, copy a title or step text
+- **Broken links.** Annotations, in code or tests, that point at a missing file or ID, copy a title or step text
   inexactly, use the wrong keyword (`@given` for an `And` step), or leave the ID off `@scenario`.
 - **Stale links.** Annotations on withdrawn scenarios, or on steps only withdrawn scenarios use.
 - **Malformed specs.** Scenarios without exactly one valid `@status:` and one kebab-case `@id:`,

@@ -33,11 +33,13 @@ type ADRRef struct {
 	Whole bool
 }
 
-// Missing lists what the scenario lacks: a link in code or in tests for its @scenario and for each
-// step, worded for a person to read. It's empty when the scenario is fully linked.
+// Missing lists what the scenario lacks, worded for a person to read: a link in code or in tests
+// for its @scenario, and a link in tests for each step. Step links in code are optional
+// (docs/adr/0021-link-spec-steps-from-tests-and-scenarios-from-code.md). It's empty when the
+// scenario is fully linked.
 func (t *Trace) Missing() []string {
 	var out []string
-	check := func(what string, links []Annotation) {
+	check := func(what string, links []Annotation, needCode bool) {
 		var code, test bool
 		for _, a := range links {
 			if a.Test {
@@ -46,16 +48,16 @@ func (t *Trace) Missing() []string {
 				code = true
 			}
 		}
-		if !code {
+		if needCode && !code {
 			out = append(out, what+" has no link in code")
 		}
 		if !test {
 			out = append(out, what+" has no link in tests")
 		}
 	}
-	check("@scenario", t.Entry)
+	check("@scenario", t.Entry, true)
 	for _, s := range t.Steps {
-		check(fmt.Sprintf("%s %s", s.Step.Keyword, s.Step.Text), s.Links)
+		check(fmt.Sprintf("%s %s", s.Step.Keyword, s.Step.Text), s.Links, false)
 	}
 	return out
 }

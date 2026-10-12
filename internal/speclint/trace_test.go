@@ -87,9 +87,7 @@ func TestTraceReportsMissingLinks(t *testing.T) {
 	want := []string{
 		"@scenario has no link in code",
 		"@scenario has no link in tests",
-		"When I snooze it has no link in code",
 		"When I snooze it has no link in tests",
-		"Then it fires again in 5 minutes has no link in code",
 		"Then it fires again in 5 minutes has no link in tests",
 	}
 	if got := tr.Missing(); !reflect.DeepEqual(got, want) {

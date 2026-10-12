@@ -1,5 +1,5 @@
 // Command spectrace shows everything linked to a scenario, layer by layer: its entry points, the
-// code and tests for each step, and the ADRs behind it. Name one scenario, or a feature file to
+// tests (and any code) for each step, and the ADRs behind it. Name one scenario, or a feature file to
 // trace each of its scenarios that isn't withdrawn. Run it from the repository root:
 //
 //	go run ./cmd/spectrace move-card-forward
@@ -10,8 +10,8 @@
 // With -missing, it prints only the links that are missing, under the scenario they belong to,
 // and nothing for a fully linked scenario.
 //
-// It exits 1 if any traced scenario or step has no link in code or in tests, whatever the
-// scenario's status. It reads annotations the way speclint does; see docs/spec-annotations.md.
+// It exits 1 if any traced scenario has no @scenario link in code or in tests, or any step has no
+// link in tests, whatever the scenario's status. It reads annotations the way speclint does; see docs/spec-annotations.md.
 package main
 
 import (
@@ -129,7 +129,7 @@ func report(out io.Writer, t *speclint.Trace) int {
 	missing := t.Missing()
 	fmt.Fprintln(out)
 	if len(missing) == 0 {
-		fmt.Fprintf(out, "Fully linked: @scenario and all %d steps in code and tests.\n", len(t.Steps))
+		fmt.Fprintf(out, "Fully linked: @scenario in code and tests, and all %d steps in tests.\n", len(t.Steps))
 		return 0
 	}
 	for _, m := range missing {

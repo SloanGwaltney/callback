@@ -204,8 +204,9 @@ func (l *linter) checkAnnotation(a Annotation) {
 	}
 }
 
-// checkCoverage reports implemented scenarios, and their steps, that have no annotation in code
-// or in tests.
+// checkCoverage reports implemented scenarios with no @scenario annotation in code or in tests,
+// and steps of them with no annotation in tests. Step annotations in code are allowed but not
+// required (docs/adr/0021-link-spec-steps-from-tests-and-scenarios-from-code.md).
 func (l *linter) checkCoverage() {
 	type key struct{ feature, keyword, id, text string }
 	index := map[key]*found{}
@@ -246,12 +247,10 @@ func (l *linter) checkCoverage() {
 
 			for _, st := range s.Steps {
 				kw := strings.ToLower(st.Keyword)
-				var got found
+				got := found{code: true}
 				for _, k := range []string{kw, st.Kind} {
 					for _, id := range []string{"", s.ID} {
-						f := has(key{p, k, id, st.Text})
-						got.code = got.code || f.code
-						got.test = got.test || f.test
+						got.test = got.test || has(key{p, k, id, st.Text}).test
 					}
 				}
 				want := "@" + kw
