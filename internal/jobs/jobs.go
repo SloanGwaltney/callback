@@ -55,8 +55,6 @@ const dateLayout = "2006-01-02"
 
 // today returns the current local date as YYYY-MM-DD.
 func (s *Service) today() string {
-	// @given [features/job-board.feature] today is 2026-10-09
-	// @given [features/job-cards.feature] today is 2026-10-09
 	return s.now().Format(dateLayout)
 }
 

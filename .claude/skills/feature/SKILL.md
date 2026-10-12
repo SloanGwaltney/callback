@@ -88,9 +88,7 @@ Annotate as you write, not at the end:
 
 Don't add step annotations (`@given`, `@when`, and so on) to code. Steps are linked from the tests
 that prove them (step 5), as
-`docs/adr/0021-link-spec-steps-from-tests-and-scenarios-from-code.md` decided. Code that already
-carries step annotations keeps them until they're removed separately; keep their text in sync if
-you reword a step.
+`docs/adr/0021-link-spec-steps-from-tests-and-scenarios-from-code.md` decided.
 
 ## 5. Test
 

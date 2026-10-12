@@ -25,7 +25,6 @@ type Props = {
 // @scenario [features/job-board.feature#new-card-at-top] A newly added job goes to the top of its column
 export function AddJobDialog({ columns, initialStatus, onAdd, onCancel }: Props) {
 	const [details, setDetails] = useState<Details>(emptyDetails);
-	// @then [features/job-cards.feature] a card for "Software Engineer" at "Acme" appears in the "Saved" column
 	const [status, setStatus] = useState(initialStatus || STATUS_SAVED);
 	const [error, setError] = useState("");
 	const [saving, setSaving] = useState(false);
@@ -35,18 +34,9 @@ export function AddJobDialog({ columns, initialStatus, onAdd, onCancel }: Props)
 		e.preventDefault();
 		setSaving(true);
 		try {
-			// @when [features/job-cards.feature] I add a job with:
-			// @when [features/job-cards.feature] I add a job with company "Acme" and role "Software Engineer" and nothing else
-			// @when [features/job-cards.feature] I add a job with company "Acme" and role "Software Engineer" to the "Applied" column
-			// @when [features/job-board.feature] I add a job at "Acme" to the "Saved" column
-			// @when [features/job-cards.feature] I try to add a job with company "Acme" and role "Software Engineer" to the "Closed" column
-			// @when [features/job-cards.feature] I try to add a job with company "<company>" and role "<role>"
 			await onAdd(details, status);
 		} catch (err) {
 			// The dialog stays open with what was entered.
-			// @then [features/job-cards.feature] the job is not added
-			// @and [features/job-cards.feature] I am told to add the job to another column and move it to Closed
-			// @and [features/job-cards.feature] I am told that the <missing> is required
 			setError(errorMessage(err));
 			setSaving(false);
 		}
@@ -58,7 +48,6 @@ export function AddJobDialog({ columns, initialStatus, onAdd, onCancel }: Props)
 				<JobFields details={details} onChange={setDetails} />
 				<div className={styles.column}>
 					<label htmlFor={columnId}>Column</label>
-					{/* @then [features/job-cards.feature] a card for "Software Engineer" at "Acme" appears in the "Applied" column */}
 					<select
 						id={columnId}
 						className={styles.select}

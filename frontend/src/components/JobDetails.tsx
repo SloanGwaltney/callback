@@ -37,7 +37,6 @@ export function JobDetails({ jobId, onClose, onChanged, onDelete }: Props) {
 				<>
 					<p className={styles.status}>
 						In <strong>{STATUS_LABELS[job.status] ?? job.status}</strong>
-						{/* @given [features/job-board.feature#change-closing-reason] I have a job for "Software Engineer" at "Acme" in "Closed" with the closing reason "No response" */}
 						{job.status === STATUS_CLOSED && (
 							<>
 								{" "}
@@ -112,7 +111,6 @@ type FormProps = {
 // @scenario [features/job-cards.feature#delete-job] Delete a job after confirming
 // @scenario [features/job-cards.feature#cancel-delete-job] Cancel deleting a job
 function DetailsForm({ job, onSave, onOpenLink, onDelete, onClose }: FormProps) {
-	// @then [features/job-cards.feature] I see the company, role, job description, link, salary, location, notes, and date applied
 	const [details, setDetails] = useState<Details>({
 		company: job.company,
 		role: job.role,
@@ -132,22 +130,10 @@ function DetailsForm({ job, onSave, onOpenLink, onDelete, onClose }: FormProps) 
 		setError("");
 		setSaved(false);
 		try {
-			// @when [features/job-cards.feature] I change the role to "Senior Software Engineer"
-			// @and [features/job-cards.feature] I change the job description
-			// @when [features/job-cards.feature] I set the salary to "<salary>"
-			// @when [features/job-cards.feature] I write in the notes "Recruiter call went well, follow up Friday."
-			// @when [features/job-cards.feature] I add "Phone screen booked for 10/14." on a new line in the notes
-			// @when [features/job-cards.feature] I set the date applied to 2026-10-01
-			// @when [features/job-cards.feature] I try to set the link to "not a url"
-			// @when [features/job-cards.feature] I try to set the date applied to 2026-10-20
 			await onSave(details);
 			setSaved(true);
 		} catch (err) {
 			// The form keeps what was entered, and nothing is saved.
-			// @then [features/job-cards.feature] the link is not saved
-			// @and [features/job-cards.feature] I am told the link must be a web address
-			// @then [features/job-cards.feature] the date applied is not saved
-			// @and [features/job-cards.feature] I am told the date applied can't be in the future
 			setError(errorMessage(err));
 		}
 	};
@@ -155,7 +141,6 @@ function DetailsForm({ job, onSave, onOpenLink, onDelete, onClose }: FormProps) 
 	const openLink = async () => {
 		setError("");
 		try {
-			// @when [features/job-cards.feature] I open the job's link
 			await onOpenLink();
 		} catch (err) {
 			setError(errorMessage(err));
@@ -182,11 +167,9 @@ function DetailsForm({ job, onSave, onOpenLink, onDelete, onClose }: FormProps) 
 				</p>
 			)}
 			<div className={styles.actions}>
-				{/* @when [features/job-cards.feature] I delete the job */}
 				<button type="button" className={styles.danger} onClick={() => setConfirmingDelete(true)}>
 					Delete job
 				</button>
-				{/* @given [features/job-cards.feature] I have a job for "Software Engineer" at "Acme" with the link "https://acme.example.com/jobs/123" */}
 				<button
 					type="button"
 					className={styles.button}
@@ -225,7 +208,6 @@ function ConfirmDelete({ name, onConfirm, onCancel }: ConfirmProps) {
 	const confirm = async () => {
 		setError("");
 		try {
-			// @and [features/job-cards.feature] I confirm the deletion
 			await onConfirm();
 		} catch (err) {
 			setError(errorMessage(err));
@@ -242,8 +224,6 @@ function ConfirmDelete({ name, onConfirm, onCancel }: ConfirmProps) {
 				</p>
 			)}
 			<div className={styles.actions}>
-				{/* @but [features/job-cards.feature] I cancel the deletion */}
-				{/* @then [features/job-cards.feature] the card for "Software Engineer" at "Acme" is still on the board */}
 				<button type="button" className={styles.button} onClick={onCancel}>
 					Cancel
 				</button>

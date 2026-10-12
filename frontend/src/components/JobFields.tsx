@@ -75,7 +75,6 @@ export function JobFields({ details, onChange }: Props) {
 						onChange={(e) => onChange({ ...details, dateApplied: e.target.value })}
 					/>
 					{details.dateApplied !== "" && (
-						// @when [features/job-cards.feature] I clear the date applied
 						<button
 							type="button"
 							className={styles.button}

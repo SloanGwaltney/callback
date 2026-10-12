@@ -16,14 +16,6 @@ type Props = {
 export function SearchBar({ value, onChange }: Props) {
 	return (
 		<search className={styles.search}>
-			{/* @when [features/board-search.feature] I search the board for "Engineer" */}
-			{/* @when [features/board-search.feature] I search the board for "Globex" */}
-			{/* @when [features/board-search.feature] I search the board for "<text>" */}
-			{/* @when [features/board-search.feature] I search the board for "Acme" */}
-			{/* @when [features/board-search.feature] I search the board for "   " */}
-			{/* @when [features/board-search.feature] I search the board for "Initech" */}
-			{/* @and [features/board-search.feature] I have searched the board for "Acme" */}
-			{/* @when [features/board-pagination.feature] I search the board for "Acme" */}
 			<input
 				type="search"
 				className={styles.input}
@@ -38,7 +30,6 @@ export function SearchBar({ value, onChange }: Props) {
 				}}
 			/>
 			{value !== "" && (
-				// @when [features/board-search.feature] I clear the search
 				<button
 					type="button"
 					className={styles.clear}

@@ -118,7 +118,6 @@ func (q *Queries) ListJobIDsInStatus(ctx context.Context, status string) ([]int6
 const listJobs = `-- name: ListJobs :many
 SELECT
     jobs.id, jobs.company, jobs.role, jobs.description, jobs.link, jobs.salary, jobs.location, jobs.notes, jobs.status, jobs.position, jobs.date_applied, jobs.closing_reason, jobs.closing_reason_other,
-    -- @then [features/job-documents.feature] the card shows that it has 2 documents
     (SELECT COUNT(*) FROM documents WHERE documents.job_id = jobs.id) AS document_count
 FROM jobs
 ORDER BY status, position
@@ -143,7 +142,6 @@ type ListJobsRow struct {
 
 // Every job with how many documents it has, grouped by status and in board order within each
 // status.
-// @then [features/job-board.feature] the "Saved" column shows "Initech", "Acme", and "Globex" in that order
 func (q *Queries) ListJobs(ctx context.Context) ([]ListJobsRow, error) {
 	rows, err := q.db.QueryContext(ctx, listJobs)
 	if err != nil {

@@ -15,10 +15,6 @@ export function useBoard() {
 
 	const reload = useCallback(async () => {
 		try {
-			// @given [features/job-board.feature] I open the job search board
-			// @when [features/job-board.feature] I open the job search board
-			// @given [features/job-cards.feature] I open the job search board
-			// @when [features/board-pagination.feature] I open the job search board
 			setBoard(await GetBoard());
 			setError("");
 		} catch (err) {
@@ -27,7 +23,6 @@ export function useBoard() {
 	}, []);
 
 	// The board comes from the database each time the app starts, so it's as it was left.
-	// @when [features/job-board.feature] I close and reopen the app
 	useEffect(() => {
 		void reload();
 	}, [reload]);

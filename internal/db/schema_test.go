@@ -123,9 +123,11 @@ func TestSchemaDocuments(t *testing.T) {
 	})
 }
 
+// @scenario [features/job-board.feature#card-order-persists] Card order is the same after reopening the app
 func TestListJobsOrdersByPositionWithinStatus(t *testing.T) {
 	conn := openSchema(t)
 
+	// @given [features/job-board.feature] the "Saved" column holds the jobs at "Initech", "Acme", and "Globex" in that order
 	mustExec(t, conn, `INSERT INTO jobs (company, role, position) VALUES ('Globex', 'Developer', 2)`)
 	mustExec(t, conn, `INSERT INTO jobs (company, role, position, status) VALUES ('Hooli', 'Engineer', 0, 'applied')`)
 	mustExec(t, conn, `INSERT INTO jobs (company, role, position) VALUES ('Initech', 'Engineer', 0)`)

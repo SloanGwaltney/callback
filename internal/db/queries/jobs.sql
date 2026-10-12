@@ -3,10 +3,8 @@
 -- status.
 SELECT
     jobs.*,
-    -- @then [features/job-documents.feature] the card shows that it has 2 documents
     (SELECT COUNT(*) FROM documents WHERE documents.job_id = jobs.id) AS document_count
 FROM jobs
--- @then [features/job-board.feature] the "Saved" column shows "Initech", "Acme", and "Globex" in that order
 ORDER BY status, position;
 
 -- name: GetJob :one

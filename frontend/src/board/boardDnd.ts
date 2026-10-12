@@ -114,7 +114,6 @@ export function moveFor(board: Board, items: Items, jobId: number): Move | null 
 		return null;
 	}
 	// Only the card's place is sent, so its details and documents stay as they are.
-	// @and [features/job-board.feature] the job description, link, and attached resume are unchanged
 	return { jobId, status, index, closingReason: "", closingReasonOther: "" };
 }
 
@@ -127,7 +126,6 @@ export function applyMove(board: Board, move: Move): Board {
 		return board;
 	}
 	const columns = board.columns.map((column) => {
-		// @and [features/job-board.feature] the card no longer appears in the "Saved" column
 		const cards = column.cards.filter((c) => c.id !== move.jobId);
 		if (column.status === move.status) {
 			const index = Math.min(Math.max(move.index, 0), cards.length);

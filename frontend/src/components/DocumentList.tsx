@@ -41,9 +41,6 @@ export function DocumentList({ jobId, documents, onChanged }: Props) {
 				onChanged();
 			}
 		} catch (err) {
-			// @then [features/job-documents.feature] the file is not attached
-			// @and [features/job-documents.feature] I am told which document types are allowed
-			// @and [features/job-documents.feature] I am told files can be at most 10 MB
 			setError(errorMessage(err));
 		}
 	};
@@ -53,22 +50,12 @@ export function DocumentList({ jobId, documents, onChanged }: Props) {
 			<h3 id={`${kindId}-title`} className={styles.title}>
 				Documents
 			</h3>
-			{/* @and [features/job-cards.feature] I see the documents attached to the job */}
-			{/* @then [features/job-documents.feature] the job lists "<file>" as a <kind> */}
-			{/* @then [features/job-documents.feature] the job lists all three documents with their kinds */}
-			{/* @then [features/job-documents.feature] the job lists "<file>" as other */}
-			{/* @then [features/job-documents.feature] the job lists "RESUME.PDF" as other */}
-			{/* @then [features/job-documents.feature] the job lists "portfolio.pdf" as other */}
-			{/* @then [features/job-documents.feature] the job lists "acme-cover.docx" as a cover letter */}
-			{/* @then [features/job-documents.feature] the job no longer lists "resume-2026.pdf" */}
-			{/* @then [features/job-documents.feature] both jobs list "resume-2026.pdf" as a resume */}
 			{documents.length === 0 ? (
 				<p className={styles.none}>No documents attached.</p>
 			) : (
 				<ul className={styles.list}>
 					{documents.map((doc) => (
 						<li key={doc.id} className={styles.document}>
-							{/* @when [features/job-documents.feature] I open the attached "resume-2026.pdf" */}
 							<button
 								type="button"
 								className={styles.fileName}
@@ -77,7 +64,6 @@ export function DocumentList({ jobId, documents, onChanged }: Props) {
 							>
 								{doc.fileName}
 							</button>
-							{/* @when [features/job-documents.feature] I change its kind to cover letter */}
 							<select
 								className={styles.select}
 								aria-label={`Kind of ${doc.fileName}`}
@@ -90,7 +76,6 @@ export function DocumentList({ jobId, documents, onChanged }: Props) {
 									</option>
 								))}
 							</select>
-							{/* @when [features/job-documents.feature] I remove the attached "resume-2026.pdf" */}
 							<button
 								type="button"
 								className={styles.button}
@@ -119,16 +104,6 @@ export function DocumentList({ jobId, documents, onChanged }: Props) {
 						</option>
 					))}
 				</select>
-				{/* @when [features/job-documents.feature] I attach the file "<file>" as a <kind> */}
-				{/* @when [features/job-documents.feature] I attach "resume-2026.pdf" as a resume */}
-				{/* @and [features/job-documents.feature] I attach "acme-cover.docx" as a cover letter */}
-				{/* @and [features/job-documents.feature] I attach "take-home-notes.md" as other */}
-				{/* @when [features/job-documents.feature] I attach the file "<file>" as other */}
-				{/* @when [features/job-documents.feature] I attach the file "RESUME.PDF" as other */}
-				{/* @when [features/job-documents.feature] I try to attach the file "<file>" */}
-				{/* @when [features/job-documents.feature] I try to attach a 12 MB file "portfolio.pdf" */}
-				{/* @when [features/job-documents.feature] I attach a 10 MB file "portfolio.pdf" as other */}
-				{/* @when [features/job-documents.feature] I attach "resume-2026.pdf" as a resume to both jobs */}
 				<button
 					type="button"
 					className={styles.button}

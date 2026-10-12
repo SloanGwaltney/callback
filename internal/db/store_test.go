@@ -215,6 +215,7 @@ func TestDocumentQueries(t *testing.T) {
 	}
 }
 
+// @scenario [features/job-documents.feature#card-shows-document-count] The card shows that documents are attached
 func TestListJobsCountsDocuments(t *testing.T) {
 	s, _ := openStore(t, t.TempDir())
 	ctx := context.Background()
