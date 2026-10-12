@@ -7,6 +7,7 @@ import { ClosingReasonDialog } from "./ClosingReasonDialog";
 import { ContactList } from "./ContactList";
 import { Dialog } from "./Dialog";
 import { DocumentList } from "./DocumentList";
+import { InterviewList } from "./InterviewList";
 import styles from "./JobDetails.module.css";
 import { JobFields } from "./JobFields";
 
@@ -19,8 +20,8 @@ type Props = {
 	onDelete: (id: number) => Promise<void>;
 };
 
-// JobDetails shows everything about a job when its card is opened, including its contacts and
-// documents, and edits it.
+// JobDetails shows everything about a job when its card is opened, including its interviews,
+// contacts, and documents, and edits it.
 // @scenario [features/job-cards.feature#view-job-details] View a job's full details
 // @scenario [features/job-board.feature#change-closing-reason] Change the closing reason of a closed job
 export function JobDetails({ jobId, onClose, onChanged, onDelete }: Props) {
@@ -62,6 +63,14 @@ export function JobDetails({ jobId, onClose, onChanged, onDelete }: Props) {
 						onOpenLink={openLink}
 						onDelete={() => onDelete(job.id)}
 						onClose={onClose}
+					/>
+					<InterviewList
+						jobId={job.id}
+						interviews={job.interviews}
+						onChanged={() => {
+							void reload();
+							onChanged();
+						}}
 					/>
 					<ContactList
 						jobId={job.id}
@@ -228,7 +237,8 @@ function ConfirmDelete({ name, onConfirm, onCancel }: ConfirmProps) {
 	return (
 		<Dialog title={`Delete ${name}?`} onClose={onCancel}>
 			<p className={styles.warning}>
-				The job, its contacts, and its attached documents will be removed. This can't be undone.
+				The job, its interviews, its contacts, and its attached documents will be removed. This
+				can't be undone.
 			</p>
 			{error !== "" && (
 				<p role="alert" className={styles.error}>

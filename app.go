@@ -38,6 +38,9 @@ func (a *App) startup(ctx context.Context) {
 // @scenario [features/job-interest.feature#card-shows-interest] The card shows the interest rating as stars
 // @scenario [features/job-interest.feature#card-unrated] An unrated card shows no stars
 // @scenario [features/job-interest.feature#interest-persists] The interest rating is the same after reopening the app
+// @scenario [features/job-interviews.feature#card-shows-next-interview] The card shows the date of the next upcoming interview
+// @scenario [features/job-interviews.feature#card-interview-today] An interview today counts as upcoming
+// @scenario [features/job-interviews.feature#card-no-upcoming-interview] The card shows no interview when every interview has passed
 func (a *App) GetBoard() (jobs.Board, error) {
 	return a.jobs.Board(a.ctx)
 }
@@ -55,13 +58,19 @@ func (a *App) AddJob(details jobs.Details, status jobs.Status) (jobs.Job, error)
 	return a.jobs.AddJob(a.ctx, details, status)
 }
 
-// GetJob returns a job with all its details, documents, and contacts.
+// GetJob returns a job with all its details, documents, contacts, and interviews.
 // @scenario [features/job-cards.feature#view-job-details] View a job's full details
 // @scenario [features/job-documents.feature#attach-multiple-documents] Attach several documents to one job
 // @scenario [features/job-interest.feature#view-interest] See the interest rating when opening the card
 // @scenario [features/job-contacts.feature#view-contacts] See a job's contacts when opening its card
 // @scenario [features/job-contacts.feature#no-contacts] A job with no contacts says so
 // @scenario [features/job-contacts.feature#contacts-persist] Contacts are the same after reopening the app
+// @scenario [features/job-interviews.feature#view-interviews] See a job's interviews when opening its card
+// @scenario [features/job-interviews.feature#interviews-in-date-order] Interviews are listed from earliest to latest
+// @scenario [features/job-interviews.feature#interviews-same-day-by-time] Interviews on the same day are listed by time, with untimed ones last
+// @scenario [features/job-interviews.feature#past-interviews-marked] Interviews that have already happened are shown as past
+// @scenario [features/job-interviews.feature#no-interviews] A job with no interviews says so
+// @scenario [features/job-interviews.feature#interviews-persist] Interviews are the same after reopening the app
 func (a *App) GetJob(id int64) (jobs.Job, error) {
 	return a.jobs.Job(a.ctx, id)
 }
@@ -104,6 +113,7 @@ func (a *App) UpdateJob(id int64, details jobs.Details) (jobs.Job, error) {
 // @scenario [features/job-board.feature#reorder-closed-keeps-reason] Reordering a card within Closed keeps its closing reason
 // @scenario [features/job-interest.feature#move-keeps-interest] Moving a card keeps its interest rating
 // @scenario [features/job-contacts.feature#move-keeps-contacts] Moving a card keeps its contacts
+// @scenario [features/job-interviews.feature#move-keeps-interviews] Moving a card keeps its interviews
 func (a *App) MoveJob(move jobs.Move) error {
 	return a.jobs.MoveJob(a.ctx, move)
 }
@@ -114,10 +124,11 @@ func (a *App) SetClosingReason(id int64, reason jobs.ClosingReason, other string
 	return a.jobs.SetClosingReason(a.ctx, id, reason, other)
 }
 
-// DeleteJob deletes a job, its contacts, and its attached documents. The frontend asks for
+// DeleteJob deletes a job, its contacts, its interviews, and its attached documents. The frontend asks for
 // confirmation first.
 // @scenario [features/job-cards.feature#delete-job] Delete a job after confirming
 // @scenario [features/job-contacts.feature#contacts-deleted-with-job] Deleting a job deletes its contacts
+// @scenario [features/job-interviews.feature#interviews-deleted-with-job] Deleting a job deletes its interviews
 func (a *App) DeleteJob(id int64) error {
 	return a.jobs.DeleteJob(a.ctx, id)
 }
@@ -209,4 +220,27 @@ func (a *App) RemoveContact(id int64) error {
 // @scenario [features/job-contacts.feature#open-contact-profile-link] Open a contact's profile link
 func (a *App) OpenContactLink(id int64) error {
 	return a.jobs.OpenContactLink(a.ctx, id)
+}
+
+// AddInterview adds an interview to a job.
+// @scenario [features/job-interviews.feature#add-interview] Add an interview with all its details
+// @scenario [features/job-interviews.feature#add-interview-minimum] Add an interview with only a date and a kind
+// @scenario [features/job-interviews.feature#interview-kinds] Choose what kind of interview it is
+// @scenario [features/job-interviews.feature#interview-missing-required] An interview can't be saved without a date or a kind
+// @scenario [features/job-interviews.feature#interview-past-date] An interview that already happened can be added
+// @scenario [features/job-interviews.feature#interview-any-status] Interviews can be added to a job in any status
+func (a *App) AddInterview(jobID int64, details jobs.InterviewDetails) (jobs.Interview, error) {
+	return a.jobs.AddInterview(a.ctx, jobID, details)
+}
+
+// UpdateInterview replaces an interview's details.
+// @scenario [features/job-interviews.feature#edit-interview] Edit an interview
+func (a *App) UpdateInterview(id int64, details jobs.InterviewDetails) (jobs.Interview, error) {
+	return a.jobs.UpdateInterview(a.ctx, id, details)
+}
+
+// RemoveInterview removes an interview from its job. The frontend asks for confirmation first.
+// @scenario [features/job-interviews.feature#remove-interview] Remove an interview after confirming
+func (a *App) RemoveInterview(id int64) error {
+	return a.jobs.RemoveInterview(a.ctx, id)
 }

@@ -1,6 +1,7 @@
-// Values the backend uses for statuses, closing reasons, document kinds, interest ratings, and
-// contact relationships, with their labels. They mirror the constants in internal/jobs/jobs.go and
-// internal/jobs/contacts.go; keep them in step.
+// Values the backend uses for statuses, closing reasons, document kinds, interest ratings, contact
+// relationships, and interview kinds, with their labels. They mirror the constants in
+// internal/jobs/jobs.go, internal/jobs/contacts.go, and internal/jobs/interviews.go; keep them in
+// step.
 
 export const STATUS_SAVED = "saved";
 export const STATUS_APPLIED = "applied";
@@ -47,6 +48,33 @@ export const RELATIONSHIPS = [
 // relationshipLabel is how a relationship is shown, or the value itself if it isn't known.
 export function relationshipLabel(value: string): string {
 	return RELATIONSHIPS.find((r) => r.value === value)?.label ?? value;
+}
+
+// The kinds an interview can be, in the order they're offered, matching jobs.InterviewKind.
+export const INTERVIEW_KINDS = [
+	{ value: "phone_screen", label: "Phone screen" },
+	{ value: "technical", label: "Technical" },
+	{ value: "behavioral", label: "Behavioral" },
+	{ value: "panel", label: "Panel" },
+	{ value: "onsite", label: "Onsite" },
+	{ value: "other", label: "Other" },
+];
+
+// interviewKindLabel is how an interview kind is shown, or the value itself if it isn't known.
+export function interviewKindLabel(value: string): string {
+	return INTERVIEW_KINDS.find((k) => k.value === value)?.label ?? value;
+}
+
+// formatTime shows a stored HH:MM time on a 12-hour clock: "14:00" is "2:00 PM". Anything else
+// is shown as it is.
+export function formatTime(time: string): string {
+	const match = /^(\d{2}):(\d{2})$/.exec(time);
+	if (!match) {
+		return time;
+	}
+	const hours = Number(match[1]);
+	const hour12 = hours % 12 === 0 ? 12 : hours % 12;
+	return `${hour12}:${match[2]} ${hours < 12 ? "AM" : "PM"}`;
 }
 
 // The most stars an interest rating can have, matching jobs.MaxInterest. The fewest is 1.

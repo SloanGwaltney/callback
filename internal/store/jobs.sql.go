@@ -54,8 +54,10 @@ DELETE FROM jobs
 WHERE id = ?
 `
 
-// Deletes the job and, through ON DELETE CASCADE, its document and contact rows. The document files are the
-// caller's to delete.
+// Deletes the job and, through ON DELETE CASCADE, its document, contact, and interview rows. The
+// document files are the caller's to delete.
+// @scenario [features/job-contacts.feature#contacts-deleted-with-job] Deleting a job deletes its contacts
+// @scenario [features/job-interviews.feature#interviews-deleted-with-job] Deleting a job deletes its interviews
 func (q *Queries) DeleteJob(ctx context.Context, id int64) error {
 	_, err := q.db.ExecContext(ctx, deleteJob, id)
 	return err

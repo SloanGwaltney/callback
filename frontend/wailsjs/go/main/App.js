@@ -6,6 +6,10 @@ export function AddContact(arg1, arg2) {
   return window['go']['main']['App']['AddContact'](arg1, arg2);
 }
 
+export function AddInterview(arg1, arg2) {
+  return window['go']['main']['App']['AddInterview'](arg1, arg2);
+}
+
 export function AddJob(arg1, arg2) {
   return window['go']['main']['App']['AddJob'](arg1, arg2);
 }
@@ -54,6 +58,10 @@ export function RemoveDocument(arg1) {
   return window['go']['main']['App']['RemoveDocument'](arg1);
 }
 
+export function RemoveInterview(arg1) {
+  return window['go']['main']['App']['RemoveInterview'](arg1);
+}
+
 export function SetClosingReason(arg1, arg2, arg3) {
   return window['go']['main']['App']['SetClosingReason'](arg1, arg2, arg3);
 }
@@ -64,6 +72,10 @@ export function SetDocumentKind(arg1, arg2) {
 
 export function UpdateContact(arg1, arg2) {
   return window['go']['main']['App']['UpdateContact'](arg1, arg2);
+}
+
+export function UpdateInterview(arg1, arg2) {
+  return window['go']['main']['App']['UpdateInterview'](arg1, arg2);
 }
 
 export function UpdateJob(arg1, arg2) {

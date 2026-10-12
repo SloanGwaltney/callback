@@ -1,0 +1,145 @@
+.interviews {
+	margin-top: var(--space-5);
+	padding-top: var(--space-4);
+	border-top: 1px solid var(--color-border);
+}
+
+.header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-2);
+	margin-bottom: var(--space-3);
+}
+
+.title {
+	margin: 0;
+	font-size: var(--font-size-md);
+}
+
+.none {
+	margin: 0;
+	color: var(--color-text-muted);
+	font-size: var(--font-size-sm);
+}
+
+.list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.interview {
+	padding: var(--space-2) var(--space-3);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-sm);
+	background: var(--color-surface-muted);
+}
+
+/* The summary wraps when it's long, so the buttons always stay together on the right. */
+.heading {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+}
+
+.summary {
+	display: flex;
+	flex: 1;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-1) var(--space-2);
+	min-width: 0;
+}
+
+.kind {
+	font-weight: var(--font-weight-bold);
+}
+
+.when {
+	font-size: var(--font-size-sm);
+	white-space: nowrap;
+}
+
+/* A past interview recedes, so the ones still to come stand out. */
+.past .kind,
+.past .when {
+	color: var(--color-text-muted);
+}
+
+.upcomingBadge,
+.pastBadge {
+	padding: 0 var(--space-2);
+	border: 1px solid currentcolor;
+	border-radius: var(--radius-sm);
+	font-size: var(--font-size-xs);
+}
+
+.upcomingBadge {
+	color: var(--color-status-interviewing);
+}
+
+.pastBadge {
+	color: var(--color-text-muted);
+}
+
+.notes {
+	margin: var(--space-2) 0 0;
+	font-size: var(--font-size-sm);
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+
+.fields {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--space-3);
+}
+
+.field {
+	composes: field from "./form.module.css";
+}
+
+.wide {
+	grid-column: 1 / -1;
+}
+
+.required {
+	font-size: var(--font-size-xs);
+}
+
+.input {
+	composes: input from "./form.module.css";
+}
+
+.textarea {
+	composes: textarea from "./form.module.css";
+}
+
+.warning {
+	margin: 0;
+}
+
+.actions {
+	composes: actions from "./form.module.css";
+}
+
+.button {
+	composes: button from "./form.module.css";
+	white-space: nowrap;
+}
+
+.primary {
+	composes: primary from "./form.module.css";
+}
+
+.danger {
+	composes: danger from "./form.module.css";
+}
+
+.error {
+	composes: error from "./form.module.css";
+}

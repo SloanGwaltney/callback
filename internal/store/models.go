@@ -27,6 +27,15 @@ type Document struct {
 	StoredPath string
 }
 
+type Interview struct {
+	ID    int64
+	JobID int64
+	Date  string
+	Time  string
+	Kind  string
+	Notes string
+}
+
 type Job struct {
 	ID                 int64
 	Company            string

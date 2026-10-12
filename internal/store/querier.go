@@ -11,29 +11,44 @@ import (
 type Querier interface {
 	CreateContact(ctx context.Context, arg CreateContactParams) (Contact, error)
 	CreateDocument(ctx context.Context, arg CreateDocumentParams) (Document, error)
+	CreateInterview(ctx context.Context, arg CreateInterviewParams) (Interview, error)
 	CreateJob(ctx context.Context, arg CreateJobParams) (int64, error)
 	DeleteContact(ctx context.Context, id int64) error
 	DeleteDocument(ctx context.Context, id int64) error
-	// Deletes the job and, through ON DELETE CASCADE, its document and contact rows. The document files are the
-	// caller's to delete.
+	DeleteInterview(ctx context.Context, id int64) error
+	// Deletes the job and, through ON DELETE CASCADE, its document, contact, and interview rows. The
+	// document files are the caller's to delete.
+	// @scenario [features/job-contacts.feature#contacts-deleted-with-job] Deleting a job deletes its contacts
+	// @scenario [features/job-interviews.feature#interviews-deleted-with-job] Deleting a job deletes its interviews
 	DeleteJob(ctx context.Context, id int64) error
 	GetContact(ctx context.Context, id int64) (Contact, error)
 	GetDocument(ctx context.Context, id int64) (Document, error)
+	GetInterview(ctx context.Context, id int64) (Interview, error)
 	GetJob(ctx context.Context, id int64) (Job, error)
 	// A job's contacts in the order they were added.
 	// @scenario [features/job-contacts.feature#view-contacts] See a job's contacts when opening its card
 	ListContactsForJob(ctx context.Context, jobID int64) ([]Contact, error)
 	// A job's documents in the order they were attached.
 	ListDocumentsForJob(ctx context.Context, jobID int64) ([]Document, error)
+	// A job's interviews from earliest to latest. Interviews on the same day are in time order, with
+	// the ones that have no time last, then in the order they were added.
+	// @scenario [features/job-interviews.feature#interviews-in-date-order] Interviews are listed from earliest to latest
+	// @scenario [features/job-interviews.feature#interviews-same-day-by-time] Interviews on the same day are listed by time, with untimed ones last
+	ListInterviewsForJob(ctx context.Context, jobID int64) ([]Interview, error)
 	// The jobs in one status column, top to bottom.
 	ListJobIDsInStatus(ctx context.Context, status string) ([]int64, error)
 	// Every job with how many documents it has, grouped by status and in board order within each
 	// status.
 	ListJobs(ctx context.Context) ([]ListJobsRow, error)
+	// Every interview on or after a date, for every job, in the same order as ListInterviewsForJob
+	// within each job. The board takes each job's first as its next interview.
+	// @scenario [features/job-interviews.feature#card-shows-next-interview] The card shows the date of the next upcoming interview
+	ListUpcomingInterviews(ctx context.Context, date string) ([]Interview, error)
 	SetClosingReason(ctx context.Context, arg SetClosingReasonParams) error
 	SetDocumentKind(ctx context.Context, arg SetDocumentKindParams) error
 	SetJobPosition(ctx context.Context, arg SetJobPositionParams) error
 	UpdateContact(ctx context.Context, arg UpdateContactParams) error
+	UpdateInterview(ctx context.Context, arg UpdateInterviewParams) error
 	UpdateJobDetails(ctx context.Context, arg UpdateJobDetailsParams) error
 	// Moves a job to a status and position, with the date applied and closing reason that go with it.
 	// Status and closing reason change together so the schema's checks hold after the statement.

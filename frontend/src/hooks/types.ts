@@ -7,13 +7,21 @@ import type { jobs } from "../../wailsjs/go/models";
 // Go sends a job with no interest rating as null, which the generated models leave out of the type.
 type Rating = { interest?: number | null };
 
-export type Card = Omit<jobs.Card, "interest"> & Rating;
+export type NextInterview = jobs.NextInterview;
+// Go sends a card with no upcoming interview as null.
+export type Card = Omit<jobs.Card, "interest" | "nextInterview" | "convertValues"> &
+	Rating & { nextInterview?: NextInterview | null };
 export type Column = Omit<jobs.Column, "convertValues" | "cards"> & { cards: Card[] };
 export type Board = { columns: Column[] };
 export type JobDocument = jobs.Document;
 export type Contact = jobs.Contact;
 export type ContactDetails = jobs.ContactDetails;
-export type Job = Omit<jobs.Job, "convertValues" | "documents" | "contacts" | "interest"> &
-	Rating & { documents: JobDocument[]; contacts: Contact[] };
+export type Interview = jobs.Interview;
+export type InterviewDetails = jobs.InterviewDetails;
+export type Job = Omit<
+	jobs.Job,
+	"convertValues" | "documents" | "contacts" | "interviews" | "interest"
+> &
+	Rating & { documents: JobDocument[]; contacts: Contact[]; interviews: Interview[] };
 export type Details = jobs.Details;
 export type Move = jobs.Move;

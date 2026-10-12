@@ -1,5 +1,23 @@
 export namespace jobs {
 	
+	export class NextInterview {
+	    date: string;
+	    time: string;
+	    kind: string;
+	    today: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new NextInterview(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.date = source["date"];
+	        this.time = source["time"];
+	        this.kind = source["kind"];
+	        this.today = source["today"];
+	    }
+	}
 	export class Card {
 	    id: number;
 	    company: string;
@@ -10,6 +28,7 @@ export namespace jobs {
 	    closingReason: string;
 	    closingReasonText: string;
 	    documentCount: number;
+	    nextInterview?: NextInterview;
 	
 	    static createFrom(source: any = {}) {
 	        return new Card(source);
@@ -26,7 +45,26 @@ export namespace jobs {
 	        this.closingReason = source["closingReason"];
 	        this.closingReasonText = source["closingReasonText"];
 	        this.documentCount = source["documentCount"];
+	        this.nextInterview = this.convertValues(source["nextInterview"], NextInterview);
 	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class Column {
 	    status: string;
@@ -190,6 +228,48 @@ export namespace jobs {
 	        this.fileName = source["fileName"];
 	    }
 	}
+	export class Interview {
+	    id: number;
+	    jobId: number;
+	    date: string;
+	    time: string;
+	    kind: string;
+	    notes: string;
+	    past: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new Interview(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.jobId = source["jobId"];
+	        this.date = source["date"];
+	        this.time = source["time"];
+	        this.kind = source["kind"];
+	        this.notes = source["notes"];
+	        this.past = source["past"];
+	    }
+	}
+	export class InterviewDetails {
+	    date: string;
+	    time: string;
+	    kind: string;
+	    notes: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new InterviewDetails(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.date = source["date"];
+	        this.time = source["time"];
+	        this.kind = source["kind"];
+	        this.notes = source["notes"];
+	    }
+	}
 	export class Job {
 	    id: number;
 	    company: string;
@@ -207,6 +287,7 @@ export namespace jobs {
 	    closingReasonText: string;
 	    documents: Document[];
 	    contacts: Contact[];
+	    interviews: Interview[];
 	
 	    static createFrom(source: any = {}) {
 	        return new Job(source);
@@ -230,6 +311,7 @@ export namespace jobs {
 	        this.closingReasonText = source["closingReasonText"];
 	        this.documents = this.convertValues(source["documents"], Document);
 	        this.contacts = this.convertValues(source["contacts"], Contact);
+	        this.interviews = this.convertValues(source["interviews"], Interview);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

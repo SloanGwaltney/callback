@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Details, Job } from "../hooks/types";
 import { useContacts } from "../hooks/useContacts";
 import { useDocuments } from "../hooks/useDocuments";
+import { useInterviews } from "../hooks/useInterviews";
 import { useJob } from "../hooks/useJob";
 import { job } from "../test/fixtures";
 import { JobDetails } from "./JobDetails";
@@ -12,6 +13,7 @@ import { JobDetails } from "./JobDetails";
 vi.mock("../hooks/useJob", () => ({ useJob: vi.fn() }));
 vi.mock("../hooks/useDocuments", () => ({ useDocuments: vi.fn() }));
 vi.mock("../hooks/useContacts", () => ({ useContacts: vi.fn() }));
+vi.mock("../hooks/useInterviews", () => ({ useInterviews: vi.fn() }));
 
 // The mocked useJob keeps the job in state, like the real one: saving details replaces it with
 // what the backend returns, here the saved details themselves.
@@ -55,6 +57,7 @@ beforeEach(() => {
 		remove: vi.fn(),
 		openLink: vi.fn(),
 	});
+	vi.mocked(useInterviews).mockReturnValue({ add: vi.fn(), update: vi.fn(), remove: vi.fn() });
 	vi.mocked(useDocuments).mockReturnValue({
 		attach: vi.fn(),
 		setKind: vi.fn(),
@@ -334,6 +337,48 @@ describe("JobDetails", () => {
 		expect(confirm).toHaveTextContent("its contacts");
 		expect(onDelete).toHaveBeenCalledWith(4);
 	});
+
+	// @scenario [features/job-interviews.feature#interviews-deleted-with-job] Deleting a job deletes its interviews
+	it("warns that deleting a job deletes its interviews", async () => {
+		// @given [features/job-interviews.feature] I have a job for "Software Engineer" at "Acme" with a "Technical" interview on 2026-10-14
+		const technical = {
+			id: 7,
+			jobId: 4,
+			date: "2026-10-14",
+			time: "",
+			kind: "technical",
+			notes: "",
+			past: false,
+		};
+		const { onDelete } = renderDetails(job({ id: 4, interviews: [technical] }));
+		expect(
+			screen.getByRole("listitem", { name: "Technical interview on 2026-10-14" }),
+		).toBeInTheDocument();
+
+		// @when [features/job-interviews.feature] I delete the job
+		await userEvent.click(screen.getByRole("button", { name: "Delete job" }));
+		const confirm = screen.getByRole("dialog", { name: "Delete Software Engineer at Acme?" });
+		// @and [features/job-interviews.feature] I confirm the deletion
+		await userEvent.click(within(confirm).getByRole("button", { name: "Delete" }));
+
+		// @then [features/job-interviews.feature] its interviews are removed too
+		// The backend deletes them with the job (TestDeleteJobDeletesItsInterviews); the confirmation
+		// says so.
+		expect(confirm).toHaveTextContent("its interviews");
+		expect(onDelete).toHaveBeenCalledWith(4);
+	});
+
+	// @scenario [features/job-interviews.feature#interview-any-status] Interviews can be added to a job in any status
+	it.each(["saved", "applied", "interviewing", "offer", "closed"])(
+		"offers to add an interview to a job in %s",
+		(status) => {
+			// @given [features/job-interviews.feature] I have a job for "Software Engineer" at "Acme" in "<status>"
+			renderDetails(job({ status }));
+
+			const interviews = screen.getByRole("region", { name: "Interviews" });
+			expect(within(interviews).getByRole("button", { name: "Add interview" })).toBeEnabled();
+		},
+	);
 
 	it("shows why a job couldn't be deleted", async () => {
 		const { onDelete } = renderDetails(job());

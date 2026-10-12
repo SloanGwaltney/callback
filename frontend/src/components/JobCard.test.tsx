@@ -68,6 +68,55 @@ describe("JobCard", () => {
 		expect(screen.queryByText(/[★☆]/)).not.toBeInTheDocument();
 	});
 
+	// @scenario [features/job-interviews.feature#card-shows-next-interview] The card shows the date of the next upcoming interview
+	it("shows the next upcoming interview", () => {
+		// The backend decides today and picks the next interview (TestCardShowsNextInterview), and
+		// sends only it.
+		const nextInterview = { date: "2026-10-14", time: "", kind: "technical", today: false };
+
+		// @when [features/job-interviews.feature] I open the job search board
+		render(<JobCard card={card(1, "Acme", { nextInterview })} onOpen={() => {}} />);
+
+		// @then [features/job-interviews.feature] the card shows a "Technical" interview on 2026-10-14
+		expect(screen.getByRole("article")).toHaveTextContent("Technical interview on 2026-10-14");
+	});
+
+	// @scenario [features/job-interviews.feature#card-interview-today] An interview today counts as upcoming
+	it("shows an interview today as today", () => {
+		// The backend decides the interview is today (TestCardShowsInterviewToday).
+		// @given [features/job-interviews.feature] I have a job for "Software Engineer" at "Acme" with a "Technical" interview on 2026-10-14
+		const nextInterview = { date: "2026-10-14", time: "", kind: "technical", today: true };
+
+		// @when [features/job-interviews.feature] I open the job search board
+		render(<JobCard card={card(1, "Acme", { nextInterview })} onOpen={() => {}} />);
+
+		// @then [features/job-interviews.feature] the card shows a "Technical" interview today
+		const shown = screen.getByRole("article");
+		expect(shown).toHaveTextContent("Technical interview today");
+		expect(shown).not.toHaveTextContent("2026-10-14");
+	});
+
+	it("shows the next interview's time on a 12-hour clock", () => {
+		const nextInterview = { date: "2026-10-14", time: "14:00", kind: "onsite", today: false };
+		render(<JobCard card={card(1, "Acme", { nextInterview })} onOpen={() => {}} />);
+		expect(screen.getByRole("article")).toHaveTextContent(
+			"Onsite interview on 2026-10-14 at 2:00 PM",
+		);
+	});
+
+	// @scenario [features/job-interviews.feature#card-no-upcoming-interview] The card shows no interview when every interview has passed
+	it.each([undefined, null])(
+		"shows no interview when the next interview is %s",
+		(nextInterview) => {
+			// The backend sends no next interview when every interview has passed (TestCardNoUpcomingInterview).
+			// @when [features/job-interviews.feature] I open the job search board
+			render(<JobCard card={card(1, "Acme", { nextInterview })} onOpen={() => {}} />);
+
+			// @then [features/job-interviews.feature] the card doesn't show an interview
+			expect(screen.queryByText(/interview/i)).not.toBeInTheDocument();
+		},
+	);
+
 	it("opens when its title is clicked", async () => {
 		const onOpen = vi.fn();
 		render(<JobCard card={card(1, "Acme")} onOpen={onOpen} />);

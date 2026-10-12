@@ -4,6 +4,8 @@ import {jobs} from '../models';
 
 export function AddContact(arg1:number,arg2:jobs.ContactDetails):Promise<jobs.Contact>;
 
+export function AddInterview(arg1:number,arg2:jobs.InterviewDetails):Promise<jobs.Interview>;
+
 export function AddJob(arg1:jobs.Details,arg2:jobs.Status):Promise<jobs.Job>;
 
 export function AttachDocument(arg1:number,arg2:string,arg3:jobs.DocumentKind):Promise<jobs.Document>;
@@ -28,10 +30,14 @@ export function RemoveContact(arg1:number):Promise<void>;
 
 export function RemoveDocument(arg1:number):Promise<void>;
 
+export function RemoveInterview(arg1:number):Promise<void>;
+
 export function SetClosingReason(arg1:number,arg2:jobs.ClosingReason,arg3:string):Promise<void>;
 
 export function SetDocumentKind(arg1:number,arg2:jobs.DocumentKind):Promise<void>;
 
 export function UpdateContact(arg1:number,arg2:jobs.ContactDetails):Promise<jobs.Contact>;
+
+export function UpdateInterview(arg1:number,arg2:jobs.InterviewDetails):Promise<jobs.Interview>;
 
 export function UpdateJob(arg1:number,arg2:jobs.Details):Promise<jobs.Job>;
