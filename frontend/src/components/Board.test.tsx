@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { applyMove } from "../board/boardDnd";
-import type { Pages } from "../board/boardView";
+import type { DueFilter, Pages } from "../board/boardView";
 import type { Board as BoardData, Move } from "../hooks/types";
 import { board, card } from "../test/fixtures";
 import { Board } from "./Board";
@@ -40,21 +40,23 @@ function drag(cardId: number, ...overs: (number | string)[]) {
 
 // renderBoard shows the board with a parent that applies moves like useBoard: the card moves at
 // once, then the board is replaced by what the backend returns, when a reload is given. Like App,
-// the parent keeps the search and each column's page; view sets where they start.
+// the parent keeps the search, the filter, and each column's page; view sets where they start.
 function renderBoard(
 	start: BoardData,
 	reload?: (move: Move) => BoardData,
-	view: { search?: string; pages?: Pages } = {},
+	view: { search?: string; filter?: DueFilter; pages?: Pages } = {},
 ) {
 	const onMove = vi.fn<(move: Move) => Promise<void>>();
 	const onOpenCard = vi.fn();
 	const onAddJob = vi.fn();
-	const controls = { setSearch: (_: string) => {} };
+	const controls = { setSearch: (_: string) => {}, setFilter: (_: DueFilter) => {} };
 	function Parent() {
 		const [current, setCurrent] = useState(start);
 		const [search, setSearch] = useState(view.search ?? "");
+		const [filter, setFilter] = useState<DueFilter>(view.filter ?? "all");
 		const [pages, setPages] = useState<Pages>(view.pages ?? {});
 		controls.setSearch = setSearch;
+		controls.setFilter = setFilter;
 		onMove.mockImplementation(async (move) => {
 			setCurrent((b) => applyMove(b, move));
 			if (reload) {
@@ -68,6 +70,7 @@ function renderBoard(
 				onOpenCard={onOpenCard}
 				onAddJob={onAddJob}
 				search={search}
+				filter={filter}
 				pages={pages}
 				onPageChange={(status, page) => setPages((p) => ({ ...p, [status]: page }))}
 			/>
@@ -75,7 +78,8 @@ function renderBoard(
 	}
 	render(<Parent />);
 	const clearSearch = () => act(() => controls.setSearch(""));
-	return { onMove, onOpenCard, onAddJob, clearSearch };
+	const showAll = () => act(() => controls.setFilter("all"));
+	return { onMove, onOpenCard, onAddJob, clearSearch, showAll };
 }
 
 function column(label: string) {
@@ -952,6 +956,52 @@ describe("Board", () => {
 			expect(cardsIn("Saved")[0]).toBe("Software Engineer at Acme 1");
 			// @and [features/board-pagination.feature] the "Saved" column shows a count of 15
 			expect(within(column("Saved")).getByText("15 jobs")).toBeInTheDocument();
+		});
+	});
+
+	describe("filtering to overdue jobs", () => {
+		const overdueCard = (id: number, company: string) =>
+			card(id, company, {
+				nextAction: { text: "Follow up", expectedDate: "2026-10-10", due: "overdue" },
+			});
+
+		it("doesn't reorder a card within its column while filtered", () => {
+			const globex = overdueCard(2, "Globex");
+			const { onMove, showAll } = renderBoard(
+				board({ applied: [overdueCard(1, "Acme"), card(3, "Initech"), globex] }),
+				undefined,
+				{ filter: "overdue" },
+			);
+
+			drag(globex.id, 1);
+
+			expect(onMove).not.toHaveBeenCalled();
+			expect(screen.getByRole("alert")).toHaveTextContent(
+				"Cards can't be reordered while the board is filtered.",
+			);
+			showAll();
+			expect(cardsIn("Applied")).toEqual([
+				"Software Engineer at Acme",
+				"Software Engineer at Initech",
+				"Software Engineer at Globex",
+			]);
+		});
+
+		it("puts a card moved while filtered at the top of its new column", () => {
+			const { onMove } = renderBoard(
+				board({
+					applied: [overdueCard(1, "Acme")],
+					offer: [card(2, "Globex"), card(3, "Initech")],
+				}),
+				undefined,
+				{ filter: "overdue" },
+			);
+
+			drag(1, "offer");
+
+			expect(onMove).toHaveBeenCalledWith(
+				expect.objectContaining({ jobId: 1, status: "offer", index: 0 }),
+			);
 		});
 	});
 });

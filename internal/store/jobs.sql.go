@@ -10,6 +10,18 @@ import (
 	"database/sql"
 )
 
+const clearNextAction = `-- name: ClearNextAction :exec
+UPDATE jobs
+SET next_action = NULL, next_action_date = NULL
+WHERE id = ?
+`
+
+// @scenario [features/job-next-action.feature#clear-next-action] Clear the next action once it's done
+func (q *Queries) ClearNextAction(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, clearNextAction, id)
+	return err
+}
+
 const createJob = `-- name: CreateJob :one
 INSERT INTO jobs (company, role, description, link, salary, location, notes, status, position, date_applied, interest)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -64,7 +76,7 @@ func (q *Queries) DeleteJob(ctx context.Context, id int64) error {
 }
 
 const getJob = `-- name: GetJob :one
-SELECT id, company, role, description, link, salary, location, notes, status, position, date_applied, closing_reason, closing_reason_other, interest FROM jobs
+SELECT id, company, role, description, link, salary, location, notes, status, position, date_applied, closing_reason, closing_reason_other, interest, next_action, next_action_date FROM jobs
 WHERE id = ?
 `
 
@@ -86,6 +98,8 @@ func (q *Queries) GetJob(ctx context.Context, id int64) (Job, error) {
 		&i.ClosingReason,
 		&i.ClosingReasonOther,
 		&i.Interest,
+		&i.NextAction,
+		&i.NextActionDate,
 	)
 	return i, err
 }
@@ -122,7 +136,7 @@ func (q *Queries) ListJobIDsInStatus(ctx context.Context, status string) ([]int6
 
 const listJobs = `-- name: ListJobs :many
 SELECT
-    jobs.id, jobs.company, jobs.role, jobs.description, jobs.link, jobs.salary, jobs.location, jobs.notes, jobs.status, jobs.position, jobs.date_applied, jobs.closing_reason, jobs.closing_reason_other, jobs.interest,
+    jobs.id, jobs.company, jobs.role, jobs.description, jobs.link, jobs.salary, jobs.location, jobs.notes, jobs.status, jobs.position, jobs.date_applied, jobs.closing_reason, jobs.closing_reason_other, jobs.interest, jobs.next_action, jobs.next_action_date,
     (SELECT COUNT(*) FROM documents WHERE documents.job_id = jobs.id) AS document_count
 FROM jobs
 ORDER BY status, position
@@ -143,6 +157,8 @@ type ListJobsRow struct {
 	ClosingReason      sql.NullString
 	ClosingReasonOther sql.NullString
 	Interest           sql.NullInt64
+	NextAction         sql.NullString
+	NextActionDate     sql.NullString
 	DocumentCount      int64
 }
 
@@ -172,6 +188,8 @@ func (q *Queries) ListJobs(ctx context.Context) ([]ListJobsRow, error) {
 			&i.ClosingReason,
 			&i.ClosingReasonOther,
 			&i.Interest,
+			&i.NextAction,
+			&i.NextActionDate,
 			&i.DocumentCount,
 		); err != nil {
 			return nil, err
@@ -217,6 +235,29 @@ type SetJobPositionParams struct {
 
 func (q *Queries) SetJobPosition(ctx context.Context, arg SetJobPositionParams) error {
 	_, err := q.db.ExecContext(ctx, setJobPosition, arg.Position, arg.ID)
+	return err
+}
+
+const setNextAction = `-- name: SetNextAction :exec
+UPDATE jobs
+SET next_action = ?, next_action_date = ?
+WHERE id = ?
+`
+
+type SetNextActionParams struct {
+	NextAction     sql.NullString
+	NextActionDate sql.NullString
+	ID             int64
+}
+
+// Sets what's next on a job and when it's expected, or NULL for no expected date. Nothing else on
+// the job changes, so its column and place in it stay the same.
+// @scenario [features/job-next-action.feature#set-next-action] Set a next action with an expected date
+// @scenario [features/job-next-action.feature#set-next-action-no-date] Set a next action without an expected date
+// @scenario [features/job-next-action.feature#edit-next-action] Change the next action and its expected date
+// @scenario [features/job-next-action.feature#clear-next-action-date] Clear only the expected date
+func (q *Queries) SetNextAction(ctx context.Context, arg SetNextActionParams) error {
+	_, err := q.db.ExecContext(ctx, setNextAction, arg.NextAction, arg.NextActionDate, arg.ID)
 	return err
 }
 

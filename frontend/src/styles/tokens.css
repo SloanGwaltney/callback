@@ -58,6 +58,8 @@
 
 	/* Filled interest-rating stars. Meets WCAG's 3:1 for graphics on surfaces and fields. */
 	--color-star: #b06d00;
+	/* A next action due today. Readable as small text on surfaces; overdue uses --color-danger. */
+	--color-due-today: #8f5800;
 
 	--shadow-card: 0 1px 3px rgb(15 20 30 / 18%);
 	--shadow-raised: 0 8px 24px rgb(15 20 30 / 22%);
@@ -101,6 +103,7 @@
 		--color-status-closed: #d9a35e;
 
 		--color-star: #f5b942;
+		--color-due-today: #f5b942;
 
 		--shadow-card: 0 1px 2px rgb(0 0 0 / 40%);
 		--shadow-raised: 0 8px 24px rgb(0 0 0 / 55%);

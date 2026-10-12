@@ -41,6 +41,18 @@ func (a *App) startup(ctx context.Context) {
 // @scenario [features/job-interviews.feature#card-shows-next-interview] The card shows the date of the next upcoming interview
 // @scenario [features/job-interviews.feature#card-interview-today] An interview today counts as upcoming
 // @scenario [features/job-interviews.feature#card-no-upcoming-interview] The card shows no interview when every interview has passed
+// @scenario [features/job-next-action.feature#card-shows-next-action] The card shows the next action and its expected date
+// @scenario [features/job-next-action.feature#card-next-action-no-date] The card shows a next action with no expected date
+// @scenario [features/job-next-action.feature#card-next-action-due-today] A next action expected today is marked as due
+// @scenario [features/job-next-action.feature#card-next-action-overdue] A next action whose expected date has passed is marked as overdue
+// @scenario [features/job-next-action.feature#card-next-action-upcoming] A next action expected later isn't marked
+// @scenario [features/job-next-action.feature#closed-card-no-due-marks] A closed job's next action is never marked as due or overdue
+// @scenario [features/job-next-action.feature#card-no-next-action] A job with no next action shows none on its card
+// @scenario [features/job-next-action.feature#filter-overdue] Show only overdue jobs
+// @scenario [features/job-next-action.feature#filter-not-overdue] Show only jobs that aren't overdue
+// @scenario [features/job-next-action.feature#filter-due-today-not-overdue] A job due today isn't overdue yet
+// @scenario [features/job-next-action.feature#filter-closed-never-overdue] A closed job is never overdue
+// @scenario [features/job-next-action.feature#next-action-persists] The next action is the same after reopening the app
 func (a *App) GetBoard() (jobs.Board, error) {
 	return a.jobs.Board(a.ctx)
 }
@@ -58,7 +70,7 @@ func (a *App) AddJob(details jobs.Details, status jobs.Status) (jobs.Job, error)
 	return a.jobs.AddJob(a.ctx, details, status)
 }
 
-// GetJob returns a job with all its details, documents, contacts, and interviews.
+// GetJob returns a job with all its details, next action, documents, contacts, and interviews.
 // @scenario [features/job-cards.feature#view-job-details] View a job's full details
 // @scenario [features/job-documents.feature#attach-multiple-documents] Attach several documents to one job
 // @scenario [features/job-interest.feature#view-interest] See the interest rating when opening the card
@@ -71,6 +83,7 @@ func (a *App) AddJob(details jobs.Details, status jobs.Status) (jobs.Job, error)
 // @scenario [features/job-interviews.feature#past-interviews-marked] Interviews that have already happened are shown as past
 // @scenario [features/job-interviews.feature#no-interviews] A job with no interviews says so
 // @scenario [features/job-interviews.feature#interviews-persist] Interviews are the same after reopening the app
+// @scenario [features/job-next-action.feature#view-next-action] See the next action when opening the card
 func (a *App) GetJob(id int64) (jobs.Job, error) {
 	return a.jobs.Job(a.ctx, id)
 }
@@ -114,6 +127,7 @@ func (a *App) UpdateJob(id int64, details jobs.Details) (jobs.Job, error) {
 // @scenario [features/job-interest.feature#move-keeps-interest] Moving a card keeps its interest rating
 // @scenario [features/job-contacts.feature#move-keeps-contacts] Moving a card keeps its contacts
 // @scenario [features/job-interviews.feature#move-keeps-interviews] Moving a card keeps its interviews
+// @scenario [features/job-next-action.feature#move-keeps-next-action] Moving a card keeps its next action
 func (a *App) MoveJob(move jobs.Move) error {
 	return a.jobs.MoveJob(a.ctx, move)
 }
@@ -243,4 +257,22 @@ func (a *App) UpdateInterview(id int64, details jobs.InterviewDetails) (jobs.Int
 // @scenario [features/job-interviews.feature#remove-interview] Remove an interview after confirming
 func (a *App) RemoveInterview(id int64) error {
 	return a.jobs.RemoveInterview(a.ctx, id)
+}
+
+// SetNextAction sets what's next on a job and when it's expected, or "" for no expected date.
+// @scenario [features/job-next-action.feature#set-next-action] Set a next action with an expected date
+// @scenario [features/job-next-action.feature#set-next-action-no-date] Set a next action without an expected date
+// @scenario [features/job-next-action.feature#next-action-needs-text] A next action can't be saved without saying what it is
+// @scenario [features/job-next-action.feature#next-action-past-date] The expected date can be in the past
+// @scenario [features/job-next-action.feature#next-action-any-status] A next action can be set on a job in any status
+// @scenario [features/job-next-action.feature#edit-next-action] Change the next action and its expected date
+// @scenario [features/job-next-action.feature#clear-next-action-date] Clear only the expected date
+func (a *App) SetNextAction(jobID int64, text, expectedDate string) (jobs.Job, error) {
+	return a.jobs.SetNextAction(a.ctx, jobID, text, expectedDate)
+}
+
+// ClearNextAction removes a job's next action, once it's done.
+// @scenario [features/job-next-action.feature#clear-next-action] Clear the next action once it's done
+func (a *App) ClearNextAction(jobID int64) (jobs.Job, error) {
+	return a.jobs.ClearNextAction(a.ctx, jobID)
 }

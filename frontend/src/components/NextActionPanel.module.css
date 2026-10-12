@@ -1,0 +1,111 @@
+.panel {
+	margin-top: var(--space-5);
+	padding-top: var(--space-4);
+	border-top: 1px solid var(--color-border);
+}
+
+.header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-2);
+	margin-bottom: var(--space-3);
+}
+
+.title {
+	margin: 0;
+	font-size: var(--font-size-md);
+}
+
+.none {
+	margin: 0;
+	color: var(--color-text-muted);
+	font-size: var(--font-size-sm);
+}
+
+.current {
+	padding: var(--space-2) var(--space-3);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-sm);
+	background: var(--color-surface-muted);
+}
+
+.text {
+	margin: 0;
+	font-weight: var(--font-weight-bold);
+	overflow-wrap: anywhere;
+}
+
+.when {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-1) var(--space-2);
+	margin: var(--space-1) 0 0;
+	color: var(--color-text-muted);
+	font-size: var(--font-size-sm);
+}
+
+.dueToday,
+.overdue {
+	padding: 0 var(--space-2);
+	border: 1px solid currentcolor;
+	border-radius: var(--radius-sm);
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+}
+
+.dueToday {
+	color: var(--color-due-today);
+}
+
+.overdue {
+	color: var(--color-danger);
+}
+
+.buttons {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: var(--space-2);
+	margin-top: var(--space-2);
+}
+
+.fields {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--space-3);
+}
+
+.field {
+	composes: field from "./form.module.css";
+}
+
+.wide {
+	grid-column: 1 / -1;
+}
+
+.required {
+	font-size: var(--font-size-xs);
+}
+
+.input {
+	composes: input from "./form.module.css";
+}
+
+.actions {
+	composes: actions from "./form.module.css";
+}
+
+.button {
+	composes: button from "./form.module.css";
+	white-space: nowrap;
+}
+
+.primary {
+	composes: primary from "./form.module.css";
+}
+
+.error {
+	composes: error from "./form.module.css";
+}

@@ -22,6 +22,10 @@ export function ChooseDocumentFile() {
   return window['go']['main']['App']['ChooseDocumentFile']();
 }
 
+export function ClearNextAction(arg1) {
+  return window['go']['main']['App']['ClearNextAction'](arg1);
+}
+
 export function DeleteJob(arg1) {
   return window['go']['main']['App']['DeleteJob'](arg1);
 }
@@ -68,6 +72,10 @@ export function SetClosingReason(arg1, arg2, arg3) {
 
 export function SetDocumentKind(arg1, arg2) {
   return window['go']['main']['App']['SetDocumentKind'](arg1, arg2);
+}
+
+export function SetNextAction(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SetNextAction'](arg1, arg2, arg3);
 }
 
 export function UpdateContact(arg1, arg2) {

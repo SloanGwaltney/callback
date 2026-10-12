@@ -33,6 +33,8 @@ type Card struct {
 	DocumentCount     int           `json:"documentCount"`
 	// NextInterview is the job's soonest interview that hasn't passed, or nil when it has none.
 	NextInterview *NextInterview `json:"nextInterview"`
+	// NextAction is what's next on the job, or nil when nothing is.
+	NextAction *NextAction `json:"nextAction"`
 }
 
 // Board returns every job, laid out in status columns.
@@ -46,6 +48,7 @@ func (s *Service) Board(ctx context.Context) (Board, error) {
 		return Board{}, err
 	}
 
+	today := s.today()
 	var board Board
 	index := map[Status]int{}
 	for i, status := range Statuses {
@@ -58,7 +61,7 @@ func (s *Service) Board(ctx context.Context) (Board, error) {
 		if !ok {
 			return Board{}, fmt.Errorf("job %d has unknown status %q", row.ID, row.Status)
 		}
-		card := cardFromRow(row)
+		card := cardFromRow(row, today)
 		card.NextInterview = next[row.ID]
 		board.Columns[i].Cards = append(board.Columns[i].Cards, card)
 	}
@@ -69,7 +72,7 @@ func (s *Service) Board(ctx context.Context) (Board, error) {
 	return board, nil
 }
 
-func cardFromRow(row store.ListJobsRow) Card {
+func cardFromRow(row store.ListJobsRow, today string) Card {
 	reason := ClosingReason(row.ClosingReason.String)
 	return Card{
 		ID:                row.ID,
@@ -81,6 +84,7 @@ func cardFromRow(row store.ListJobsRow) Card {
 		ClosingReason:     reason,
 		ClosingReasonText: closingReasonText(reason, row.ClosingReasonOther.String),
 		DocumentCount:     int(row.DocumentCount),
+		NextAction:        nextActionFromRow(row.NextAction, row.NextActionDate, Status(row.Status), today),
 	}
 }
 

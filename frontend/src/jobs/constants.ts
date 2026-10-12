@@ -1,7 +1,7 @@
 // Values the backend uses for statuses, closing reasons, document kinds, interest ratings, contact
-// relationships, and interview kinds, with their labels. They mirror the constants in
-// internal/jobs/jobs.go, internal/jobs/contacts.go, and internal/jobs/interviews.go; keep them in
-// step.
+// relationships, interview kinds, and next action due marks, with their labels. They mirror the
+// constants in internal/jobs/jobs.go, internal/jobs/contacts.go, internal/jobs/interviews.go, and
+// internal/jobs/next_action.go; keep them in step.
 
 export const STATUS_SAVED = "saved";
 export const STATUS_APPLIED = "applied";
@@ -92,3 +92,12 @@ export function today(now: Date = new Date()): string {
 	const pad = (n: number) => String(n).padStart(2, "0");
 	return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
+
+// How a next action is marked as due, matching jobs.NextActionDue. "" is not marked.
+export const DUE_TODAY = "today";
+export const DUE_OVERDUE = "overdue";
+
+export const DUE_LABELS: Record<string, string> = {
+	[DUE_TODAY]: "Due today",
+	[DUE_OVERDUE]: "Overdue",
+};

@@ -123,4 +123,105 @@ describe("JobCard", () => {
 		await userEvent.click(screen.getByRole("button", { name: /Software Engineer/ }));
 		expect(onOpen).toHaveBeenCalled();
 	});
+
+	describe("next action", () => {
+		const next = (expectedDate: string, due = "", text = "Waiting for a call back") => ({
+			text,
+			expectedDate,
+			due,
+		});
+		const shown = () => screen.getByRole("article");
+
+		// @scenario [features/job-next-action.feature#card-shows-next-action] The card shows the next action and its expected date
+		it("shows the next action and its expected date", () => {
+			// The backend decides today and sends no due mark for a date still to come
+			// (TestCardShowsNextAction).
+			// @when [features/job-next-action.feature] I open the job search board
+			render(
+				<JobCard card={card(1, "Acme", { nextAction: next("2026-10-14") })} onOpen={() => {}} />,
+			);
+
+			// @then [features/job-next-action.feature] the card shows "Waiting for a call back" expected on 2026-10-14
+			expect(shown()).toHaveTextContent("Next action: Waiting for a call back");
+			expect(shown()).toHaveTextContent("Expected 2026-10-14");
+		});
+
+		// @scenario [features/job-next-action.feature#card-next-action-no-date] The card shows a next action with no expected date
+		it("shows a next action with no expected date", () => {
+			// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with the next action "Send a thank-you email" and no expected date
+			const nextAction = next("", "", "Send a thank-you email");
+			// @when [features/job-next-action.feature] I open the job search board
+			render(<JobCard card={card(1, "Acme", { nextAction })} onOpen={() => {}} />);
+
+			// @then [features/job-next-action.feature] the card shows "Send a thank-you email" with no expected date
+			expect(shown()).toHaveTextContent("Send a thank-you email");
+			expect(shown()).not.toHaveTextContent("Expected");
+			// @and [features/job-next-action.feature] the next action is not marked as due or overdue
+			expect(shown()).not.toHaveTextContent(/Due today|Overdue/);
+		});
+
+		// @scenario [features/job-next-action.feature#card-next-action-due-today] A next action expected today is marked as due
+		it("marks a next action expected today as due", () => {
+			// The backend marks it due today (TestCardMarksNextActionDue).
+			// @when [features/job-next-action.feature] I open the job search board
+			render(
+				<JobCard
+					card={card(1, "Acme", { nextAction: next("2026-10-14", "today") })}
+					onOpen={() => {}}
+				/>,
+			);
+
+			// @then [features/job-next-action.feature] the card marks the next action as due today
+			expect(screen.getByText("Due today")).toBeInTheDocument();
+			expect(shown()).not.toHaveTextContent("Overdue");
+		});
+
+		// @scenario [features/job-next-action.feature#card-next-action-overdue] A next action whose expected date has passed is marked as overdue
+		it("marks a next action whose expected date has passed as overdue", () => {
+			// The backend marks it overdue (TestCardMarksNextActionDue).
+			// @when [features/job-next-action.feature] I open the job search board
+			render(
+				<JobCard
+					card={card(1, "Acme", { nextAction: next("2026-10-14", "overdue") })}
+					onOpen={() => {}}
+				/>,
+			);
+
+			// @then [features/job-next-action.feature] the card marks the next action as overdue
+			expect(screen.getByText("Overdue")).toBeInTheDocument();
+			expect(shown()).not.toHaveTextContent("Due today");
+		});
+
+		// @scenario [features/job-next-action.feature#card-next-action-upcoming] A next action expected later isn't marked
+		// @scenario [features/job-next-action.feature#closed-card-no-due-marks] A closed job's next action is never marked as due or overdue
+		it("doesn't mark a next action the backend didn't mark", () => {
+			// A date still to come, and a closed job's next action, come with no due mark
+			// (TestCardMarksNextActionDue, TestClosedCardNoDueMarks).
+			// @when [features/job-next-action.feature] I open the job search board
+			render(
+				<JobCard
+					card={card(1, "Acme", { nextAction: next("2026-10-10", "", "Ask for feedback") })}
+					onOpen={() => {}}
+				/>,
+			);
+
+			// @then [features/job-next-action.feature] the card shows "Ask for feedback"
+			expect(shown()).toHaveTextContent("Ask for feedback");
+			// @then [features/job-next-action.feature] the next action is not marked as due or overdue
+			expect(shown()).not.toHaveTextContent(/Due today|Overdue/);
+		});
+
+		// @scenario [features/job-next-action.feature#card-no-next-action] A job with no next action shows none on its card
+		// @scenario [features/job-next-action.feature#clear-next-action] Clear the next action once it's done
+		it.each([undefined, null])("shows no next action when it's %s", (nextAction) => {
+			// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with no next action
+			// @when [features/job-next-action.feature] I open the job search board
+			render(<JobCard card={card(1, "Acme", { nextAction })} onOpen={() => {}} />);
+
+			// @then [features/job-next-action.feature] the card doesn't show a next action
+			// @and [features/job-next-action.feature#clear-next-action] the card no longer shows a next action
+			expect(shown()).not.toHaveTextContent("Next action");
+			expect(shown()).not.toHaveTextContent("Expected");
+		});
+	});
 });

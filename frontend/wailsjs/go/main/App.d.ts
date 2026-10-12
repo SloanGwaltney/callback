@@ -12,6 +12,8 @@ export function AttachDocument(arg1:number,arg2:string,arg3:jobs.DocumentKind):P
 
 export function ChooseDocumentFile():Promise<string>;
 
+export function ClearNextAction(arg1:number):Promise<jobs.Job>;
+
 export function DeleteJob(arg1:number):Promise<void>;
 
 export function GetBoard():Promise<jobs.Board>;
@@ -35,6 +37,8 @@ export function RemoveInterview(arg1:number):Promise<void>;
 export function SetClosingReason(arg1:number,arg2:jobs.ClosingReason,arg3:string):Promise<void>;
 
 export function SetDocumentKind(arg1:number,arg2:jobs.DocumentKind):Promise<void>;
+
+export function SetNextAction(arg1:number,arg2:string,arg3:string):Promise<jobs.Job>;
 
 export function UpdateContact(arg1:number,arg2:jobs.ContactDetails):Promise<jobs.Contact>;
 

@@ -1,0 +1,17 @@
+.filter {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	color: var(--color-text-muted);
+	font-size: var(--font-size-sm);
+	white-space: nowrap;
+}
+
+.label {
+	flex: none;
+}
+
+.select {
+	composes: input from "./form.module.css";
+	width: auto;
+}

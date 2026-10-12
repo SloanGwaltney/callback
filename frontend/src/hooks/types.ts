@@ -8,9 +8,13 @@ import type { jobs } from "../../wailsjs/go/models";
 type Rating = { interest?: number | null };
 
 export type NextInterview = jobs.NextInterview;
+export type NextAction = jobs.NextAction;
+// Go sends a job with no next action as null.
+type HasNextAction = { nextAction?: NextAction | null };
 // Go sends a card with no upcoming interview as null.
-export type Card = Omit<jobs.Card, "interest" | "nextInterview" | "convertValues"> &
-	Rating & { nextInterview?: NextInterview | null };
+export type Card = Omit<jobs.Card, "interest" | "nextInterview" | "nextAction" | "convertValues"> &
+	Rating &
+	HasNextAction & { nextInterview?: NextInterview | null };
 export type Column = Omit<jobs.Column, "convertValues" | "cards"> & { cards: Card[] };
 export type Board = { columns: Column[] };
 export type JobDocument = jobs.Document;
@@ -20,8 +24,9 @@ export type Interview = jobs.Interview;
 export type InterviewDetails = jobs.InterviewDetails;
 export type Job = Omit<
 	jobs.Job,
-	"convertValues" | "documents" | "contacts" | "interviews" | "interest"
+	"convertValues" | "documents" | "contacts" | "interviews" | "interest" | "nextAction"
 > &
-	Rating & { documents: JobDocument[]; contacts: Contact[]; interviews: Interview[] };
+	Rating &
+	HasNextAction & { documents: JobDocument[]; contacts: Contact[]; interviews: Interview[] };
 export type Details = jobs.Details;
 export type Move = jobs.Move;
