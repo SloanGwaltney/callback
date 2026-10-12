@@ -67,6 +67,10 @@ Rules:
 - **Step annotations go on the test code that does the step:** the setup, the action, or the
   assertion. If you have to read past the comment to find that code, the comment is in the wrong
   place.
+- **Annotate a step only in a test whose layer carries it out.** When a step happens in another
+  layer, like "today is 2026-10-09" when the backend decides today, or a list order that a SQL
+  query sets, link it from that layer's test, not from a comment with no code under it. A test
+  that relies on another layer can say so in a plain comment that names the test proving it.
 - **One piece of code can carry more than one annotation** when it fulfills several steps or
   scenarios. Stack the comments.
 - **A `Then` checks an observable outcome.** Annotate the assertion on that outcome, such as the

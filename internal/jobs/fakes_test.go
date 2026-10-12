@@ -23,13 +23,29 @@ import (
 // fakeStore is an in-memory Store. InTx snapshots the data and restores it if fn fails, so
 // rollback can be checked too.
 type fakeStore struct {
+	tables
+	// fail makes the named method return errFake.
+	fail string
+}
+
+// tables is the fake's data, which InTx snapshots. A new table goes here and in clone, and
+// nowhere else, for rollback to cover it.
+type tables struct {
 	jobs       map[int64]store.Job
 	docs       map[int64]store.Document
 	contacts   map[int64]store.Contact
 	interviews map[int64]store.Interview
 	nextID     int64
-	// fail makes the named method return errFake.
-	fail string
+}
+
+func (t tables) clone() tables {
+	return tables{
+		jobs:       maps.Clone(t.jobs),
+		docs:       maps.Clone(t.docs),
+		contacts:   maps.Clone(t.contacts),
+		interviews: maps.Clone(t.interviews),
+		nextID:     t.nextID,
+	}
 }
 
 var errFake = errors.New("fake failure")
@@ -37,16 +53,18 @@ var errFake = errors.New("fake failure")
 var _ Store = (*fakeStore)(nil)
 
 func newFakeStore() *fakeStore {
-	return &fakeStore{
-		jobs: map[int64]store.Job{}, docs: map[int64]store.Document{}, contacts: map[int64]store.Contact{},
+	return &fakeStore{tables: tables{
+		jobs:       map[int64]store.Job{},
+		docs:       map[int64]store.Document{},
+		contacts:   map[int64]store.Contact{},
 		interviews: map[int64]store.Interview{},
-	}
+	}}
 }
 
 func (f *fakeStore) InTx(ctx context.Context, fn func(store.Querier) error) error {
-	jobs, docs, contacts, interviews, next := maps.Clone(f.jobs), maps.Clone(f.docs), maps.Clone(f.contacts), maps.Clone(f.interviews), f.nextID
+	saved := f.tables.clone()
 	if err := fn(f); err != nil {
-		f.jobs, f.docs, f.contacts, f.interviews, f.nextID = jobs, docs, contacts, interviews, next
+		f.tables = saved
 		return err
 	}
 	return nil
