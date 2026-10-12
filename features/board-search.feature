@@ -5,7 +5,7 @@ Feature: Board search
 
   Rule: Search matches the role and the company
 
-    @status:not-implemented @id:search-by-role
+    @status:implemented @id:search-by-role
     Scenario: Search by role
       Given I have a job for "Software Engineer" at "Acme" in "Saved"
       And I have a job for "Product Designer" at "Globex" in "Applied"
@@ -13,7 +13,7 @@ Feature: Board search
       Then I see the card for "Software Engineer" at "Acme"
       And I don't see the card for "Product Designer" at "Globex"
 
-    @status:not-implemented @id:search-by-company
+    @status:implemented @id:search-by-company
     Scenario: Search by company
       Given I have a job for "Software Engineer" at "Acme" in "Saved"
       And I have a job for "Product Designer" at "Globex" in "Applied"
@@ -21,7 +21,7 @@ Feature: Board search
       Then I see the card for "Product Designer" at "Globex"
       And I don't see the card for "Software Engineer" at "Acme"
 
-    @status:not-implemented @id:search-partial-any-case
+    @status:implemented @id:search-partial-any-case
     Scenario Outline: Search matches part of a word in any letter case
       Given I have a job for "Software Engineer" at "Acme" in "Saved"
       When I search the board for "<text>"
@@ -34,13 +34,13 @@ Feature: Board search
         | soft     |
         | ENGINEER |
 
-    @status:not-implemented @id:search-ignores-other-details
+    @status:implemented @id:search-ignores-other-details
     Scenario: Search doesn't match a job's other details
       Given I have a job for "Software Engineer" at "Globex" with the notes "Heard about it from someone at Acme."
       When I search the board for "Acme"
       Then I don't see the card for "Software Engineer" at "Globex"
 
-    @status:not-implemented @id:search-blank-shows-all
+    @status:implemented @id:search-blank-shows-all
     Scenario: Searching for only spaces shows every job
       Given I have a job for "Software Engineer" at "Acme" in "Saved"
       And I have a job for "Product Designer" at "Globex" in "Applied"
@@ -50,7 +50,7 @@ Feature: Board search
 
   Rule: Search filters every column at once and keeps cards in their columns
 
-    @status:not-implemented @id:search-keeps-columns
+    @status:implemented @id:search-keeps-columns
     Scenario: Matching cards stay in their own columns
       Given I have a job for "Software Engineer" at "Acme" in "Saved"
       And I have a job for "Data Engineer" at "Globex" in "Interviewing"
@@ -59,7 +59,7 @@ Feature: Board search
       And the card for "Data Engineer" at "Globex" is in the "Interviewing" column
       And I still see every status column
 
-    @status:not-implemented @id:search-counts-matches
+    @status:implemented @id:search-counts-matches
     Scenario: Column counts show how many cards match
       Given I have 3 jobs in "Saved", 2 of them at "Acme"
       And I have 1 job in "Applied" at "Globex"
@@ -67,7 +67,7 @@ Feature: Board search
       Then the "Saved" column shows a count of 2
       And the "Applied" column shows a count of 0
 
-    @status:not-implemented @id:search-no-matches
+    @status:implemented @id:search-no-matches
     Scenario: Told when nothing matches
       Given I have a job for "Software Engineer" at "Acme" in "Saved"
       When I search the board for "Initech"
@@ -75,7 +75,7 @@ Feature: Board search
       And I am told no jobs match "Initech"
       But I am not prompted to add my first job
 
-    @status:not-implemented @id:clear-search
+    @status:implemented @id:clear-search
     Scenario: Clearing the search shows every job again
       Given I have a job for "Software Engineer" at "Acme" in "Saved"
       And I have a job for "Product Designer" at "Globex" in "Applied"
@@ -86,7 +86,7 @@ Feature: Board search
 
   Rule: Cards can be moved to another status but not reordered while searching
 
-    @status:not-implemented @id:search-move-card
+    @status:implemented @id:search-move-card
     Scenario: Move a matching card to another status while searching
       Given I have a job for "Software Engineer" at "Acme" in "Saved"
       And I have searched the board for "Acme"
@@ -94,7 +94,7 @@ Feature: Board search
       Then the card appears in the "Applied" column
       And the search for "Acme" is still applied
 
-    @status:not-implemented @id:search-move-to-top
+    @status:implemented @id:search-move-to-top
     Scenario: A card moved to another status while searching goes to the top of that column
       Given the "Applied" column holds the jobs at "Globex" and "Initech" in that order
       And I have a job at "Acme" in "Saved"
@@ -103,7 +103,7 @@ Feature: Board search
       And I clear the search
       Then the "Applied" column shows "Acme", "Globex", and "Initech" in that order
 
-    @status:not-implemented @id:search-no-reorder
+    @status:implemented @id:search-no-reorder
     Scenario: Cards can't be reordered within a column while searching
       Given the "Saved" column holds the jobs at "Acme", "Globex", and "Acme Robotics" in that order
       And I have searched the board for "Acme"
@@ -114,7 +114,7 @@ Feature: Board search
 
   Rule: Search lasts only for the current session
 
-    @status:not-implemented @id:search-not-kept
+    @status:implemented @id:search-not-kept
     Scenario: Search is cleared after reopening the app
       Given I have a job for "Software Engineer" at "Acme" in "Saved"
       And I have a job for "Product Designer" at "Globex" in "Applied"
@@ -125,7 +125,7 @@ Feature: Board search
 
   Rule: Adding a job clears the search
 
-    @status:not-implemented @id:add-job-clears-search
+    @status:implemented @id:add-job-clears-search
     Scenario: Adding a job clears the search
       Given I have a job for "Software Engineer" at "Acme" in "Saved"
       And I have searched the board for "Acme"
