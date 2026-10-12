@@ -192,3 +192,22 @@ Feature: Job search board
       Given the "Saved" column holds the jobs at "Initech", "Acme", and "Globex" in that order
       When I close and reopen the app
       Then the "Saved" column shows "Initech", "Acme", and "Globex" in that order
+
+  Rule: The board shows changes made outside the app
+
+    @status:not-implemented @id:refresh-on-focus
+    Scenario: The board shows my agent's changes when I come back to the app
+      Given the app is open with a job for "Software Engineer" at "Acme" in "Applied"
+      And I switch to another window
+      And my agent moves the job to "Interviewing"
+      When I switch back to the app
+      Then the card for "Software Engineer" at "Acme" is in the "Interviewing" column
+
+    @status:not-implemented @id:refresh-keeps-search-and-pages
+    Scenario: Refreshing the board keeps my search and the page I'm on
+      Given the app is open and I have searched for "Engineer"
+      And the "Applied" column is on its second page
+      And I switch to another window
+      When I switch back to the app
+      Then the search still shows "Engineer"
+      And the "Applied" column is still on its second page
