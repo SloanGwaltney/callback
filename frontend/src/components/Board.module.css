@@ -110,18 +110,129 @@
 	color: var(--color-text);
 }
 
+/* The page of cards. It hides a page sliding in or out past the column's sides. The negative
+   margin, made up by the lists' padding, keeps focus rings and drag shadows from being clipped. */
+.pageArea {
+	position: relative;
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-height: 0;
+	margin: calc(-1 * var(--space-1));
+	overflow: hidden;
+}
+
 .cards {
 	display: flex;
 	flex: 1;
 	flex-direction: column;
 	gap: var(--space-2);
 	min-height: 3rem;
-	/* The padding, offset by the negative margin, keeps focus rings and drag shadows from being
-	   clipped by the scroll area. */
-	margin: calc(-1 * var(--space-1));
+	margin: 0;
 	padding: var(--space-1);
 	overflow-y: auto;
 	list-style: none;
+}
+
+/* The page being left, drawn over the new one while it slides out. */
+.leaving {
+	composes: cards;
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+	pointer-events: none;
+}
+
+.cards[data-slide="in-right"] {
+	animation: slide-in-right var(--page-slide-duration) ease-out;
+}
+
+.cards[data-slide="in-left"] {
+	animation: slide-in-left var(--page-slide-duration) ease-out;
+}
+
+.leaving[data-slide="out-left"] {
+	animation: slide-out-left var(--page-slide-duration) ease-out forwards;
+}
+
+.leaving[data-slide="out-right"] {
+	animation: slide-out-right var(--page-slide-duration) ease-out forwards;
+}
+
+@keyframes slide-in-right {
+	from {
+		transform: translateX(100%);
+	}
+}
+
+@keyframes slide-in-left {
+	from {
+		transform: translateX(-100%);
+	}
+}
+
+@keyframes slide-out-left {
+	to {
+		transform: translateX(-100%);
+	}
+}
+
+@keyframes slide-out-right {
+	to {
+		transform: translateX(100%);
+	}
+}
+
+/* The arrows don't slide pages when the system asks for less motion. Board.tsx doesn't start a
+   slide then either; this covers a change of setting partway through one. */
+@media (prefers-reduced-motion: reduce) {
+	.cards[data-slide],
+	.leaving[data-slide] {
+		animation: none;
+	}
+
+	.leaving {
+		display: none;
+	}
+}
+
+.pager {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-2);
+	margin-top: var(--space-3);
+}
+
+.arrow {
+	width: 1.75rem;
+	height: 1.75rem;
+	border: 1px solid var(--color-control-border);
+	border-radius: var(--radius-sm);
+	background: var(--color-button);
+	color: var(--color-text);
+	font-size: var(--font-size-lg);
+	line-height: 1;
+	cursor: pointer;
+}
+
+.arrow:hover:not([aria-disabled="true"]) {
+	background: var(--color-button-hover);
+}
+
+.arrow[aria-disabled="true"] {
+	cursor: default;
+	opacity: 0.45;
+}
+
+.pageNumber {
+	color: var(--color-text-muted);
+	font-size: var(--font-size-xs);
+}
+
+.noMatches {
+	margin: 0;
+	color: var(--color-text-muted);
 }
 
 .item {

@@ -7,6 +7,10 @@
 #
 # Usage: bash scripts/drive/dev.sh        (run it in the background)
 #        bash scripts/drive/dev.sh stop   (when done)
+#        bash scripts/drive/dev.sh reset  (while stopped: delete temp/drive/appdata, so the next
+#                                          run starts with no jobs)
+#
+# To empty or fill the board while the app runs, use clearBoard and seed in cdp.mjs instead.
 #
 # Stopping the background shell isn't enough: under Git Bash, the Windows processes it started
 # keep running. So the run records wails's PID, and `stop` kills that process tree, and only it.
@@ -27,6 +31,17 @@ if [ "$1" = "stop" ]; then
     kill "$pid"
   fi
   rm -f "$pidfile"
+  exit 0
+fi
+
+if [ "$1" = "reset" ]; then
+  # The running app holds the database open, so its files can't be deleted under it.
+  if [ -f "$pidfile" ]; then
+    echo "dev.sh: the app is running; stop it first with: bash scripts/drive/dev.sh stop" >&2
+    exit 1
+  fi
+  rm -rf temp/drive/appdata
+  echo "dev.sh: deleted temp/drive/appdata"
   exit 0
 fi
 

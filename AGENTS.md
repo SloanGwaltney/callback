@@ -50,6 +50,8 @@ Each entry links to the ADR that chose it.
 One line each. Each entry links to the ADR that set it.
 
 - **Business rules:** in service packages under `internal/`, over a `store.Querier` + `InTx` interface; `app.go` bindings only call services ([docs/adr/0016-put-business-rules-in-services-over-a-transactional-store-interface.md](docs/adr/0016-put-business-rules-in-services-over-a-transactional-store-interface.md))
+- **Board search and pagination:** done in the frontend over the whole board from `GetBoard`; card order stays in the jobs service ([docs/adr/0020-search-and-paginate-the-board-in-the-frontend.md](docs/adr/0020-search-and-paginate-the-board-in-the-frontend.md))
+- **Spec links:** `@scenario` on entry points in code and on tests; step annotations in tests only, where `And`/`But` take their own keyword or the one they continue ([docs/adr/0021-link-spec-steps-from-tests-and-scenarios-from-code.md](docs/adr/0021-link-spec-steps-from-tests-and-scenarios-from-code.md))
 - **Opening files and links:** only through the hand-written opener in `internal/desktop`, never Wails' `BrowserOpenURL`, and only `http`/`https` links ([docs/adr/0017-open-documents-and-links-with-a-hand-written-os-opener.md](docs/adr/0017-open-documents-and-links-with-a-hand-written-os-opener.md))
 
 ## Dependencies
@@ -92,6 +94,11 @@ telling the user they work.
 3. Stop with `bash scripts/drive/dev.sh stop`. Stopping the background shell alone leaves the
    app running.
 
+To set up the data a check needs, call `page.clearBoard()` and `page.seed([...jobs])` from the
+steps file while the app runs, or delete it all with `bash scripts/drive/dev.sh reset` while it's
+stopped. `page.click(selector, { wait: 0 })` returns right away, to screenshot an animation
+partway through.
+
 Don't click "Attach a document…" or anything else that opens a native dialog; it would appear
 on the user's screen. When `form.module.css` changes, re-save the stylesheets that `composes`
 from it, or Vite keeps serving their old copies of its rules.
@@ -105,10 +112,10 @@ searchable. For why, see
 
 How we do that:
 
-- **Spec annotations.** Code and tests that implement a scenario in `features/*.feature` carry
-  comments like `// @scenario [features/x.feature#<id>] <title>` and `// @then [features/x.feature]
-  <step text>`, so grepping a spec file, scenario ID, or step text finds its implementation and
-  tests. Start new features from their `@status:not-implemented` scenarios. Read
+- **Spec annotations.** A scenario in `features/*.feature` is linked by a comment like
+  `// @scenario [features/x.feature#<id>] <title>` on its entry points in code and on its tests,
+  and each step by a comment like `// @then [features/x.feature] <step text>` in the tests, so
+  grepping a spec file, scenario ID, or step text finds its implementation and tests. Start new features from their `@status:not-implemented` scenarios. Read
   [docs/spec-annotations.md](docs/spec-annotations.md) before implementing or testing a scenario.
 - **Decision records.** Architectural decisions live in `docs/adr/` and are written with the `adr`
   skill. Each ADR's Related section lists the scenarios it affects as

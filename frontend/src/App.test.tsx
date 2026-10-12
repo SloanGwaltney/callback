@@ -245,4 +245,300 @@ describe("App", () => {
 		render(<App />);
 		expect(screen.getByRole("alert")).toHaveTextContent("database is locked");
 	});
+
+	describe("search", () => {
+		const searchBox = () => screen.getByRole("searchbox", { name: "Search jobs" });
+		const shown = (name: string) => screen.queryByRole("article", { name });
+		const twoJobs = () =>
+			board({
+				saved: [card(1, "Acme")],
+				applied: [card(2, "Globex", { role: "Product Designer" })],
+			});
+
+		// @scenario [features/board-search.feature#search-by-role] Search by role
+		it("searches by role", async () => {
+			// @given [features/board-search.feature] I have a job for "Software Engineer" at "Acme" in "Saved"
+			// @and [features/board-search.feature] I have a job for "Product Designer" at "Globex" in "Applied"
+			mockBoard(twoJobs());
+			render(<App />);
+
+			// @when [features/board-search.feature] I search the board for "Engineer"
+			await userEvent.type(searchBox(), "Engineer");
+
+			// @then [features/board-search.feature#search-by-role] I see the card for "Software Engineer" at "Acme"
+			expect(shown("Software Engineer at Acme")).toBeInTheDocument();
+			// @and [features/board-search.feature] I don't see the card for "Product Designer" at "Globex"
+			expect(shown("Product Designer at Globex")).not.toBeInTheDocument();
+		});
+
+		// @scenario [features/board-search.feature#search-by-company] Search by company
+		it("searches by company", async () => {
+			// @given [features/board-search.feature] I have a job for "Software Engineer" at "Acme" in "Saved"
+			// @and [features/board-search.feature] I have a job for "Product Designer" at "Globex" in "Applied"
+			mockBoard(twoJobs());
+			render(<App />);
+
+			// @when [features/board-search.feature] I search the board for "Globex"
+			await userEvent.type(searchBox(), "Globex");
+
+			// @then [features/board-search.feature#search-by-company] I see the card for "Product Designer" at "Globex"
+			expect(shown("Product Designer at Globex")).toBeInTheDocument();
+			// @and [features/board-search.feature] I don't see the card for "Software Engineer" at "Acme"
+			expect(shown("Software Engineer at Acme")).not.toBeInTheDocument();
+		});
+
+		// @scenario [features/board-search.feature#search-partial-any-case] Search matches part of a word in any letter case
+		it.each([["acme"], ["ACM"], ["soft"], ["ENGINEER"]])("matches %s", async (text) => {
+			// @given [features/board-search.feature] I have a job for "Software Engineer" at "Acme" in "Saved"
+			mockBoard(
+				board({ saved: [card(1, "Acme")], applied: [card(2, "Globex", { role: "Chef" })] }),
+			);
+			render(<App />);
+
+			// @when [features/board-search.feature] I search the board for "<text>"
+			await userEvent.type(searchBox(), text);
+
+			// @then [features/board-search.feature#search-partial-any-case] I see the card for "Software Engineer" at "Acme"
+			expect(shown("Software Engineer at Acme")).toBeInTheDocument();
+			expect(shown("Chef at Globex")).not.toBeInTheDocument();
+		});
+
+		// Cards don't carry a job's notes or other details, so nothing but the role and the
+		// company can match.
+		// @scenario [features/board-search.feature#search-ignores-other-details] Search doesn't match a job's other details
+		it("doesn't match a job's other details", async () => {
+			// @given [features/board-search.feature] I have a job for "Software Engineer" at "Globex" with the notes "Heard about it from someone at Acme."
+			mockBoard(board({ saved: [card(2, "Globex", { location: "Acme Tower" })] }));
+			render(<App />);
+
+			// @when [features/board-search.feature] I search the board for "Acme"
+			await userEvent.type(searchBox(), "Acme");
+
+			// @then [features/board-search.feature] I don't see the card for "Software Engineer" at "Globex"
+			expect(shown("Software Engineer at Globex")).not.toBeInTheDocument();
+		});
+
+		// @scenario [features/board-search.feature#search-blank-shows-all] Searching for only spaces shows every job
+		it("shows every job for a search of only spaces", async () => {
+			// @given [features/board-search.feature] I have a job for "Software Engineer" at "Acme" in "Saved"
+			// @and [features/board-search.feature] I have a job for "Product Designer" at "Globex" in "Applied"
+			mockBoard(twoJobs());
+			render(<App />);
+
+			// @when [features/board-search.feature] I search the board for "   "
+			await userEvent.type(searchBox(), "   ");
+
+			// @then [features/board-search.feature#search-blank-shows-all] I see the card for "Software Engineer" at "Acme"
+			expect(shown("Software Engineer at Acme")).toBeInTheDocument();
+			// @and [features/board-search.feature#search-blank-shows-all] I see the card for "Product Designer" at "Globex"
+			expect(shown("Product Designer at Globex")).toBeInTheDocument();
+		});
+
+		// @scenario [features/board-search.feature#search-keeps-columns] Matching cards stay in their own columns
+		it("keeps matching cards in their own columns", async () => {
+			// @given [features/board-search.feature] I have a job for "Software Engineer" at "Acme" in "Saved"
+			// @and [features/board-search.feature] I have a job for "Data Engineer" at "Globex" in "Interviewing"
+			mockBoard(
+				board({
+					saved: [card(1, "Acme")],
+					interviewing: [card(2, "Globex", { role: "Data Engineer" })],
+				}),
+			);
+			render(<App />);
+
+			// @when [features/board-search.feature] I search the board for "Engineer"
+			await userEvent.type(searchBox(), "Engineer");
+
+			// @then [features/board-search.feature] the card for "Software Engineer" at "Acme" is in the "Saved" column
+			expect(acmeIn("Saved")).toBeInTheDocument();
+			// @and [features/board-search.feature] the card for "Data Engineer" at "Globex" is in the "Interviewing" column
+			expect(
+				within(column("Interviewing")).getByRole("article", { name: "Data Engineer at Globex" }),
+			).toBeInTheDocument();
+			// @and [features/board-search.feature] I still see every status column
+			expect(screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual([
+				"Saved",
+				"Applied",
+				"Interviewing",
+				"Offer",
+				"Closed",
+			]);
+		});
+
+		// @scenario [features/board-search.feature#search-counts-matches] Column counts show how many cards match
+		it("counts the matching cards in each column", async () => {
+			// @given [features/board-search.feature] I have 3 jobs in "Saved", 2 of them at "Acme"
+			// @and [features/board-search.feature] I have 1 job in "Applied" at "Globex"
+			mockBoard(
+				board({
+					saved: [card(1, "Acme"), card(2, "Initech"), card(3, "Acme", { role: "Designer" })],
+					applied: [card(4, "Globex")],
+				}),
+			);
+			render(<App />);
+
+			// @when [features/board-search.feature] I search the board for "Acme"
+			await userEvent.type(searchBox(), "Acme");
+
+			// @then [features/board-search.feature] the "Saved" column shows a count of 2
+			expect(within(column("Saved")).getByText("2 jobs")).toBeInTheDocument();
+			// @and [features/board-search.feature] the "Applied" column shows a count of 0
+			expect(within(column("Applied")).getByText("0 jobs")).toBeInTheDocument();
+		});
+
+		// @scenario [features/board-search.feature#search-no-matches] Told when nothing matches
+		it("says when nothing matches", async () => {
+			// @given [features/board-search.feature] I have a job for "Software Engineer" at "Acme" in "Saved"
+			mockBoard(board({ saved: [card(1, "Acme")] }));
+			render(<App />);
+
+			// @when [features/board-search.feature] I search the board for "Initech"
+			await userEvent.type(searchBox(), "Initech");
+
+			// @then [features/board-search.feature] every status column is empty
+			expect(screen.queryAllByRole("article")).toEqual([]);
+			expect(screen.getAllByText("No jobs")).toHaveLength(5);
+			// @and [features/board-search.feature] I am told no jobs match "Initech"
+			expect(screen.getByText('No jobs match "Initech".')).toHaveAttribute("role", "status");
+			// @but [features/board-search.feature] I am not prompted to add my first job
+			expect(screen.queryByRole("button", { name: "Add your first job" })).not.toBeInTheDocument();
+		});
+
+		// @scenario [features/board-search.feature#clear-search] Clearing the search shows every job again
+		it("shows every job again when the search is cleared", async () => {
+			// @given [features/board-search.feature] I have a job for "Software Engineer" at "Acme" in "Saved"
+			// @and [features/board-search.feature] I have a job for "Product Designer" at "Globex" in "Applied"
+			mockBoard(twoJobs());
+			render(<App />);
+			// @and [features/board-search.feature] I have searched the board for "Acme"
+			await userEvent.type(searchBox(), "Acme");
+			expect(shown("Product Designer at Globex")).not.toBeInTheDocument();
+
+			// @when [features/board-search.feature] I clear the search
+			await userEvent.click(screen.getByRole("button", { name: "Clear search" }));
+
+			expect(searchBox()).toHaveValue("");
+			// @then [features/board-search.feature#clear-search] I see the card for "Software Engineer" at "Acme"
+			expect(shown("Software Engineer at Acme")).toBeInTheDocument();
+			// @and [features/board-search.feature#clear-search] I see the card for "Product Designer" at "Globex"
+			expect(shown("Product Designer at Globex")).toBeInTheDocument();
+		});
+
+		it("clears the search with Escape", async () => {
+			mockBoard(twoJobs());
+			render(<App />);
+			await userEvent.type(searchBox(), "Acme{Escape}");
+			expect(searchBox()).toHaveValue("");
+			expect(shown("Product Designer at Globex")).toBeInTheDocument();
+		});
+
+		// @scenario [features/board-search.feature#search-not-kept] Search is cleared after reopening the app
+		it("starts with an empty search when the app reopens", async () => {
+			// @given [features/board-search.feature] I have a job for "Software Engineer" at "Acme" in "Saved"
+			// @and [features/board-search.feature] I have a job for "Product Designer" at "Globex" in "Applied"
+			mockBoard(twoJobs());
+			const { unmount } = render(<App />);
+			// @and [features/board-search.feature] I have searched the board for "Acme"
+			await userEvent.type(searchBox(), "Acme");
+
+			// @when [features/board-search.feature] I close and reopen the app
+			unmount();
+			render(<App />);
+
+			// @then [features/board-search.feature#search-not-kept] the search is empty
+			expect(searchBox()).toHaveValue("");
+			// @and [features/board-search.feature#search-not-kept] I see the card for "Product Designer" at "Globex"
+			expect(shown("Product Designer at Globex")).toBeInTheDocument();
+		});
+
+		// @scenario [features/board-search.feature#add-job-clears-search] Adding a job clears the search
+		it("clears the search when a job is added", async () => {
+			// @given [features/board-search.feature] I have a job for "Software Engineer" at "Acme" in "Saved"
+			mockBoard(board({ saved: [card(1, "Acme")] }));
+			render(<App />);
+			// @and [features/board-search.feature] I have searched the board for "Acme"
+			await userEvent.type(searchBox(), "Acme");
+
+			// @when [features/board-search.feature] I add a job at "Globex" to the "Saved" column
+			await userEvent.click(screen.getByRole("button", { name: "Add a job to Saved" }));
+			await userEvent.type(field(/^Company/), "Globex");
+			await userEvent.type(field(/^Role/), "Product Designer");
+			await userEvent.click(
+				within(screen.getByRole("dialog")).getByRole("button", { name: "Add job" }),
+			);
+
+			// @then [features/board-search.feature#add-job-clears-search] the search is empty
+			expect(searchBox()).toHaveValue("");
+			// @and [features/board-search.feature#add-job-clears-search] I see the card for "Software Engineer" at "Acme"
+			expect(shown("Software Engineer at Acme")).toBeInTheDocument();
+			// @and [features/board-search.feature#add-job-clears-search] I see the card for the job at "Globex"
+			expect(shown("Product Designer at Globex")).toBeInTheDocument();
+		});
+	});
+
+	describe("pages", () => {
+		const many = (n: number, company = "Company") =>
+			Array.from({ length: n }, (_, i) => card(i + 1, `${company} ${i + 1}`));
+		const next = () => userEvent.click(screen.getByRole("button", { name: "Next page of Saved" }));
+		const pageOf = (text: string) => within(column("Saved")).getByText(text);
+
+		// @scenario [features/board-pagination.feature#new-card-shows-first-page] Adding a job shows the first page of its column
+		it("shows the first page of a column a job is added to", async () => {
+			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
+			mockBoard(board({ saved: many(25) }));
+			render(<App />);
+			// @and [features/board-pagination.feature] the "Saved" column is on page 2
+			await next();
+			expect(pageOf("Page 2 of 3")).toBeInTheDocument();
+
+			// @when [features/board-pagination.feature] I add a job at "Acme" to the "Saved" column
+			await userEvent.click(screen.getByRole("button", { name: "Add a job to Saved" }));
+			await userEvent.type(field(/^Company/), "Acme");
+			await userEvent.type(field(/^Role/), "Software Engineer");
+			await userEvent.click(
+				within(screen.getByRole("dialog")).getByRole("button", { name: "Add job" }),
+			);
+
+			// @then [features/board-pagination.feature#new-card-shows-first-page] the "Saved" column is on page 1
+			expect(pageOf("Page 1 of 3")).toBeInTheDocument();
+			// @and [features/board-pagination.feature] the card for "Acme" is first in the "Saved" column
+			expect(within(column("Saved")).getAllByRole("article")[0]).toHaveAccessibleName(
+				"Software Engineer at Acme",
+			);
+		});
+
+		// @scenario [features/board-pagination.feature#search-resets-pages] Changing the search returns every column to its first page
+		it("returns to the first page when the search changes", async () => {
+			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
+			mockBoard(board({ saved: many(25, "Acme") }));
+			render(<App />);
+			// @and [features/board-pagination.feature] the "Saved" column is on page 3
+			await next();
+			await next();
+			expect(pageOf("Page 3 of 3")).toBeInTheDocument();
+
+			// @when [features/board-pagination.feature] I search the board for "Acme"
+			await userEvent.type(screen.getByRole("searchbox", { name: "Search jobs" }), "Acme");
+
+			// @then [features/board-pagination.feature#search-resets-pages] the "Saved" column is on page 1
+			expect(pageOf("Page 1 of 3")).toBeInTheDocument();
+		});
+
+		// @scenario [features/board-pagination.feature#pages-reset-on-reopen] Every column starts on its first page after reopening the app
+		it("starts every column on its first page when the app reopens", async () => {
+			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
+			mockBoard(board({ saved: many(25) }));
+			const { unmount } = render(<App />);
+			// @and [features/board-pagination.feature] the "Saved" column is on page 2
+			await next();
+			expect(pageOf("Page 2 of 3")).toBeInTheDocument();
+
+			// @when [features/board-pagination.feature] I close and reopen the app
+			unmount();
+			render(<App />);
+
+			// @then [features/board-pagination.feature#pages-reset-on-reopen] the "Saved" column is on page 1
+			expect(pageOf("Page 1 of 3")).toBeInTheDocument();
+		});
+	});
 });

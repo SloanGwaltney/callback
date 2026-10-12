@@ -46,6 +46,15 @@ type Step struct {
 	Keyword string // as written in the spec, e.g. "And"
 	Text    string // the step with its keyword removed
 	Line    int
+	// Kind is "given", "when", or "then": the keyword, or for And and But, the kind of the step
+	// before. An And or But that starts a scenario keeps its own keyword.
+	Kind string
+}
+
+// Accepts reports whether an annotation keyword, lowercase, links to the step: the keyword as
+// written, or the kind it continues. "And I clear the search" after a When takes @and or @when.
+func (st Step) Accepts(keyword string) bool {
+	return keyword == strings.ToLower(st.Keyword) || keyword == st.Kind
 }
 
 func (f *Feature) scenario(id string) *Scenario {
@@ -164,7 +173,11 @@ func parseFeature(path, src string) (*Feature, []Problem) {
 		default:
 			keyword, rest, ok := cutStepKeyword(text)
 			if ok && current != nil {
-				current.Steps = append(current.Steps, Step{Keyword: keyword, Text: rest, Line: line})
+				kind := strings.ToLower(keyword)
+				if (keyword == "And" || keyword == "But") && len(current.Steps) > 0 {
+					kind = current.Steps[len(current.Steps)-1].Kind
+				}
+				current.Steps = append(current.Steps, Step{Keyword: keyword, Text: rest, Line: line, Kind: kind})
 			}
 		}
 	}

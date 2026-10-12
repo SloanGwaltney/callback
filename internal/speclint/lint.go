@@ -175,8 +175,11 @@ func (l *linter) checkAnnotation(a Annotation) {
 			if st.Text != a.Text {
 				continue
 			}
-			if !strings.EqualFold(st.Keyword, a.Keyword) {
-				otherKeyword = st.Keyword
+			if !st.Accepts(a.Keyword) {
+				otherKeyword = "@" + strings.ToLower(st.Keyword)
+				if st.Kind != strings.ToLower(st.Keyword) {
+					otherKeyword += " or @" + st.Kind
+				}
 				continue
 			}
 			if s.Status == StatusWithdrawn {
@@ -195,14 +198,15 @@ func (l *linter) checkAnnotation(a Annotation) {
 	case withdrawn:
 		l.report(a.File, a.Line, "@%s [%s] %s: step is only used by withdrawn scenarios; remove this annotation", a.Keyword, ref, a.Text)
 	case otherKeyword != "":
-		l.report(a.File, a.Line, "@%s [%s] %s: the spec writes this step with %q; use @%s", a.Keyword, ref, a.Text, otherKeyword, strings.ToLower(otherKeyword))
+		l.report(a.File, a.Line, "@%s [%s] %s: the spec's step takes %s", a.Keyword, ref, a.Text, otherKeyword)
 	default:
 		l.report(a.File, a.Line, "@%s [%s] %s: no such step in %s", a.Keyword, ref, a.Text, where)
 	}
 }
 
-// checkCoverage reports implemented scenarios, and their steps, that have no annotation in code
-// or in tests.
+// checkCoverage reports implemented scenarios with no @scenario annotation in code or in tests,
+// and steps of them with no annotation in tests. Step annotations in code are allowed but not
+// required (docs/adr/0021-link-spec-steps-from-tests-and-scenarios-from-code.md).
 func (l *linter) checkCoverage() {
 	type key struct{ feature, keyword, id, text string }
 	index := map[key]*found{}
@@ -243,10 +247,17 @@ func (l *linter) checkCoverage() {
 
 			for _, st := range s.Steps {
 				kw := strings.ToLower(st.Keyword)
-				unscoped := has(key{p, kw, "", st.Text})
-				scoped := has(key{p, kw, s.ID, st.Text})
-				got := found{code: unscoped.code || scoped.code, test: unscoped.test || scoped.test}
-				l.reportMissing(p, st.Line, got, fmt.Sprintf("step %q of implemented scenario %s has no @%s [%s] annotation", st.Keyword+" "+st.Text, s.ID, kw, p))
+				got := found{code: true}
+				for _, k := range []string{kw, st.Kind} {
+					for _, id := range []string{"", s.ID} {
+						got.test = got.test || has(key{p, k, id, st.Text}).test
+					}
+				}
+				want := "@" + kw
+				if st.Kind != kw {
+					want += " or @" + st.Kind
+				}
+				l.reportMissing(p, st.Line, got, fmt.Sprintf("step %q of implemented scenario %s has no %s [%s] annotation", st.Keyword+" "+st.Text, s.ID, want, p))
 			}
 		}
 	}

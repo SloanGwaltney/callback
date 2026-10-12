@@ -33,11 +33,13 @@ type ADRRef struct {
 	Whole bool
 }
 
-// Missing lists what the scenario lacks: a link in code or in tests for its @scenario and for each
-// step, worded for a person to read. It's empty when the scenario is fully linked.
+// Missing lists what the scenario lacks, worded for a person to read: a link in code or in tests
+// for its @scenario, and a link in tests for each step. Step links in code are optional
+// (docs/adr/0021-link-spec-steps-from-tests-and-scenarios-from-code.md). It's empty when the
+// scenario is fully linked.
 func (t *Trace) Missing() []string {
 	var out []string
-	check := func(what string, links []Annotation) {
+	check := func(what string, links []Annotation, needCode bool) {
 		var code, test bool
 		for _, a := range links {
 			if a.Test {
@@ -46,16 +48,16 @@ func (t *Trace) Missing() []string {
 				code = true
 			}
 		}
-		if !code {
+		if needCode && !code {
 			out = append(out, what+" has no link in code")
 		}
 		if !test {
 			out = append(out, what+" has no link in tests")
 		}
 	}
-	check("@scenario", t.Entry)
+	check("@scenario", t.Entry, true)
 	for _, s := range t.Steps {
-		check(fmt.Sprintf("%s %s", s.Step.Keyword, s.Step.Text), s.Links)
+		check(fmt.Sprintf("%s %s", s.Step.Keyword, s.Step.Text), s.Links, false)
 	}
 	return out
 }
@@ -94,11 +96,49 @@ func TraceScenario(root, ref string) (*Trace, error) {
 		sort.Strings(paths)
 		return nil, fmt.Errorf("more than one scenario has @id:%s; name one of %s", id, strings.Join(paths, ", "))
 	}
-	t := matches[0]
 
 	if err := l.loadAnnotations(root); err != nil {
 		return nil, err
 	}
+	t := matches[0]
+	if err := l.link(root, t); err != nil {
+		return nil, err
+	}
+	return t, nil
+}
+
+// TraceFeature traces every scenario in the feature file at path, e.g.
+// "features/job-board.feature", in the order they're written. Withdrawn scenarios are left out,
+// since they're removed from the app and have nothing left to link.
+func TraceFeature(root, path string) ([]*Trace, error) {
+	l := &linter{features: map[string]*Feature{}}
+	if err := l.loadFeatures(root); err != nil {
+		return nil, err
+	}
+	f := l.features[path]
+	if f == nil {
+		return nil, fmt.Errorf("no feature file %s; name one as features/<file>.feature", path)
+	}
+	if err := l.loadAnnotations(root); err != nil {
+		return nil, err
+	}
+	var traces []*Trace
+	for _, s := range f.Scenarios {
+		if s.Status == "withdrawn" {
+			continue
+		}
+		t := &Trace{Feature: path, Scenario: s}
+		if err := l.link(root, t); err != nil {
+			return nil, err
+		}
+		traces = append(traces, t)
+	}
+	return traces, nil
+}
+
+// link fills in t's entry points, step links, and ADRs from the loaded annotations.
+func (l *linter) link(root string, t *Trace) error {
+	id := t.Scenario.ID
 	t.Steps = make([]StepTrace, len(t.Scenario.Steps))
 	for i, st := range t.Scenario.Steps {
 		t.Steps[i].Step = st
@@ -117,7 +157,7 @@ func TraceScenario(root, ref string) (*Trace, error) {
 			continue
 		}
 		for i, st := range t.Scenario.Steps {
-			if a.Keyword == strings.ToLower(st.Keyword) && a.Text == st.Text {
+			if st.Accepts(a.Keyword) && a.Text == st.Text {
 				t.Steps[i].Links = append(t.Steps[i].Links, a)
 			}
 		}
@@ -129,10 +169,10 @@ func TraceScenario(root, ref string) (*Trace, error) {
 
 	refs, err := adrRefs(root, t.Feature, id)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	t.ADRs = refs
-	return t, nil
+	return nil
 }
 
 // adrRefs returns the Related entries in docs/adr/*.md that link to the scenario or its feature.
