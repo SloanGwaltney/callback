@@ -3,13 +3,10 @@ package db
 import (
 	"context"
 	"database/sql"
-	"io/fs"
 	"slices"
 	"testing"
-	"testing/fstest"
 	"time"
 
-	"callback/internal/db/migrations"
 	"callback/internal/store"
 )
 
@@ -206,35 +203,10 @@ func TestDeleteJobDeletesItsStatusChangeRows(t *testing.T) {
 	}
 }
 
-// migrationsBefore returns the migrations older than version, to build a database as an earlier
-// release left it.
-func migrationsBefore(t *testing.T, version string) fs.FS {
-	t.Helper()
-	old := fstest.MapFS{}
-	entries, err := fs.ReadDir(migrations.FS, ".")
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, e := range entries {
-		if e.Name() >= version {
-			continue
-		}
-		data, err := fs.ReadFile(migrations.FS, e.Name())
-		if err != nil {
-			t.Fatal(err)
-		}
-		old[e.Name()] = &fstest.MapFile{Data: data}
-	}
-	return old
-}
-
 func TestMigrationStartsHistoryForExistingJobs(t *testing.T) {
 	dataDir := t.TempDir()
 	ctx := context.Background()
-	old, err := Open(ctx, dataDir, migrationsBefore(t, "00007"))
-	if err != nil {
-		t.Fatal(err)
-	}
+	old := openBefore(t, dataDir, "00007")
 	mustExec(t, old, `INSERT INTO jobs (company, role, position, status) VALUES ('Acme', 'Software Engineer', 0, 'applied')`)
 	mustExec(t, old, `INSERT INTO jobs (company, role, position, status, closing_reason, closing_reason_other) VALUES ('Globex', 'Developer', 0, 'closed', 'other', 'Layoffs')`)
 	old.Close()

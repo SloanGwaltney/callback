@@ -27,6 +27,11 @@ var assets embed.FS
 // Pair it with appdata.EnvVar so the run doesn't touch the user's real data.
 const StartHiddenEnvVar = "CALLBACK_START_HIDDEN"
 
+// TodayEnvVar, set to a date like 2026-10-09, makes the app take that date as today, so an agent
+// driving a development run can see what depends on the date, like days in status or next actions
+// coming due. Restarting with a later date moves the run forward; the time of day stays real.
+const TodayEnvVar = "CALLBACK_TODAY"
+
 func main() {
 	dataDir, err := appdata.Dir()
 	if err != nil {
@@ -37,9 +42,13 @@ func main() {
 		fail(err)
 	}
 	defer conn.Close()
+	now, err := clock(os.Getenv, time.Now)
+	if err != nil {
+		fail(err)
+	}
 
 	// Create an instance of the app structure
-	app := NewApp(jobs.New(db.NewStore(conn), docfiles.New(dataDir), desktop.Opener{}, time.Now))
+	app := NewApp(jobs.New(db.NewStore(conn), docfiles.New(dataDir), desktop.Opener{}, now))
 
 	// Create application with options
 	err = wails.Run(&options.App{
@@ -65,6 +74,23 @@ func main() {
 // startHidden reports whether StartHiddenEnvVar asks for the window to stay hidden.
 func startHidden(getenv func(string) string) bool {
 	return getenv(StartHiddenEnvVar) != ""
+}
+
+// clock returns what the app takes as the current time: now, or with TodayEnvVar set, that date at
+// now's local time of day.
+func clock(getenv func(string) string, now func() time.Time) (func() time.Time, error) {
+	value := getenv(TodayEnvVar)
+	if value == "" {
+		return now, nil
+	}
+	day, err := time.ParseInLocation("2006-01-02", value, time.Local)
+	if err != nil {
+		return nil, fmt.Errorf("%s must be a date like 2026-10-09, not %q", TodayEnvVar, value)
+	}
+	return func() time.Time {
+		t := now()
+		return time.Date(day.Year(), day.Month(), day.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), time.Local)
+	}, nil
 }
 
 // fail reports a startup error and exits. It runs before the window exists, so the error only

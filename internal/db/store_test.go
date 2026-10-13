@@ -4,8 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"io/fs"
 	"slices"
 	"testing"
+	"testing/fstest"
 
 	"callback/internal/db/migrations"
 	"callback/internal/store"
@@ -22,6 +24,40 @@ func openStore(t *testing.T, dataDir string) (*Store, *sql.DB) {
 	}
 	t.Cleanup(func() { conn.Close() })
 	return NewStore(conn), conn
+}
+
+// openBefore opens a database in dataDir with only the migrations older than version, as an
+// earlier release left it, to test a migration that changes data already there. Fill it with
+// mustExec, close it, then openStore the same dataDir to run the rest:
+//
+//	old := openBefore(t, dataDir, "00007")
+//	mustExec(t, old, `INSERT INTO jobs ...`)
+//	old.Close()
+//	s, _ := openStore(t, dataDir)
+func openBefore(t *testing.T, dataDir, version string) *sql.DB {
+	t.Helper()
+	older := fstest.MapFS{}
+	entries, err := fs.ReadDir(migrations.FS, ".")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, e := range entries {
+		// Migration file names start with a zero-padded version, so they sort in order.
+		if e.Name() >= version {
+			continue
+		}
+		data, err := fs.ReadFile(migrations.FS, e.Name())
+		if err != nil {
+			t.Fatal(err)
+		}
+		older[e.Name()] = &fstest.MapFile{Data: data}
+	}
+	conn, err := Open(context.Background(), dataDir, older)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { conn.Close() })
+	return conn
 }
 
 func createJob(t *testing.T, q store.Querier, company, status string, position int64) int64 {

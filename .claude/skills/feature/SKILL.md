@@ -62,8 +62,11 @@ following, which must be raised and settled first:
 
 - **A new dependency** (Go module, npm package, or tool). Never install one without asking, and
   justify it as `AGENTS.md` requires.
-- **A decision worth recording**, like a new library, a data model choice, or a pattern other
-  features will copy. Suggest the user run `/adr`. Don't write ADRs yourself.
+- **A decision worth recording**: a real choice between alternatives that later work will build
+  on, like picking a library or a data model trade-off that isn't settled by an existing ADR.
+  Suggest the user run `/adr`. Don't write ADRs yourself. Building something the usual way, like
+  a new table, a read-only view, or a page that follows an existing pattern, isn't a decision, so
+  don't suggest one for it, and don't add ADR notes to PR descriptions.
 
 ## 4. Implement
 
@@ -146,7 +149,8 @@ Finish with:
 - The scenarios built, each with its entry point and test as `file:line`.
 - Test results: the commands run and whether they passed. If something still fails, say so with
   the output rather than finishing quietly.
-- Anything skipped or left open: deprecated or withdrawn scenarios, questions, a suggested `/adr`.
+- Anything skipped or left open: deprecated or withdrawn scenarios, questions, and an `/adr`
+  suggestion only if step 3 raised a real decision.
 - A request to the user to confirm the scenarios are built. Don't change a status to
   `@status:implemented` yourself. When the user confirms, flip the tags, then run
   `go run ./cmd/speclint` again. With the scenarios now `implemented`, it checks that every
