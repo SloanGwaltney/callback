@@ -11,7 +11,9 @@ export type Card = Omit<jobs.Card, "interest"> & Rating;
 export type Column = Omit<jobs.Column, "convertValues" | "cards"> & { cards: Card[] };
 export type Board = { columns: Column[] };
 export type JobDocument = jobs.Document;
-export type Job = Omit<jobs.Job, "convertValues" | "documents" | "interest"> &
-	Rating & { documents: JobDocument[] };
+export type Contact = jobs.Contact;
+export type ContactDetails = jobs.ContactDetails;
+export type Job = Omit<jobs.Job, "convertValues" | "documents" | "contacts" | "interest"> &
+	Rating & { documents: JobDocument[]; contacts: Contact[] };
 export type Details = jobs.Details;
 export type Move = jobs.Move;

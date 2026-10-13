@@ -8,6 +8,17 @@ import (
 	"database/sql"
 )
 
+type Contact struct {
+	ID           int64
+	JobID        int64
+	Name         string
+	Relationship string
+	Email        string
+	Phone        string
+	ProfileLink  string
+	Notes        string
+}
+
 type Document struct {
 	ID         int64
 	JobID      int64

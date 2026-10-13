@@ -162,3 +162,44 @@ func TestListJobsOrdersByPositionWithinStatus(t *testing.T) {
 		t.Errorf("saved column = %v (of %d jobs), want %v", saved, len(jobs), want)
 	}
 }
+
+func TestSchemaContacts(t *testing.T) {
+	conn := openSchema(t)
+	// Foreign keys are set per connection, so keep every statement on one.
+	conn.SetMaxOpenConns(1)
+
+	res := mustExec(t, conn, `INSERT INTO jobs (company, role, position) VALUES ('Acme', 'Software Engineer', 0)`)
+	jobID, err := res.LastInsertId()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, rel := range []string{"recruiter", "hiring_manager", "referrer", "interviewer", "other"} {
+		mustExec(t, conn, `INSERT INTO contacts (job_id, name, relationship) VALUES (?, 'Dana Smith', ?)`, jobID, rel)
+	}
+
+	var email, phone, link, notes string
+	if err := conn.QueryRow(`SELECT email, phone, profile_link, notes FROM contacts LIMIT 1`).Scan(&email, &phone, &link, &notes); err != nil {
+		t.Fatal(err)
+	}
+	if email != "" || phone != "" || link != "" || notes != "" {
+		t.Errorf("optional fields default to %q %q %q %q, want ''", email, phone, link, notes)
+	}
+
+	for _, tt := range []struct{ name, query string }{
+		{"empty name", `INSERT INTO contacts (job_id, name, relationship) VALUES (?, ' ', 'recruiter')`},
+		{"unknown relationship", `INSERT INTO contacts (job_id, name, relationship) VALUES (?, 'Dana Smith', 'boss')`},
+		{"missing relationship", `INSERT INTO contacts (job_id, name) VALUES (?, 'Dana Smith')`},
+	} {
+		t.Run("rejects "+tt.name, func(t *testing.T) {
+			if _, err := conn.Exec(tt.query, jobID); err == nil {
+				t.Error("insert succeeded, want a constraint error")
+			}
+		})
+	}
+
+	t.Run("rejects a missing job", func(t *testing.T) {
+		if _, err := conn.Exec(`INSERT INTO contacts (job_id, name, relationship) VALUES (999, 'Dana Smith', 'recruiter')`); err == nil {
+			t.Error("insert succeeded, want a foreign key error")
+		}
+	})
+}

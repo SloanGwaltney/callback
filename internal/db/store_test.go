@@ -116,6 +116,9 @@ func TestGetJobMissingIsErrNoRows(t *testing.T) {
 	if _, err := s.GetDocument(context.Background(), 99); !errors.Is(err, sql.ErrNoRows) {
 		t.Errorf("err = %v, want sql.ErrNoRows", err)
 	}
+	if _, err := s.GetContact(context.Background(), 99); !errors.Is(err, sql.ErrNoRows) {
+		t.Errorf("err = %v, want sql.ErrNoRows", err)
+	}
 }
 
 func TestListJobIDsInStatusIsInPositionOrder(t *testing.T) {
@@ -255,6 +258,142 @@ func TestDeleteJobDeletesItsDocumentRows(t *testing.T) {
 	}
 	if docs, _ := s.ListDocumentsForJob(ctx, acme); len(docs) != 0 {
 		t.Errorf("%d document rows left after deleting the job in a transaction", len(docs))
+	}
+}
+
+func createContact(t *testing.T, q store.Querier, jobID int64, name, relationship string) store.Contact {
+	t.Helper()
+	c, err := q.CreateContact(context.Background(), store.CreateContactParams{JobID: jobID, Name: name, Relationship: relationship})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return c
+}
+
+func TestContactQueries(t *testing.T) {
+	s, _ := openStore(t, t.TempDir())
+	ctx := context.Background()
+	acme := createJob(t, s, "Acme", "saved", 0)
+	globex := createJob(t, s, "Globex", "saved", 1)
+
+	dana, err := s.CreateContact(ctx, store.CreateContactParams{
+		JobID: acme, Name: "Dana Smith", Relationship: "recruiter", Email: "dana@acme.example.com",
+		Phone: "(555) 010-4477", ProfileLink: "https://www.linkedin.com/in/dana-smith", Notes: "Prefers email.",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	globexDana := createContact(t, s, globex, "Dana Smith", "recruiter")
+
+	err = s.UpdateContact(ctx, store.UpdateContactParams{
+		ID: dana.ID, Name: "Dana Smith", Relationship: "hiring_manager", Email: "dana.smith@acme.example.com",
+		Phone: "(555) 010-4477", ProfileLink: "https://www.linkedin.com/in/dana-smith", Notes: "Prefers email.",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := s.GetContact(ctx, dana.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := store.Contact{
+		ID: dana.ID, JobID: acme, Name: "Dana Smith", Relationship: "hiring_manager", Email: "dana.smith@acme.example.com",
+		Phone: "(555) 010-4477", ProfileLink: "https://www.linkedin.com/in/dana-smith", Notes: "Prefers email.",
+	}
+	if got != want {
+		t.Errorf("contact = %+v\nwant %+v", got, want)
+	}
+	if other, _ := s.GetContact(ctx, globexDana.ID); other != globexDana {
+		t.Errorf("updating Acme's Dana changed Globex's: %+v", other)
+	}
+
+	if err := s.DeleteContact(ctx, dana.ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.GetContact(ctx, dana.ID); !errors.Is(err, sql.ErrNoRows) {
+		t.Errorf("after delete, err = %v, want sql.ErrNoRows", err)
+	}
+	if contacts, _ := s.ListContactsForJob(ctx, globex); len(contacts) != 1 {
+		t.Errorf("deleting Acme's Dana touched Globex's: %d left", len(contacts))
+	}
+}
+
+// @scenario [features/job-contacts.feature#view-contacts] See a job's contacts when opening its card
+func TestListContactsForJobIsInOrderAdded(t *testing.T) {
+	s, _ := openStore(t, t.TempDir())
+	ctx := context.Background()
+	// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme"
+	acme := createJob(t, s, "Acme", "saved", 0)
+	globex := createJob(t, s, "Globex", "saved", 1)
+	// @and [features/job-contacts.feature] I added the contact "Dana Smith" as a recruiter
+	createContact(t, s, acme, "Dana Smith", "recruiter")
+	createContact(t, s, globex, "Ana Lopez", "referrer")
+	// @and [features/job-contacts.feature] I then added the contact "Lee Park" as a hiring manager
+	createContact(t, s, acme, "Lee Park", "hiring_manager")
+
+	// @when [features/job-contacts.feature] I open the card
+	contacts, err := s.ListContactsForJob(ctx, acme)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// @then [features/job-contacts.feature] I see "Dana Smith" and "Lee Park" in the order I added them
+	var names []string
+	for _, c := range contacts {
+		names = append(names, c.Name)
+	}
+	if want := []string{"Dana Smith", "Lee Park"}; !slices.Equal(names, want) {
+		t.Errorf("contacts = %v, want %v", names, want)
+	}
+}
+
+// @scenario [features/job-contacts.feature#contacts-persist] Contacts are the same after reopening the app
+func TestContactsPersistAcrossReopen(t *testing.T) {
+	dataDir := t.TempDir()
+	s, conn := openStore(t, dataDir)
+	ctx := context.Background()
+	// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme" with the contact "Dana Smith" as a recruiter
+	acme := createJob(t, s, "Acme", "saved", 0)
+	createContact(t, s, acme, "Dana Smith", "recruiter")
+
+	// @when [features/job-contacts.feature] I close and reopen the app
+	conn.Close()
+	reopened, _ := openStore(t, dataDir)
+
+	// @and [features/job-contacts.feature] I open the card
+	contacts, err := reopened.ListContactsForJob(ctx, acme)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// @then [features/job-contacts.feature] the job's contacts show "Dana Smith" as a recruiter
+	if len(contacts) != 1 || contacts[0].Name != "Dana Smith" || contacts[0].Relationship != "recruiter" {
+		t.Errorf("after reopening: %+v", contacts)
+	}
+}
+
+// @scenario [features/job-contacts.feature#contacts-deleted-with-job] Deleting a job deletes its contacts
+func TestDeleteJobDeletesItsContactRows(t *testing.T) {
+	s, _ := openStore(t, t.TempDir())
+	ctx := context.Background()
+	// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme" with the contact "Dana Smith"
+	acme := createJob(t, s, "Acme", "saved", 0)
+	dana := createContact(t, s, acme, "Dana Smith", "recruiter")
+	globex := createJob(t, s, "Globex", "saved", 1)
+	createContact(t, s, globex, "Dana Smith", "recruiter")
+
+	// @when [features/job-contacts.feature] I delete the job
+	err := s.InTx(ctx, func(q store.Querier) error { return q.DeleteJob(ctx, acme) })
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// @then [features/job-contacts.feature] its contacts are removed too
+	if _, err := s.GetContact(ctx, dana.ID); !errors.Is(err, sql.ErrNoRows) {
+		t.Errorf("Acme's contact is still there: err = %v", err)
+	}
+	if contacts, _ := s.ListContactsForJob(ctx, globex); len(contacts) != 1 {
+		t.Errorf("Globex has %d contacts, want its own kept", len(contacts))
 	}
 }
 

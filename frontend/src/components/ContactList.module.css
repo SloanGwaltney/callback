@@ -1,0 +1,155 @@
+.contacts {
+	margin-top: var(--space-5);
+	padding-top: var(--space-4);
+	border-top: 1px solid var(--color-border);
+}
+
+.header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-2);
+	margin-bottom: var(--space-3);
+}
+
+.title {
+	margin: 0;
+	font-size: var(--font-size-md);
+}
+
+.none {
+	margin: 0;
+	color: var(--color-text-muted);
+	font-size: var(--font-size-sm);
+}
+
+.list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.contact {
+	padding: var(--space-2) var(--space-3);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-sm);
+	background: var(--color-surface-muted);
+}
+
+/* The name takes the leftover width and truncates, so the buttons stay on the row. */
+.heading {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	min-width: 0;
+}
+
+.name {
+	min-width: 0;
+	font-weight: var(--font-weight-bold);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.relationship {
+	flex-shrink: 0;
+	color: var(--color-text-muted);
+	font-size: var(--font-size-sm);
+}
+
+.spacer {
+	flex: 1;
+}
+
+.info {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	gap: var(--space-1) var(--space-3);
+	margin: var(--space-2) 0 0;
+	font-size: var(--font-size-sm);
+}
+
+.info dt {
+	color: var(--color-text-muted);
+}
+
+.info dd {
+	min-width: 0;
+	margin: 0;
+	overflow-wrap: anywhere;
+}
+
+.notes {
+	white-space: pre-wrap;
+}
+
+.link {
+	max-width: 100%;
+	padding: 0;
+	border: none;
+	background: none;
+	color: var(--color-accent);
+	font-size: inherit;
+	text-align: left;
+	overflow-wrap: anywhere;
+	cursor: pointer;
+}
+
+.link:hover {
+	text-decoration: underline;
+}
+
+.fields {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--space-3);
+}
+
+.field {
+	composes: field from "./form.module.css";
+}
+
+.wide {
+	grid-column: 1 / -1;
+}
+
+.required {
+	font-size: var(--font-size-xs);
+}
+
+.input {
+	composes: input from "./form.module.css";
+}
+
+.textarea {
+	composes: textarea from "./form.module.css";
+}
+
+.warning {
+	margin: 0;
+}
+
+.actions {
+	composes: actions from "./form.module.css";
+}
+
+.button {
+	composes: button from "./form.module.css";
+	white-space: nowrap;
+}
+
+.primary {
+	composes: primary from "./form.module.css";
+}
+
+.danger {
+	composes: danger from "./form.module.css";
+}
+
+.error {
+	composes: error from "./form.module.css";
+}

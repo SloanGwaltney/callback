@@ -96,6 +96,54 @@ export namespace jobs {
 	}
 	
 	
+	export class Contact {
+	    id: number;
+	    jobId: number;
+	    name: string;
+	    relationship: string;
+	    email: string;
+	    phone: string;
+	    profileLink: string;
+	    notes: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new Contact(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.jobId = source["jobId"];
+	        this.name = source["name"];
+	        this.relationship = source["relationship"];
+	        this.email = source["email"];
+	        this.phone = source["phone"];
+	        this.profileLink = source["profileLink"];
+	        this.notes = source["notes"];
+	    }
+	}
+	export class ContactDetails {
+	    name: string;
+	    relationship: string;
+	    email: string;
+	    phone: string;
+	    profileLink: string;
+	    notes: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ContactDetails(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.relationship = source["relationship"];
+	        this.email = source["email"];
+	        this.phone = source["phone"];
+	        this.profileLink = source["profileLink"];
+	        this.notes = source["notes"];
+	    }
+	}
 	export class Details {
 	    company: string;
 	    role: string;
@@ -158,6 +206,7 @@ export namespace jobs {
 	    closingReasonOther: string;
 	    closingReasonText: string;
 	    documents: Document[];
+	    contacts: Contact[];
 	
 	    static createFrom(source: any = {}) {
 	        return new Job(source);
@@ -180,6 +229,7 @@ export namespace jobs {
 	        this.closingReasonOther = source["closingReasonOther"];
 	        this.closingReasonText = source["closingReasonText"];
 	        this.documents = this.convertValues(source["documents"], Document);
+	        this.contacts = this.convertValues(source["contacts"], Contact);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

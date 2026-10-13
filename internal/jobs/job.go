@@ -45,6 +45,8 @@ type Job struct {
 	ClosingReasonOther string        `json:"closingReasonOther"`
 	ClosingReasonText  string        `json:"closingReasonText"`
 	Documents          []Document    `json:"documents"`
+	// Contacts are in the order they were added.
+	Contacts []Contact `json:"contacts"`
 }
 
 // AddJob adds a job to the top of the status column, or of Saved when status is "".
@@ -95,13 +97,17 @@ func (s *Service) AddJob(ctx context.Context, d Details, status Status) (Job, er
 	return s.Job(ctx, id)
 }
 
-// Job returns a job with all its details and documents.
+// Job returns a job with all its details, documents, and contacts.
 func (s *Service) Job(ctx context.Context, id int64) (Job, error) {
 	row, err := s.store.GetJob(ctx, id)
 	if err != nil {
 		return Job{}, notFound(err, ErrJobNotFound)
 	}
 	docs, err := s.store.ListDocumentsForJob(ctx, id)
+	if err != nil {
+		return Job{}, err
+	}
+	contacts, err := s.store.ListContactsForJob(ctx, id)
 	if err != nil {
 		return Job{}, err
 	}
@@ -123,9 +129,13 @@ func (s *Service) Job(ctx context.Context, id int64) (Job, error) {
 		ClosingReasonOther: row.ClosingReasonOther.String,
 		ClosingReasonText:  closingReasonText(reason, row.ClosingReasonOther.String),
 		Documents:          make([]Document, 0, len(docs)),
+		Contacts:           make([]Contact, 0, len(contacts)),
 	}
 	for _, doc := range docs {
 		job.Documents = append(job.Documents, documentFromRow(doc))
+	}
+	for _, c := range contacts {
+		job.Contacts = append(job.Contacts, contactFromRow(c))
 	}
 	return job, nil
 }
@@ -195,7 +205,8 @@ func isWebAddress(link string) bool {
 	return (u.Scheme == "http" || u.Scheme == "https") && u.Host != ""
 }
 
-// DeleteJob deletes a job and its attached documents, both the rows and the stored copies.
+// DeleteJob deletes a job, its contacts, and its attached documents, both the rows and the stored
+// copies.
 func (s *Service) DeleteJob(ctx context.Context, id int64) error {
 	var docs []store.Document
 	err := s.store.InTx(ctx, func(q store.Querier) error {
@@ -206,7 +217,7 @@ func (s *Service) DeleteJob(ctx context.Context, id int64) error {
 		if docs, err = q.ListDocumentsForJob(ctx, id); err != nil {
 			return err
 		}
-		// Deleting the job deletes its document rows too, through ON DELETE CASCADE.
+		// Deleting the job deletes its document and contact rows too, through ON DELETE CASCADE.
 		return q.DeleteJob(ctx, id)
 	})
 	if err != nil {
