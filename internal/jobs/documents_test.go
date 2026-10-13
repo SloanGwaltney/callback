@@ -242,6 +242,53 @@ func TestOpenDocument(t *testing.T) {
 	}
 }
 
+// @scenario [features/job-documents.feature#open-missing-document] Told when an attached document's file is missing
+func TestOpenMissingDocument(t *testing.T) {
+	h := newHarness(t)
+	id := h.acme(StatusSaved)
+	// @given [features/job-documents.feature] I have attached "resume-2026.pdf" to a job for "Software Engineer" at "Acme"
+	doc := mustAttach(t, h, id, "resume-2026.pdf", KindResume)
+	// @and [features/job-documents.feature] its stored copy is no longer in the app's data directory
+	delete(h.files.copies, h.store.docs[doc.ID].StoredPath)
+
+	// @when [features/job-documents.feature] I open the attached "resume-2026.pdf"
+	err := h.svc.OpenDocument(h.ctx, doc.ID)
+
+	// @then [features/job-documents.feature] I am told the file for "resume-2026.pdf" can't be found
+	var missing *MissingFileError
+	if !errors.As(err, &missing) || err.Error() != `the file for "resume-2026.pdf" can't be found` {
+		t.Errorf("err = %v, want a MissingFileError", err)
+	}
+	if len(h.opener.opened) != 0 {
+		t.Errorf("opened %v", h.opener.opened)
+	}
+	// @and [features/job-documents.feature] the job still lists "resume-2026.pdf"
+	if got := listed(t, h, id); !slices.Equal(got, []string{"resume-2026.pdf as resume"}) {
+		t.Errorf("job lists %v", got)
+	}
+}
+
+// @scenario [features/job-documents.feature#remove-missing-document] Remove an attached document whose file is missing
+func TestRemoveMissingDocument(t *testing.T) {
+	h := newHarness(t)
+	id := h.acme(StatusSaved)
+	// @given [features/job-documents.feature] I have attached "resume-2026.pdf" to a job for "Software Engineer" at "Acme"
+	doc := mustAttach(t, h, id, "resume-2026.pdf", KindResume)
+	// @and [features/job-documents.feature] its stored copy is no longer in the app's data directory
+	delete(h.files.copies, h.store.docs[doc.ID].StoredPath)
+
+	// @when [features/job-documents.feature] I remove the attached "resume-2026.pdf"
+	// Removing a copy that's already gone isn't an error (TestRemoveMissingCopyIsNotAnError).
+	if err := h.svc.RemoveDocument(h.ctx, doc.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	// @then [features/job-documents.feature] the job no longer lists "resume-2026.pdf"
+	if got := listed(t, h, id); len(got) != 0 {
+		t.Errorf("job lists %v", got)
+	}
+}
+
 // @scenario [features/job-documents.feature#change-document-kind] Change what kind of document an attachment is
 func TestChangeDocumentKind(t *testing.T) {
 	h := newHarness(t)

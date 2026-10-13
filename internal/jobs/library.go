@@ -23,16 +23,6 @@ func libraryDocumentFromRow(row store.LibraryDocument) LibraryDocument {
 	return LibraryDocument{ID: row.ID, FileName: row.FileName, Description: row.Description}
 }
 
-// MissingFileError means a document's stored copy is no longer in the data directory. Its message
-// is written to be shown to the user as is.
-type MissingFileError struct {
-	FileName string
-}
-
-func (e *MissingFileError) Error() string {
-	return fmt.Sprintf("the file for %q can't be found", e.FileName)
-}
-
 // Library returns every document in the library, newest first. Library documents are never
 // attached to a job, and a job's documents are never in the library.
 func (s *Service) Library(ctx context.Context) ([]LibraryDocument, error) {

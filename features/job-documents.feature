@@ -117,7 +117,7 @@ Feature: Job documents
       Then both jobs list "resume-2026.pdf" as a resume
       And removing it from one job leaves it attached to the other
 
-    @status:not-implemented @id:open-missing-document
+    @status:implemented @id:open-missing-document
     Scenario: Told when an attached document's file is missing
       Given I have attached "resume-2026.pdf" to a job for "Software Engineer" at "Acme"
       And its stored copy is no longer in the app's data directory
@@ -125,7 +125,7 @@ Feature: Job documents
       Then I am told the file for "resume-2026.pdf" can't be found
       And the job still lists "resume-2026.pdf"
 
-    @status:not-implemented @id:remove-missing-document
+    @status:implemented @id:remove-missing-document
     Scenario: Remove an attached document whose file is missing
       Given I have attached "resume-2026.pdf" to a job for "Software Engineer" at "Acme"
       And its stored copy is no longer in the app's data directory

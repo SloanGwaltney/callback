@@ -197,9 +197,10 @@ func (a *App) SetDocumentKind(id int64, kind jobs.DocumentKind) error {
 	return a.jobs.SetDocumentKind(a.ctx, id, kind)
 }
 
-// RemoveDocument removes an attachment from its job.
+// RemoveDocument removes an attachment from its job, even if its stored copy is already gone.
 // @scenario [features/job-documents.feature#remove-document] Remove an attached document
 // @scenario [features/job-documents.feature#same-document-many-jobs] The same file can be attached to more than one job
+// @scenario [features/job-documents.feature#remove-missing-document] Remove an attached document whose file is missing
 func (a *App) RemoveDocument(id int64) error {
 	return a.jobs.RemoveDocument(a.ctx, id)
 }
@@ -207,6 +208,7 @@ func (a *App) RemoveDocument(id int64) error {
 // OpenDocument opens an attachment in the OS default app for its file type.
 // @scenario [features/job-documents.feature#open-document] Open an attached document
 // @scenario [features/job-documents.feature#document-kept-if-original-moved] An attached document still opens after the original file is moved
+// @scenario [features/job-documents.feature#open-missing-document] Told when an attached document's file is missing
 func (a *App) OpenDocument(id int64) error {
 	return a.jobs.OpenDocument(a.ctx, id)
 }

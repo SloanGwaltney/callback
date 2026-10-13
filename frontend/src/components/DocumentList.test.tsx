@@ -230,6 +230,42 @@ describe("DocumentList", () => {
 		expect(within(list).getByRole("alert")).toHaveTextContent("document not found");
 	});
 
+	// @scenario [features/job-documents.feature#open-missing-document] Told when an attached document's file is missing
+	it("says when an attached document's file is missing", async () => {
+		// @given [features/job-documents.feature] I have attached "resume-2026.pdf" to a job for "Software Engineer" at "Acme"
+		const list = renderList();
+		await attach(list, "resume-2026.pdf", "Resume");
+		// @and [features/job-documents.feature] its stored copy is no longer in the app's data directory
+		docs.open.mockRejectedValue('the file for "resume-2026.pdf" can\'t be found');
+
+		// @when [features/job-documents.feature] I open the attached "resume-2026.pdf"
+		await userEvent.click(within(list).getByRole("button", { name: "resume-2026.pdf" }));
+
+		// @then [features/job-documents.feature] I am told the file for "resume-2026.pdf" can't be found
+		expect(within(list).getByRole("alert")).toHaveTextContent(
+			'the file for "resume-2026.pdf" can\'t be found',
+		);
+		// @and [features/job-documents.feature] the job still lists "resume-2026.pdf"
+		expect(kindOf(list, "resume-2026.pdf")).toBe("Resume");
+	});
+
+	// @scenario [features/job-documents.feature#remove-missing-document] Remove an attached document whose file is missing
+	it("removes an attached document whose file is missing", async () => {
+		// @given [features/job-documents.feature] I have attached "resume-2026.pdf" to a job for "Software Engineer" at "Acme"
+		const list = renderList();
+		await attach(list, "resume-2026.pdf", "Resume");
+		// @and [features/job-documents.feature] its stored copy is no longer in the app's data directory
+		docs.open.mockRejectedValue('the file for "resume-2026.pdf" can\'t be found');
+		await userEvent.click(within(list).getByRole("button", { name: "resume-2026.pdf" }));
+
+		// @when [features/job-documents.feature] I remove the attached "resume-2026.pdf"
+		await userEvent.click(within(list).getByRole("button", { name: "Remove resume-2026.pdf" }));
+
+		// @then [features/job-documents.feature] the job no longer lists "resume-2026.pdf"
+		expect(kindOf(list, "resume-2026.pdf")).toBeNull();
+		expect(within(list).queryByRole("alert")).not.toBeInTheDocument();
+	});
+
 	// @scenario [features/job-documents.feature#change-document-kind] Change what kind of document an attachment is
 	it("changes what kind of document an attachment is", async () => {
 		// @given [features/job-documents.feature] I have attached "acme-cover.docx" as other to a job for "Software Engineer" at "Acme"
