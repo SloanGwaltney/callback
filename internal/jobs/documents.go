@@ -30,6 +30,16 @@ func documentFromRow(row store.Document) Document {
 	return Document{ID: row.ID, JobID: row.JobID, Kind: DocumentKind(row.Kind), FileName: row.FileName}
 }
 
+// MissingFileError means an attachment's or library document's stored copy is no longer in the
+// data directory. Its message is written to be shown to the user as is.
+type MissingFileError struct {
+	FileName string
+}
+
+func (e *MissingFileError) Error() string {
+	return fmt.Sprintf("the file for %q can't be found", e.FileName)
+}
+
 // AttachDocument attaches a copy of the file at src to a job. The copy is the app's own, so it
 // keeps working if the original is moved or deleted. See
 // docs/adr/0008-store-attached-documents-as-files-in-the-app-data-directory.md.
@@ -98,7 +108,8 @@ func (s *Service) SetDocumentKind(ctx context.Context, id int64, kind DocumentKi
 }
 
 // RemoveDocument removes an attachment from its job and deletes the app's copy. The file the
-// user originally attached is never touched.
+// user originally attached is never touched. A copy that's already gone from the data directory
+// doesn't stop the removal.
 func (s *Service) RemoveDocument(ctx context.Context, id int64) error {
 	doc, err := s.store.GetDocument(ctx, id)
 	if err != nil {
@@ -116,11 +127,20 @@ func (s *Service) RemoveDocument(ctx context.Context, id int64) error {
 	return nil
 }
 
-// OpenDocument opens an attachment's stored copy in the OS default app for its file type.
+// OpenDocument opens an attachment's stored copy in the OS default app for its file type. If the
+// copy is gone from the data directory, it returns a MissingFileError and keeps the attachment on
+// its job.
 func (s *Service) OpenDocument(ctx context.Context, id int64) error {
 	doc, err := s.store.GetDocument(ctx, id)
 	if err != nil {
 		return notFound(err, ErrDocumentNotFound)
+	}
+	ok, err := s.files.Exists(doc.StoredPath)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return &MissingFileError{FileName: doc.FileName}
 	}
 	// Opens the app's copy, never the original, which may have moved.
 	return s.opener.Open(s.files.Path(doc.StoredPath))

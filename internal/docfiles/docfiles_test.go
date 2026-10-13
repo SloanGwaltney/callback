@@ -133,9 +133,22 @@ func TestSameFileSavedTwiceMakesTwoCopies(t *testing.T) {
 	}
 }
 
+// @scenario [features/job-documents.feature#remove-missing-document] Remove an attached document whose file is missing
 func TestRemoveMissingCopyIsNotAnError(t *testing.T) {
 	d := New(t.TempDir())
-	if err := d.Remove("documents/gone.pdf"); err != nil {
+	// @given [features/job-documents.feature] I have attached "resume-2026.pdf" to a job for "Software Engineer" at "Acme"
+	stored, err := d.Save(writeOriginal(t, "resume-2026.pdf", "resume"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	// @and [features/job-documents.feature] its stored copy is no longer in the app's data directory
+	if err := os.Remove(d.Path(stored)); err != nil {
+		t.Fatal(err)
+	}
+
+	// @when [features/job-documents.feature] I remove the attached "resume-2026.pdf"
+	// The job stops listing it once this succeeds (TestRemoveMissingDocument in internal/jobs).
+	if err := d.Remove(stored); err != nil {
 		t.Errorf("err = %v", err)
 	}
 }

@@ -26,6 +26,8 @@ type Props = {
 // @scenario [features/job-documents.feature#change-document-kind] Change what kind of document an attachment is
 // @scenario [features/job-documents.feature#remove-document] Remove an attached document
 // @scenario [features/job-documents.feature#same-document-many-jobs] The same file can be attached to more than one job
+// @scenario [features/job-documents.feature#open-missing-document] Told when an attached document's file is missing
+// @scenario [features/job-documents.feature#remove-missing-document] Remove an attached document whose file is missing
 export function DocumentList({ jobId, documents, onChanged }: Props) {
 	const { attach, setKind, remove, open } = useDocuments();
 	const [kind, setNewKind] = useState("resume");
