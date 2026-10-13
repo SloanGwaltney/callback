@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"strings"
 
 	"callback/internal/jobs"
@@ -9,23 +10,42 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-// App is bound to the frontend by Wails. Its methods only call the jobs service, which holds the
-// business rules. See
+// App is bound to the frontend by Wails. Its methods only call the jobs and backups services,
+// which hold the business rules. See
 // docs/adr/0016-put-business-rules-in-services-over-a-transactional-store-interface.md.
 type App struct {
-	ctx  context.Context
-	jobs *jobs.Service
+	ctx     context.Context
+	jobs    *jobs.Service
+	backups dailyBackups
+	// logf reports what went wrong where the user can't be shown it.
+	logf func(format string, args ...any)
+}
+
+// dailyBackups takes the daily backup. *backups.Service satisfies it.
+type dailyBackups interface {
+	TakeDaily(ctx context.Context) (bool, error)
 }
 
 // NewApp creates a new App application struct
-func NewApp(jobs *jobs.Service) *App {
-	return &App{jobs: jobs}
+func NewApp(jobs *jobs.Service, backups dailyBackups) *App {
+	return &App{jobs: jobs, backups: backups, logf: log.Printf}
 }
 
-// startup is called when the app starts. The context is saved
-// so we can call the runtime methods
+// startup is called when the app starts. It saves the context for the runtime methods, then takes
+// the day's backup if none has been taken yet. A failed backup is logged and never stops the app
+// from starting.
+// @scenario [features/daily-backups.feature#backup-on-first-start] The first start of the day takes a backup
+// @scenario [features/daily-backups.feature#backup-once-per-day] Starting Callback again the same day doesn't take another backup
+// @scenario [features/daily-backups.feature#backup-no-catch-up] Days when Callback didn't run get no backup
+// @scenario [features/daily-backups.feature#backup-holds-data-not-documents] A backup holds my data but not the attached documents' files
+// @scenario [features/daily-backups.feature#backup-keeps-last-15] Taking a 16th daily backup removes the oldest
+// @scenario [features/daily-backups.feature#backup-count-not-days] Backups are kept by count, not by age
+// @scenario [features/daily-backups.feature#backup-failure-still-starts] Callback still starts when the daily backup fails
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	if _, err := a.backups.TakeDaily(ctx); err != nil {
+		a.logf("callback: the daily backup failed: %v", err)
+	}
 }
 
 // GetBoard returns every job, laid out in status columns.

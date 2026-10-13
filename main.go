@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"callback/internal/appdata"
+	"callback/internal/backups"
 	"callback/internal/db"
 	"callback/internal/db/migrations"
 	"callback/internal/desktop"
@@ -48,7 +49,11 @@ func main() {
 	}
 
 	// Create an instance of the app structure
-	app := NewApp(jobs.New(db.NewStore(conn), docfiles.New(dataDir), desktop.Opener{}, now))
+	store := db.NewStore(conn)
+	app := NewApp(
+		jobs.New(store, docfiles.New(dataDir), desktop.Opener{}, now),
+		backups.New(store, backups.NewDir(dataDir), now),
+	)
 
 	// Create application with options
 	err = wails.Run(&options.App{

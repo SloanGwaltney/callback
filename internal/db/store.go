@@ -38,3 +38,12 @@ func (s *Store) InTx(ctx context.Context, fn func(store.Querier) error) error {
 	}
 	return nil
 }
+
+// SnapshotTo writes a consistent copy of the whole database to a new file at path, with VACUUM
+// INTO. The database stays open and usable while it runs. It fails if a file is already at path.
+func (s *Store) SnapshotTo(ctx context.Context, path string) error {
+	if _, err := s.conn.ExecContext(ctx, `VACUUM INTO ?`, path); err != nil {
+		return fmt.Errorf("db: snapshot: %w", err)
+	}
+	return nil
+}
