@@ -89,6 +89,18 @@ func (d *Dir) Remove(stored string) error {
 	return nil
 }
 
+// Exists reports whether a stored copy is still in the documents folder.
+func (d *Dir) Exists(stored string) (bool, error) {
+	info, err := os.Stat(d.Path(stored))
+	if errors.Is(err, fs.ErrNotExist) {
+		return false, nil
+	}
+	if err != nil {
+		return false, fmt.Errorf("docfiles: %w", err)
+	}
+	return info.Mode().IsRegular(), nil
+}
+
 // Path returns the absolute path of a stored copy.
 func (d *Dir) Path(stored string) string {
 	return filepath.Join(d.dataDir, filepath.FromSlash(stored))

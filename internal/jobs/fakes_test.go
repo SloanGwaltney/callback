@@ -35,6 +35,7 @@ type tables struct {
 	docs       map[int64]store.Document
 	contacts   map[int64]store.Contact
 	interviews map[int64]store.Interview
+	library    map[int64]store.LibraryDocument
 	nextID     int64
 }
 
@@ -44,6 +45,7 @@ func (t tables) clone() tables {
 		docs:       maps.Clone(t.docs),
 		contacts:   maps.Clone(t.contacts),
 		interviews: maps.Clone(t.interviews),
+		library:    maps.Clone(t.library),
 		nextID:     t.nextID,
 	}
 }
@@ -58,6 +60,7 @@ func newFakeStore() *fakeStore {
 		docs:       map[int64]store.Document{},
 		contacts:   map[int64]store.Contact{},
 		interviews: map[int64]store.Interview{},
+		library:    map[int64]store.LibraryDocument{},
 	}}
 }
 
@@ -119,6 +122,16 @@ func (f *fakeStore) CreateInterview(ctx context.Context, arg store.CreateIntervi
 	return i, nil
 }
 
+func (f *fakeStore) CreateLibraryDocument(ctx context.Context, arg store.CreateLibraryDocumentParams) (store.LibraryDocument, error) {
+	if err := f.failing("CreateLibraryDocument"); err != nil {
+		return store.LibraryDocument{}, err
+	}
+	f.nextID++
+	doc := store.LibraryDocument{ID: f.nextID, FileName: arg.FileName, Description: arg.Description, StoredPath: arg.StoredPath}
+	f.library[doc.ID] = doc
+	return doc, nil
+}
+
 func (f *fakeStore) CreateJob(ctx context.Context, arg store.CreateJobParams) (int64, error) {
 	if err := f.failing("CreateJob"); err != nil {
 		return 0, err
@@ -144,6 +157,14 @@ func (f *fakeStore) DeleteDocument(ctx context.Context, id int64) error {
 
 func (f *fakeStore) DeleteInterview(ctx context.Context, id int64) error {
 	delete(f.interviews, id)
+	return nil
+}
+
+func (f *fakeStore) DeleteLibraryDocument(ctx context.Context, id int64) error {
+	if err := f.failing("DeleteLibraryDocument"); err != nil {
+		return err
+	}
+	delete(f.library, id)
 	return nil
 }
 
@@ -179,6 +200,14 @@ func (f *fakeStore) GetInterview(ctx context.Context, id int64) (store.Interview
 	return i, nil
 }
 
+func (f *fakeStore) GetLibraryDocument(ctx context.Context, id int64) (store.LibraryDocument, error) {
+	doc, ok := f.library[id]
+	if !ok {
+		return store.LibraryDocument{}, sql.ErrNoRows
+	}
+	return doc, nil
+}
+
 func (f *fakeStore) GetJob(ctx context.Context, id int64) (store.Job, error) {
 	job, ok := f.jobs[id]
 	if !ok {
@@ -210,6 +239,16 @@ func (f *fakeStore) ListDocumentsForJob(ctx context.Context, jobID int64) ([]sto
 }
 
 // ListInterviewsForJob orders like the real query: by date, then time with untimed last, then ID.
+// ListLibraryDocuments orders like the real query: newest, meaning highest ID, first.
+func (f *fakeStore) ListLibraryDocuments(ctx context.Context) ([]store.LibraryDocument, error) {
+	if err := f.failing("ListLibraryDocuments"); err != nil {
+		return nil, err
+	}
+	out := slices.Collect(maps.Values(f.library))
+	slices.SortFunc(out, func(a, b store.LibraryDocument) int { return cmp.Compare(b.ID, a.ID) })
+	return out, nil
+}
+
 func (f *fakeStore) ListInterviewsForJob(ctx context.Context, jobID int64) ([]store.Interview, error) {
 	var out []store.Interview
 	for _, i := range f.interviews {
@@ -319,6 +358,18 @@ func (f *fakeStore) SetDocumentKind(ctx context.Context, arg store.SetDocumentKi
 	return nil
 }
 
+func (f *fakeStore) SetLibraryDocumentDescription(ctx context.Context, arg store.SetLibraryDocumentDescriptionParams) error {
+	if err := f.failing("SetLibraryDocumentDescription"); err != nil {
+		return err
+	}
+	doc, ok := f.library[arg.ID]
+	if ok {
+		doc.Description = arg.Description
+		f.library[arg.ID] = doc
+	}
+	return nil
+}
+
 func (f *fakeStore) SetJobPosition(ctx context.Context, arg store.SetJobPositionParams) error {
 	return f.update(arg.ID, func(j *store.Job) { j.Position = arg.Position })
 }
@@ -412,6 +463,13 @@ func (f *fakeFiles) Remove(stored string) error {
 	return nil
 }
 
+// Exists reports whether stored is one of the copies. Deleting from copies stands in for a copy
+// that went missing from the data directory.
+func (f *fakeFiles) Exists(stored string) (bool, error) {
+	_, ok := f.copies[stored]
+	return ok, nil
+}
+
 func (f *fakeFiles) Path(stored string) string { return "/data/" + stored }
 
 // fakeOpener records what it was asked to open.
@@ -478,6 +536,15 @@ func (h *harness) seedDoc(jobID int64, fileName string, kind DocumentKind) int64
 	stored := fmt.Sprintf("documents/seed-%d%s", h.store.nextID, filepath.Ext(fileName))
 	h.files.copies[stored] = fileName
 	h.store.docs[h.store.nextID] = store.Document{ID: h.store.nextID, JobID: jobID, Kind: string(kind), FileName: fileName, StoredPath: stored}
+	return h.store.nextID
+}
+
+// seedLibraryDoc adds a document straight to the library in the store and the fake files.
+func (h *harness) seedLibraryDoc(fileName, description string) int64 {
+	h.store.nextID++
+	stored := fmt.Sprintf("documents/seed-%d%s", h.store.nextID, filepath.Ext(fileName))
+	h.files.copies[stored] = fileName
+	h.store.library[h.store.nextID] = store.LibraryDocument{ID: h.store.nextID, FileName: fileName, Description: description, StoredPath: stored}
 	return h.store.nextID
 }
 

@@ -29,4 +29,5 @@ export type Job = Omit<
 	Rating &
 	HasNextAction & { documents: JobDocument[]; contacts: Contact[]; interviews: Interview[] };
 export type Details = jobs.Details;
+export type LibraryDocument = jobs.LibraryDocument;
 export type Move = jobs.Move;

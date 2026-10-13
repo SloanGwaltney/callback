@@ -19,8 +19,14 @@
 	font-size: var(--font-size-xl);
 }
 
+.button {
+	composes: button from "./components/form.module.css";
+	white-space: nowrap;
+}
+
 .primary {
 	composes: primary from "./components/form.module.css";
+	white-space: nowrap;
 }
 
 .main {

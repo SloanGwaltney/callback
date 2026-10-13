@@ -14,12 +14,20 @@ export function AddJob(arg1, arg2) {
   return window['go']['main']['App']['AddJob'](arg1, arg2);
 }
 
+export function AddLibraryDocument(arg1, arg2) {
+  return window['go']['main']['App']['AddLibraryDocument'](arg1, arg2);
+}
+
 export function AttachDocument(arg1, arg2, arg3) {
   return window['go']['main']['App']['AttachDocument'](arg1, arg2, arg3);
 }
 
 export function ChooseDocumentFile() {
   return window['go']['main']['App']['ChooseDocumentFile']();
+}
+
+export function ChooseLibraryFile() {
+  return window['go']['main']['App']['ChooseLibraryFile']();
 }
 
 export function ClearNextAction(arg1) {
@@ -38,6 +46,10 @@ export function GetJob(arg1) {
   return window['go']['main']['App']['GetJob'](arg1);
 }
 
+export function GetLibrary() {
+  return window['go']['main']['App']['GetLibrary']();
+}
+
 export function MoveJob(arg1) {
   return window['go']['main']['App']['MoveJob'](arg1);
 }
@@ -54,6 +66,10 @@ export function OpenJobLink(arg1) {
   return window['go']['main']['App']['OpenJobLink'](arg1);
 }
 
+export function OpenLibraryDocument(arg1) {
+  return window['go']['main']['App']['OpenLibraryDocument'](arg1);
+}
+
 export function RemoveContact(arg1) {
   return window['go']['main']['App']['RemoveContact'](arg1);
 }
@@ -66,12 +82,20 @@ export function RemoveInterview(arg1) {
   return window['go']['main']['App']['RemoveInterview'](arg1);
 }
 
+export function RemoveLibraryDocument(arg1) {
+  return window['go']['main']['App']['RemoveLibraryDocument'](arg1);
+}
+
 export function SetClosingReason(arg1, arg2, arg3) {
   return window['go']['main']['App']['SetClosingReason'](arg1, arg2, arg3);
 }
 
 export function SetDocumentKind(arg1, arg2) {
   return window['go']['main']['App']['SetDocumentKind'](arg1, arg2);
+}
+
+export function SetLibraryDescription(arg1, arg2) {
+  return window['go']['main']['App']['SetLibraryDescription'](arg1, arg2);
 }
 
 export function SetNextAction(arg1, arg2, arg3) {
