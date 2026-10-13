@@ -2,6 +2,7 @@ package jobs
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/url"
@@ -52,9 +53,13 @@ type Job struct {
 	// Interviews are from earliest to latest, by date and then time, with untimed interviews last
 	// on their day.
 	Interviews []Interview `json:"interviews"`
+	// StatusHistory is every status the job has been in, from oldest to newest.
+	StatusHistory []StatusChange `json:"statusHistory"`
 }
 
-// AddJob adds a job to the top of the status column, or of Saved when status is "".
+// AddJob adds a job to the top of the status column, or of Saved when status is "", and starts its
+// status history with that status today.
+// @scenario [features/job-status-history.feature#history-starts-when-added] A new job's history starts with the status it was added to
 func (s *Service) AddJob(ctx context.Context, d Details, status Status) (Job, error) {
 	if status == "" {
 		status = StatusSaved
@@ -93,6 +98,9 @@ func (s *Service) AddJob(ctx context.Context, d Details, status Status) (Job, er
 		if err != nil {
 			return err
 		}
+		if err := s.recordStatusChange(ctx, q, id, status, sql.NullString{}, sql.NullString{}); err != nil {
+			return err
+		}
 		// Every card already in the column moves down one.
 		return renumber(ctx, q, below, 1)
 	})
@@ -102,7 +110,9 @@ func (s *Service) AddJob(ctx context.Context, d Details, status Status) (Job, er
 	return s.Job(ctx, id)
 }
 
-// Job returns a job with all its details, next action, documents, contacts, and interviews.
+// Job returns a job with all its details, next action, documents, contacts, interviews, and
+// status history.
+// @scenario [features/job-status-history.feature#history-persists] The status history is the same after reopening the app
 func (s *Service) Job(ctx context.Context, id int64) (Job, error) {
 	row, err := s.store.GetJob(ctx, id)
 	if err != nil {
@@ -117,6 +127,10 @@ func (s *Service) Job(ctx context.Context, id int64) (Job, error) {
 		return Job{}, err
 	}
 	interviews, err := s.store.ListInterviewsForJob(ctx, id)
+	if err != nil {
+		return Job{}, err
+	}
+	history, err := s.store.ListStatusChangesForJob(ctx, id)
 	if err != nil {
 		return Job{}, err
 	}
@@ -142,6 +156,7 @@ func (s *Service) Job(ctx context.Context, id int64) (Job, error) {
 		Documents:          make([]Document, 0, len(docs)),
 		Contacts:           make([]Contact, 0, len(contacts)),
 		Interviews:         make([]Interview, 0, len(interviews)),
+		StatusHistory:      make([]StatusChange, 0, len(history)),
 	}
 	for _, doc := range docs {
 		job.Documents = append(job.Documents, documentFromRow(doc))
@@ -152,10 +167,15 @@ func (s *Service) Job(ctx context.Context, id int64) (Job, error) {
 	for _, i := range interviews {
 		job.Interviews = append(job.Interviews, interviewFromRow(i, today))
 	}
+	for _, change := range history {
+		job.StatusHistory = append(job.StatusHistory, statusChangeFromRow(change))
+	}
 	return job, nil
 }
 
-// UpdateJob replaces a job's details. Nothing is saved if any detail is invalid.
+// UpdateJob replaces a job's details. Nothing is saved if any detail is invalid. The status
+// history isn't touched, so changing the date applied doesn't change it.
+// @scenario [features/job-status-history.feature#history-ignores-date-applied] Changing the date applied doesn't change the history
 func (s *Service) UpdateJob(ctx context.Context, id int64, d Details) (Job, error) {
 	d, err := s.validateDetails(d)
 	if err != nil {
@@ -220,8 +240,8 @@ func isWebAddress(link string) bool {
 	return (u.Scheme == "http" || u.Scheme == "https") && u.Host != ""
 }
 
-// DeleteJob deletes a job, its contacts, its interviews, and its attached documents, both the rows and the stored
-// copies.
+// DeleteJob deletes a job, its contacts, its interviews, its status history, and its attached
+// documents, both the rows and the stored copies.
 func (s *Service) DeleteJob(ctx context.Context, id int64) error {
 	var docs []store.Document
 	err := s.store.InTx(ctx, func(q store.Querier) error {
@@ -232,8 +252,8 @@ func (s *Service) DeleteJob(ctx context.Context, id int64) error {
 		if docs, err = q.ListDocumentsForJob(ctx, id); err != nil {
 			return err
 		}
-		// Deleting the job deletes its document, contact, and interview rows too, through ON DELETE
-		// CASCADE.
+		// Deleting the job deletes its document, contact, interview, and status change rows too,
+		// through ON DELETE CASCADE.
 		return q.DeleteJob(ctx, id)
 	})
 	if err != nil {

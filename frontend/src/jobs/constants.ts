@@ -93,6 +93,15 @@ export function today(now: Date = new Date()): string {
 	return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
 
+// daysInStatusLabel says how long a job has been in its status, from the backend's count of
+// days: "Today", "1 day", "8 days".
+export function daysInStatusLabel(days: number): string {
+	if (days === 0) {
+		return "Today";
+	}
+	return days === 1 ? "1 day" : `${days} days`;
+}
+
 // How a next action is marked as due, matching jobs.NextActionDue. "" is not marked.
 export const DUE_TODAY = "today";
 export const DUE_OVERDUE = "overdue";

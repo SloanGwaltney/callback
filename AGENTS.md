@@ -91,7 +91,9 @@ go through each step:
 
 1. **Storage.** A goose migration whose table has `job_id ... REFERENCES jobs (id) ON DELETE
    CASCADE`, a query file in `internal/db/queries/`, then `sqlc generate`. Storage tests in
-   `internal/db/` for the schema's checks, the queries, the list order, and the cascade.
+   `internal/db/` for the schema's checks, the queries, the list order, and the cascade. If the
+   migration also fills in rows for data already there, test it with `openBefore`
+   (`internal/db/store_test.go`), which opens a database as the release before it left it.
 2. **Service.** The rules in `internal/jobs/<thing>.go`, an `Err<Thing>NotFound` in `jobs.go`, the
    list on `Job` and loaded in `Service.Job` (`job.go`), and, if the board shows it, a field on
    `Card` (`board.go`).
@@ -117,7 +119,8 @@ A new field stored on the job itself, like its interest rating or next action, i
    either the column in `CreateJob` and `UpdateJobDetails` or its own query in
    `internal/db/queries/jobs.sql`, then `sqlc generate`. Storage tests for the checks and the
    queries. Check that `UpdateJobDetails` and `UpdateJobPlacement` leave the column alone if
-   editing or moving a job shouldn't change it.
+   editing or moving a job shouldn't change it. If the migration fills in the column for jobs
+   already there, test it with `openBefore` (`internal/db/store_test.go`).
 2. **Service.** The field on `Job` and set in `Service.Job` (`job.go`). If the board shows it, it
    also goes on `Card` and in `cardFromRow` (`board.go`). Anything that depends on today comes
    from `s.today()`.
@@ -163,6 +166,11 @@ telling the user they work.
    `scripts/drive/example.mjs`. Screenshots land in `temp/drive/shots`; read them to look.
 3. Stop with `bash scripts/drive/dev.sh stop`. Stopping the background shell alone leaves the
    app running.
+
+To check something that depends on the date, like days in status or a next action coming due,
+start the app with `CALLBACK_TODAY=2026-10-01 bash scripts/drive/dev.sh`. The backend takes that
+date as today, so what you seed is dated then. Stop it and start it again with a later date, and
+the data is still there, days older. The frontend's date pickers still use the real date.
 
 To set up the data a check needs, call `page.clearBoard()` and `page.seed([...jobs])` from the
 steps file while the app runs. A seeded job can list its `interviews`, `contacts`, and

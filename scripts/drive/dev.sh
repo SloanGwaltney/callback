@@ -12,6 +12,10 @@
 #        bash scripts/drive/dev.sh reset  (while stopped: delete temp/drive/appdata, so the next
 #                                          run starts with no jobs)
 #
+# To run as if it were another day, set CALLBACK_TODAY: CALLBACK_TODAY=2026-10-01 bash
+# scripts/drive/dev.sh. Changes made in the run, like seeded jobs and moves, are dated that day.
+# Stop and start again with a later date to see how they look days on; the data is kept.
+#
 # To empty or fill the board while the app runs, use clearBoard and seed in cdp.mjs instead.
 #
 # Stopping the background shell isn't enough: under Git Bash, the Windows processes it started

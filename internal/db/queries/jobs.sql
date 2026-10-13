@@ -45,10 +45,11 @@ SET closing_reason = ?, closing_reason_other = ?
 WHERE id = ?;
 
 -- name: DeleteJob :exec
--- Deletes the job and, through ON DELETE CASCADE, its document, contact, and interview rows. The
--- document files are the caller's to delete.
+-- Deletes the job and, through ON DELETE CASCADE, its document, contact, interview, and status
+-- change rows. The document files are the caller's to delete.
 -- @scenario [features/job-contacts.feature#contacts-deleted-with-job] Deleting a job deletes its contacts
 -- @scenario [features/job-interviews.feature#interviews-deleted-with-job] Deleting a job deletes its interviews
+-- @scenario [features/job-status-history.feature#history-deleted-with-job] Deleting a job deletes its status history
 DELETE FROM jobs
 WHERE id = ?;
 

@@ -53,6 +53,7 @@ export function job(fields: Partial<Job> = {}): Job {
 		documents: [],
 		contacts: [],
 		interviews: [],
+		statusHistory: [],
 		...fields,
 	};
 }

@@ -444,6 +444,22 @@ describe("Board", () => {
 			expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 		});
 
+		// @scenario [features/job-status-history.feature#history-ignores-cancelled-close] Cancelling a move to Closed doesn't change the history
+		it("leaves the history alone when the close is cancelled", async () => {
+			// @given [features/job-status-history.feature] I have a job for "Software Engineer" at "Acme" whose history ends with "Interviewing"
+			const { onMove } = renderBoard(interviewing());
+
+			// @when [features/job-status-history.feature#history-ignores-cancelled-close] I move the card to "Closed"
+			drag(acme.id, "closed");
+			// @but [features/job-status-history.feature] I cancel instead of choosing a closing reason
+			await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+			// Only MoveJob adds to the history, and it's never called, so the history still ends with
+			// "Interviewing" when the card is opened (TestHistoryIgnoresCancelledClose).
+			expect(onMove).not.toHaveBeenCalled();
+			expect(acmeIn("Interviewing")).toBe(true);
+		});
+
 		it("shows the backend's message and stays open when closing fails", async () => {
 			const { onMove } = renderBoard(interviewing());
 			drag(acme.id, "closed");

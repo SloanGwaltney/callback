@@ -58,6 +58,17 @@
 	font-size: var(--font-size-sm);
 }
 
+.inStatus {
+	margin: 0;
+	color: var(--color-text-muted);
+	font-size: var(--font-size-xs);
+}
+
+.days {
+	color: var(--color-text);
+	font-weight: var(--font-weight-bold);
+}
+
 .reason {
 	margin: 0;
 	color: var(--color-status-closed);

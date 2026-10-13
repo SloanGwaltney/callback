@@ -61,3 +61,12 @@ type LibraryDocument struct {
 	Description string
 	StoredPath  string
 }
+
+type StatusChange struct {
+	ID                 int64
+	JobID              int64
+	Status             string
+	Date               string
+	ClosingReason      sql.NullString
+	ClosingReasonOther sql.NullString
+}

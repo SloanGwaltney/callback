@@ -92,6 +92,7 @@ const noSorting: SortingStrategy = () => null;
 // @scenario [features/job-board.feature#close-other-reason] Write my own reason when closing with Other
 // @scenario [features/job-board.feature#close-other-needs-text] Closing with Other needs a written reason
 // @scenario [features/job-board.feature#close-cancel] Cancelling the closing reason leaves the card where it was
+// @scenario [features/job-status-history.feature#history-ignores-cancelled-close] Cancelling a move to Closed doesn't change the history
 // @scenario [features/job-board.feature#reopen-clears-reason] Moving a card out of Closed clears the closing reason
 // @scenario [features/job-board.feature#reorder-closed-keeps-reason] Reordering a card within Closed keeps its closing reason
 // @scenario [features/job-board.feature#reorder-card] Reorder a card within its column
