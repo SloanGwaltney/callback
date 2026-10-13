@@ -27,6 +27,7 @@ type Card struct {
 	Role              string        `json:"role"`
 	Location          string        `json:"location"`
 	DateApplied       string        `json:"dateApplied"`
+	Interest          *int          `json:"interest"`
 	ClosingReason     ClosingReason `json:"closingReason"`
 	ClosingReasonText string        `json:"closingReasonText"`
 	DocumentCount     int           `json:"documentCount"`
@@ -68,6 +69,7 @@ func cardFromRow(row store.ListJobsRow) Card {
 		Role:              row.Role,
 		Location:          row.Location,
 		DateApplied:       row.DateApplied.String,
+		Interest:          interestFromRow(row.Interest),
 		ClosingReason:     reason,
 		ClosingReasonText: closingReasonText(reason, row.ClosingReasonOther.String),
 		DocumentCount:     int(row.DocumentCount),

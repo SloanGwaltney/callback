@@ -38,6 +38,8 @@ func TestSchemaAcceptsValidJobs(t *testing.T) {
 	mustExec(t, conn, `INSERT INTO jobs (company, role, position, status, date_applied) VALUES ('Globex', 'Developer', 0, 'applied', '2026-10-01')`)
 	mustExec(t, conn, `INSERT INTO jobs (company, role, position, status, closing_reason) VALUES ('Initech', 'Engineer', 0, 'closed', 'rejected')`)
 	mustExec(t, conn, `INSERT INTO jobs (company, role, position, status, closing_reason, closing_reason_other) VALUES ('Umbrella', 'Engineer', 1, 'closed', 'other', 'Company went through layoffs')`)
+	mustExec(t, conn, `INSERT INTO jobs (company, role, position, interest) VALUES ('Hooli', 'Engineer', 1, 1)`)
+	mustExec(t, conn, `INSERT INTO jobs (company, role, position, interest) VALUES ('Vandelay', 'Engineer', 2, 5)`)
 
 	var status string
 	if err := conn.QueryRow(`SELECT status FROM jobs WHERE company = 'Acme'`).Scan(&status); err != nil {
@@ -45,6 +47,14 @@ func TestSchemaAcceptsValidJobs(t *testing.T) {
 	}
 	if status != "saved" {
 		t.Errorf("default status = %q, want %q", status, "saved")
+	}
+
+	var interest sql.NullInt64
+	if err := conn.QueryRow(`SELECT interest FROM jobs WHERE company = 'Acme'`).Scan(&interest); err != nil {
+		t.Fatal(err)
+	}
+	if interest.Valid {
+		t.Errorf("default interest = %d, want NULL", interest.Int64)
 	}
 }
 
@@ -64,6 +74,8 @@ func TestSchemaRejectsInvalidJobs(t *testing.T) {
 		{"unknown closing reason", `INSERT INTO jobs (company, role, position, status, closing_reason) VALUES ('Acme', 'Engineer', 0, 'closed', 'bored')`},
 		{"other without its text", `INSERT INTO jobs (company, role, position, status, closing_reason) VALUES ('Acme', 'Engineer', 0, 'closed', 'other')`},
 		{"other with blank text", `INSERT INTO jobs (company, role, position, status, closing_reason, closing_reason_other) VALUES ('Acme', 'Engineer', 0, 'closed', 'other', ' ')`},
+		{"interest below one star", `INSERT INTO jobs (company, role, position, interest) VALUES ('Acme', 'Engineer', 0, 0)`},
+		{"interest above five stars", `INSERT INTO jobs (company, role, position, interest) VALUES ('Acme', 'Engineer', 0, 6)`},
 		{"text without other", `INSERT INTO jobs (company, role, position, status, closing_reason, closing_reason_other) VALUES ('Acme', 'Engineer', 0, 'closed', 'rejected', 'layoffs')`},
 	}
 

@@ -150,6 +150,29 @@ func (k DocumentKind) valid() bool {
 	return k == KindResume || k == KindCoverLetter || k == KindOther
 }
 
+// MinInterest and MaxInterest are the fewest and most stars an interest rating can have.
+const (
+	MinInterest = 1
+	MaxInterest = 5
+)
+
+// nullInterest turns an unrated interest (nil) into NULL.
+func nullInterest(stars *int) sql.NullInt64 {
+	if stars == nil {
+		return sql.NullInt64{}
+	}
+	return sql.NullInt64{Int64: int64(*stars), Valid: true}
+}
+
+// interestFromRow turns a stored interest rating back into stars, or nil when it's NULL.
+func interestFromRow(n sql.NullInt64) *int {
+	if !n.Valid {
+		return nil
+	}
+	stars := int(n.Int64)
+	return &stars
+}
+
 // nullString turns "" into NULL.
 func nullString(s string) sql.NullString {
 	return sql.NullString{String: s, Valid: s != ""}

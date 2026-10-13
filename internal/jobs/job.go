@@ -22,6 +22,9 @@ type Details struct {
 	Notes       string `json:"notes"`
 	// DateApplied is YYYY-MM-DD, or "" for no date applied.
 	DateApplied string `json:"dateApplied"`
+	// Interest is how interested the user is in the job, from 1 to 5 stars, or nil when it isn't
+	// rated.
+	Interest *int `json:"interest"`
 }
 
 // Job is everything about one job, as shown when its card is opened.
@@ -35,6 +38,7 @@ type Job struct {
 	Location    string `json:"location"`
 	Notes       string `json:"notes"`
 	DateApplied string `json:"dateApplied"`
+	Interest    *int   `json:"interest"`
 	Status      Status `json:"status"`
 	// ClosingReason and ClosingReasonOther are set only when the job is closed.
 	ClosingReason      ClosingReason `json:"closingReason"`
@@ -77,6 +81,7 @@ func (s *Service) AddJob(ctx context.Context, d Details, status Status) (Job, er
 			Status:      string(status),
 			Position:    0,
 			DateApplied: nullString(d.DateApplied),
+			Interest:    nullInterest(d.Interest),
 		})
 		if err != nil {
 			return err
@@ -112,6 +117,7 @@ func (s *Service) Job(ctx context.Context, id int64) (Job, error) {
 		Location:           row.Location,
 		Notes:              row.Notes,
 		DateApplied:        row.DateApplied.String,
+		Interest:           interestFromRow(row.Interest),
 		Status:             Status(row.Status),
 		ClosingReason:      reason,
 		ClosingReasonOther: row.ClosingReasonOther.String,
@@ -143,6 +149,7 @@ func (s *Service) UpdateJob(ctx context.Context, id int64, d Details) (Job, erro
 		Location:    d.Location,
 		Notes:       d.Notes,
 		DateApplied: nullString(d.DateApplied),
+		Interest:    nullInterest(d.Interest),
 	})
 	if err != nil {
 		return Job{}, err
@@ -172,6 +179,9 @@ func (s *Service) validateDetails(d Details) (Details, error) {
 		if d.DateApplied > s.today() {
 			return d, invalid("the date applied can't be in the future")
 		}
+	}
+	if d.Interest != nil && (*d.Interest < MinInterest || *d.Interest > MaxInterest) {
+		return d, invalid(fmt.Sprintf("the interest rating must be from %d to %d stars", MinInterest, MaxInterest))
 	}
 	return d, nil
 }

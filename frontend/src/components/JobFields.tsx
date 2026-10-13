@@ -1,6 +1,7 @@
 import { useId } from "react";
 import type { Details } from "../hooks/types";
 import { today } from "../jobs/constants";
+import { InterestRating } from "./InterestRating";
 import styles from "./JobFields.module.css";
 
 type Props = {
@@ -84,6 +85,12 @@ export function JobFields({ details, onChange }: Props) {
 						</button>
 					)}
 				</div>
+			</div>
+			<div className={styles.wide}>
+				<InterestRating
+					value={details.interest}
+					onChange={(interest) => onChange({ ...details, interest })}
+				/>
 			</div>
 			<div className={`${styles.field} ${styles.wide}`}>
 				<label htmlFor={`${id}-description`}>Job description</label>

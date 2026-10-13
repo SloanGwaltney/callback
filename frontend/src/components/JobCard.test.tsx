@@ -46,6 +46,28 @@ describe("JobCard", () => {
 		expect(screen.queryByText(/document/)).not.toBeInTheDocument();
 	});
 
+	// @scenario [features/job-interest.feature#card-shows-interest] The card shows the interest rating as stars
+	// @scenario [features/job-interest.feature#interest-persists] The interest rating is the same after reopening the app
+	it("shows the interest rating as stars", () => {
+		// @given [features/job-interest.feature] I have a job for "Software Engineer" at "Acme" with an interest rating of 4 stars
+		// @when [features/job-interest.feature] I open the job search board
+		render(<JobCard card={card(1, "Acme", { interest: 4 })} onOpen={() => {}} />);
+
+		// @then [features/job-interest.feature] the card shows 4 of 5 stars
+		expect(screen.getByRole("img", { name: "4 of 5 stars" })).toHaveTextContent("★★★★☆");
+	});
+
+	// @scenario [features/job-interest.feature#card-unrated] An unrated card shows no stars
+	it.each([undefined, null])("shows no stars when the interest rating is %s", (interest) => {
+		// @given [features/job-interest.feature] I have a job for "Software Engineer" at "Acme" with no interest rating
+		// @when [features/job-interest.feature] I open the job search board
+		render(<JobCard card={card(1, "Acme", { interest })} onOpen={() => {}} />);
+
+		// @then [features/job-interest.feature] the card doesn't show an interest rating
+		expect(screen.queryByRole("img")).not.toBeInTheDocument();
+		expect(screen.queryByText(/[★☆]/)).not.toBeInTheDocument();
+	});
+
 	it("opens when its title is clicked", async () => {
 		const onOpen = vi.fn();
 		render(<JobCard card={card(1, "Acme")} onOpen={onOpen} />);

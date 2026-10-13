@@ -70,6 +70,8 @@ const field = (label: RegExp) => screen.getByLabelText(label);
 const save = () => userEvent.click(screen.getByRole("button", { name: "Save" }));
 const setDate = (date: string) =>
 	fireEvent.change(field(/^Date applied/), { target: { value: date } });
+const rate = (stars: number) =>
+	userEvent.click(screen.getByRole("radio", { name: stars === 1 ? "1 star" : `${stars} stars` }));
 const savedDetails = () => backend.update.mock.calls.at(-1)?.[0];
 
 const filledIn = job({
@@ -355,5 +357,100 @@ describe("JobDetails", () => {
 		renderDetails(job({ status: "offer" }));
 		expect(screen.getByText("Offer")).toBeInTheDocument();
 		expect(screen.queryByRole("button", { name: "Change reason" })).not.toBeInTheDocument();
+	});
+
+	// @scenario [features/job-interest.feature#rate-interest] Rate how interested I am in a job
+	it.each([1, 2, 3, 4, 5])("rates the job %i stars", async (stars) => {
+		// @given [features/job-interest.feature] I have a job for "Software Engineer" at "Acme" with no interest rating
+		const { onChanged } = renderDetails(job());
+		expect(screen.queryByRole("radio", { checked: true })).not.toBeInTheDocument();
+
+		// @when [features/job-interest.feature] I answer "How interested are you in this job?" with <stars> stars
+		await rate(stars);
+		await save();
+
+		// @then [features/job-interest.feature] the job's interest rating is <stars> stars
+		expect(savedDetails()?.interest).toBe(stars);
+		expect(onChanged).toHaveBeenCalled();
+	});
+
+	// @scenario [features/job-interest.feature#interest-any-status] A job in any status can be rated
+	it.each(["saved", "applied", "interviewing", "offer", "closed"])(
+		"rates a job in %s",
+		async (status) => {
+			// @given [features/job-interest.feature] I have a job for "Software Engineer" at "Acme" in "<status>"
+			renderDetails(job({ status }));
+
+			// @when [features/job-interest.feature] I answer "How interested are you in this job?" with 4 stars
+			await rate(4);
+			await save();
+
+			// @then [features/job-interest.feature] the job's interest rating is 4 stars
+			expect(savedDetails()?.interest).toBe(4);
+		},
+	);
+
+	// @scenario [features/job-interest.feature#change-interest] Change my interest rating
+	it("changes the interest rating", async () => {
+		// @given [features/job-interest.feature] I have a job for "Software Engineer" at "Acme" with an interest rating of 2 stars
+		renderDetails(job({ interest: 2 }));
+
+		// @when [features/job-interest.feature] I change the interest rating to 5 stars
+		await rate(5);
+		await save();
+
+		// @then [features/job-interest.feature] the job's interest rating is 5 stars
+		expect(savedDetails()?.interest).toBe(5);
+		expect(screen.getByRole("radio", { name: "5 stars" })).toBeChecked();
+	});
+
+	// @scenario [features/job-interest.feature#clear-interest] Clear my interest rating
+	it("clears the interest rating", async () => {
+		// @given [features/job-interest.feature] I have a job for "Software Engineer" at "Acme" with an interest rating of 3 stars
+		renderDetails(job({ interest: 3 }));
+
+		// @when [features/job-interest.feature] I clear the interest rating
+		await userEvent.click(screen.getByRole("button", { name: "Clear interest rating" }));
+		await save();
+
+		// @then [features/job-interest.feature] the job has no interest rating
+		expect(savedDetails()?.interest).toBeUndefined();
+		expect(screen.queryByRole("radio", { checked: true })).not.toBeInTheDocument();
+	});
+
+	// @scenario [features/job-interest.feature#view-interest] See the interest rating when opening the card
+	it("shows the interest rating", () => {
+		// @given [features/job-interest.feature] I have a job for "Software Engineer" at "Acme" with an interest rating of 4 stars
+		// @when [features/job-interest.feature] I open the card
+		renderDetails(job({ interest: 4 }));
+
+		// @then [features/job-interest.feature] I see "How interested are you in this job?" answered with 4 stars
+		const question = screen.getByRole("group", { name: "How interested are you in this job?" });
+		expect(within(question).getByRole("radio", { name: "4 stars" })).toBeChecked();
+	});
+
+	it("starts unrated when the backend sends no rating", async () => {
+		renderDetails(job({ interest: null }));
+		expect(screen.queryByRole("radio", { checked: true })).not.toBeInTheDocument();
+		expect(screen.queryByRole("button", { name: "Clear interest rating" })).not.toBeInTheDocument();
+		await save();
+		expect(savedDetails()?.interest).toBeUndefined();
+	});
+
+	it("keeps the interest rating when other details are saved", async () => {
+		renderDetails(job({ interest: 4 }));
+		await userEvent.type(field(/^Notes/), "Call back Friday.");
+		await save();
+		expect(savedDetails()?.interest).toBe(4);
+	});
+
+	it("shows why the interest rating wasn't saved", async () => {
+		backend.update.mockRejectedValue("the interest rating must be from 1 to 5 stars");
+		renderDetails(job({ interest: 3 }));
+		await rate(2);
+		await save();
+		expect(screen.getByRole("alert")).toHaveTextContent(
+			"the interest rating must be from 1 to 5 stars",
+		);
 	});
 });

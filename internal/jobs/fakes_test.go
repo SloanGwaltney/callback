@@ -75,7 +75,7 @@ func (f *fakeStore) CreateJob(ctx context.Context, arg store.CreateJobParams) (i
 	f.jobs[f.nextID] = store.Job{
 		ID: f.nextID, Company: arg.Company, Role: arg.Role, Description: arg.Description, Link: arg.Link,
 		Salary: arg.Salary, Location: arg.Location, Notes: arg.Notes, Status: arg.Status,
-		Position: arg.Position, DateApplied: arg.DateApplied,
+		Position: arg.Position, DateApplied: arg.DateApplied, Interest: arg.Interest,
 	}
 	return f.nextID, nil
 }
@@ -150,7 +150,7 @@ func (f *fakeStore) ListJobs(ctx context.Context) ([]store.ListJobsRow, error) {
 			ID: j.ID, Company: j.Company, Role: j.Role, Description: j.Description, Link: j.Link,
 			Salary: j.Salary, Location: j.Location, Notes: j.Notes, Status: j.Status, Position: j.Position,
 			DateApplied: j.DateApplied, ClosingReason: j.ClosingReason, ClosingReasonOther: j.ClosingReasonOther,
-			DocumentCount: count,
+			Interest: j.Interest, DocumentCount: count,
 		}
 	}
 	return rows, nil
@@ -183,6 +183,7 @@ func (f *fakeStore) UpdateJobDetails(ctx context.Context, arg store.UpdateJobDet
 	return f.update(arg.ID, func(j *store.Job) {
 		j.Company, j.Role, j.Description, j.Link = arg.Company, arg.Role, arg.Description, arg.Link
 		j.Salary, j.Location, j.Notes, j.DateApplied = arg.Salary, arg.Location, arg.Notes, arg.DateApplied
+		j.Interest = arg.Interest
 	})
 }
 

@@ -6,6 +6,7 @@ export namespace jobs {
 	    role: string;
 	    location: string;
 	    dateApplied: string;
+	    interest?: number;
 	    closingReason: string;
 	    closingReasonText: string;
 	    documentCount: number;
@@ -21,6 +22,7 @@ export namespace jobs {
 	        this.role = source["role"];
 	        this.location = source["location"];
 	        this.dateApplied = source["dateApplied"];
+	        this.interest = source["interest"];
 	        this.closingReason = source["closingReason"];
 	        this.closingReasonText = source["closingReasonText"];
 	        this.documentCount = source["documentCount"];
@@ -103,6 +105,7 @@ export namespace jobs {
 	    location: string;
 	    notes: string;
 	    dateApplied: string;
+	    interest?: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new Details(source);
@@ -118,6 +121,7 @@ export namespace jobs {
 	        this.location = source["location"];
 	        this.notes = source["notes"];
 	        this.dateApplied = source["dateApplied"];
+	        this.interest = source["interest"];
 	    }
 	}
 	export class Document {
@@ -148,6 +152,7 @@ export namespace jobs {
 	    location: string;
 	    notes: string;
 	    dateApplied: string;
+	    interest?: number;
 	    status: string;
 	    closingReason: string;
 	    closingReasonOther: string;
@@ -169,6 +174,7 @@ export namespace jobs {
 	        this.location = source["location"];
 	        this.notes = source["notes"];
 	        this.dateApplied = source["dateApplied"];
+	        this.interest = source["interest"];
 	        this.status = source["status"];
 	        this.closingReason = source["closingReason"];
 	        this.closingReasonOther = source["closingReasonOther"];
