@@ -17,14 +17,14 @@ Feature: Daily backups
         | I open the app                |
         | my agent connects to Callback |
 
-    @status:not-implemented @id:backup-once-per-day
+    @status:implemented @id:backup-once-per-day
     Scenario: Starting Callback again the same day doesn't take another backup
       Given today is 2026-10-14
       And a backup was taken earlier today
       When I open the app
       Then no new backup is taken
 
-    @status:not-implemented @id:backup-no-catch-up
+    @status:implemented @id:backup-no-catch-up
     Scenario: Days when Callback didn't run get no backup
       Given the last backup was taken on 2026-10-01
       And Callback hasn't run since
@@ -32,7 +32,7 @@ Feature: Daily backups
       When I open the app
       Then one backup is taken, for 2026-10-14
 
-    @status:not-implemented @id:backup-holds-data-not-documents
+    @status:implemented @id:backup-holds-data-not-documents
     Scenario: A backup holds my data but not the attached documents' files
       Given I have a job for "Software Engineer" at "Acme" with "resume-2026.pdf" attached
       When a daily backup is taken
@@ -41,14 +41,14 @@ Feature: Daily backups
 
   Rule: Only the most recent daily backups are kept
 
-    @status:not-implemented @id:backup-keeps-last-15
+    @status:implemented @id:backup-keeps-last-15
     Scenario: Taking a 16th daily backup removes the oldest
       Given there are 15 daily backups
       When a new daily backup is taken
       Then there are still 15 daily backups
       And the oldest one has been removed
 
-    @status:not-implemented @id:backup-count-not-days
+    @status:implemented @id:backup-count-not-days
     Scenario: Backups are kept by count, not by age
       Given there are 3 daily backups, the oldest from 60 days ago
       When a new daily backup is taken
@@ -63,7 +63,7 @@ Feature: Daily backups
 
   Rule: A failed backup doesn't stop Callback from working
 
-    @status:not-implemented @id:backup-failure-still-starts
+    @status:implemented @id:backup-failure-still-starts
     Scenario: Callback still starts when the daily backup fails
       Given no backup has been taken today
       And the backup can't be written
