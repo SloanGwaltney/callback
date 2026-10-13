@@ -3,6 +3,7 @@ import type { Card } from "../hooks/types";
 import {
 	DUE_LABELS,
 	DUE_OVERDUE,
+	daysInStatusLabel,
 	formatTime,
 	interviewKindLabel,
 	MAX_INTEREST,
@@ -32,6 +33,10 @@ type Props = {
 // @scenario [features/job-next-action.feature#closed-card-no-due-marks] A closed job's next action is never marked as due or overdue
 // @scenario [features/job-next-action.feature#card-no-next-action] A job with no next action shows none on its card
 // @scenario [features/job-next-action.feature#clear-next-action] Clear the next action once it's done
+// @scenario [features/job-status-history.feature#card-shows-days-in-status] The card shows how many days the job has been in its current status
+// @scenario [features/job-status-history.feature#days-in-status-from-added] A job that hasn't moved counts from when it was added
+// @scenario [features/job-status-history.feature#days-in-status-resets-on-move] Moving a card to another status starts the count again
+// @scenario [features/job-status-history.feature#days-in-status-any-column] Every column's cards show their days in status
 export function JobCard({ card, onOpen, handle }: Props) {
 	const documents = card.documentCount === 1 ? "1 document" : `${card.documentCount} documents`;
 	return (
@@ -55,6 +60,11 @@ export function JobCard({ card, onOpen, handle }: Props) {
 			)}
 			{card.location !== "" && <p className={styles.detail}>{card.location}</p>}
 			{card.dateApplied !== "" && <p className={styles.detail}>Applied {card.dateApplied}</p>}
+			{card.daysInStatus != null && (
+				<p className={styles.inStatus}>
+					In status <span className={styles.days}>{daysInStatusLabel(card.daysInStatus)}</span>
+				</p>
+			)}
 			{card.nextInterview && (
 				<p className={styles.interview}>
 					{interviewKindLabel(card.nextInterview.kind)} interview{" "}

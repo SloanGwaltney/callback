@@ -139,12 +139,13 @@ func (a *App) SetClosingReason(id int64, reason jobs.ClosingReason, other string
 	return a.jobs.SetClosingReason(a.ctx, id, reason, other)
 }
 
-// DeleteJob deletes a job, its contacts, its interviews, and its attached documents. The frontend asks for
-// confirmation first. The document library is never touched.
+// DeleteJob deletes a job, its contacts, its interviews, its status history, and its attached
+// documents. The frontend asks for confirmation first. The document library is never touched.
 // @scenario [features/job-cards.feature#delete-job] Delete a job after confirming
 // @scenario [features/job-contacts.feature#contacts-deleted-with-job] Deleting a job deletes its contacts
 // @scenario [features/job-interviews.feature#interviews-deleted-with-job] Deleting a job deletes its interviews
 // @scenario [features/document-library.feature#delete-job-keeps-library] Deleting a job doesn't touch the library
+// @scenario [features/job-status-history.feature#history-deleted-with-job] Deleting a job deletes its status history
 func (a *App) DeleteJob(id int64) error {
 	return a.jobs.DeleteJob(a.ctx, id)
 }

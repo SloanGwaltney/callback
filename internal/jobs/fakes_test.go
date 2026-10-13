@@ -36,6 +36,7 @@ type tables struct {
 	contacts   map[int64]store.Contact
 	interviews map[int64]store.Interview
 	library    map[int64]store.LibraryDocument
+	history    map[int64]store.StatusChange
 	nextID     int64
 }
 
@@ -46,6 +47,7 @@ func (t tables) clone() tables {
 		contacts:   maps.Clone(t.contacts),
 		interviews: maps.Clone(t.interviews),
 		library:    maps.Clone(t.library),
+		history:    maps.Clone(t.history),
 		nextID:     t.nextID,
 	}
 }
@@ -61,6 +63,7 @@ func newFakeStore() *fakeStore {
 		contacts:   map[int64]store.Contact{},
 		interviews: map[int64]store.Interview{},
 		library:    map[int64]store.LibraryDocument{},
+		history:    map[int64]store.StatusChange{},
 	}}
 }
 
@@ -76,6 +79,21 @@ func (f *fakeStore) InTx(ctx context.Context, fn func(store.Querier) error) erro
 func (f *fakeStore) failing(method string) error {
 	if f.fail == method {
 		return errFake
+	}
+	return nil
+}
+
+func (f *fakeStore) AddStatusChange(ctx context.Context, arg store.AddStatusChangeParams) error {
+	if err := f.failing("AddStatusChange"); err != nil {
+		return err
+	}
+	if _, ok := f.jobs[arg.JobID]; !ok {
+		return errors.New("FOREIGN KEY constraint failed")
+	}
+	f.nextID++
+	f.history[f.nextID] = store.StatusChange{
+		ID: f.nextID, JobID: arg.JobID, Status: arg.Status, Date: arg.Date,
+		ClosingReason: arg.ClosingReason, ClosingReasonOther: arg.ClosingReasonOther,
 	}
 	return nil
 }
@@ -173,6 +191,7 @@ func (f *fakeStore) DeleteJob(ctx context.Context, id int64) error {
 	maps.DeleteFunc(f.docs, func(_ int64, d store.Document) bool { return d.JobID == id })
 	maps.DeleteFunc(f.contacts, func(_ int64, c store.Contact) bool { return c.JobID == id })
 	maps.DeleteFunc(f.interviews, func(_ int64, i store.Interview) bool { return i.JobID == id })
+	maps.DeleteFunc(f.history, func(_ int64, c store.StatusChange) bool { return c.JobID == id })
 	return nil
 }
 
@@ -285,6 +304,36 @@ func interviewOrder(a, b store.Interview) int {
 	}
 	return cmp.Or(strings.Compare(a.Date, b.Date), cmp.Compare(untimed(a), untimed(b)),
 		strings.Compare(a.Time, b.Time), cmp.Compare(a.ID, b.ID))
+}
+
+// ListStatusChangesForJob orders like the real query: by ID, oldest first.
+func (f *fakeStore) ListStatusChangesForJob(ctx context.Context, jobID int64) ([]store.StatusChange, error) {
+	var out []store.StatusChange
+	for _, c := range f.history {
+		if c.JobID == jobID {
+			out = append(out, c)
+		}
+	}
+	slices.SortFunc(out, func(a, b store.StatusChange) int { return cmp.Compare(a.ID, b.ID) })
+	return out, nil
+}
+
+// ListCurrentStatusDates returns, like the real query, the date of each job's latest status change.
+func (f *fakeStore) ListCurrentStatusDates(ctx context.Context) ([]store.ListCurrentStatusDatesRow, error) {
+	if err := f.failing("ListCurrentStatusDates"); err != nil {
+		return nil, err
+	}
+	latest := map[int64]store.StatusChange{}
+	for _, c := range f.history {
+		if l, ok := latest[c.JobID]; !ok || c.ID > l.ID {
+			latest[c.JobID] = c
+		}
+	}
+	var out []store.ListCurrentStatusDatesRow
+	for jobID, c := range latest {
+		out = append(out, store.ListCurrentStatusDatesRow{JobID: jobID, Date: c.Date})
+	}
+	return out, nil
 }
 
 func (f *fakeStore) ListJobIDsInStatus(ctx context.Context, status string) ([]int64, error) {
@@ -528,6 +577,32 @@ func (h *harness) seed(job store.Job) int64 {
 	job.ID = h.store.nextID
 	h.store.jobs[job.ID] = job
 	return job.ID
+}
+
+// seedStatusChange adds an entry to a job's status history straight in the store, bypassing the
+// service. date is YYYY-MM-DD; a move to Closed gets "No response" as its reason.
+func (h *harness) seedStatusChange(jobID int64, status Status, date string) {
+	h.store.nextID++
+	c := store.StatusChange{ID: h.store.nextID, JobID: jobID, Status: string(status), Date: date}
+	if status == StatusClosed {
+		c.ClosingReason = nullString(string(ReasonNoResponse))
+	}
+	h.store.history[c.ID] = c
+}
+
+// history returns a job's status history as "<Status> <date>" entries, with a closed entry's
+// reason after it, as in "Closed 2026-10-09 Rejected".
+func (h *harness) history(t *testing.T, id int64) []string {
+	t.Helper()
+	var out []string
+	for _, c := range h.job(t, id).StatusHistory {
+		entry := c.Status.Label() + " " + c.Date
+		if c.ClosingReasonText != "" {
+			entry += " " + c.ClosingReasonText
+		}
+		out = append(out, entry)
+	}
+	return out
 }
 
 // seedDoc attaches a document straight in the store and the fake files.

@@ -224,4 +224,23 @@ describe("JobCard", () => {
 			expect(shown()).not.toHaveTextContent("Expected");
 		});
 	});
+
+	// @scenario [features/job-status-history.feature#card-shows-days-in-status] The card shows how many days the job has been in its current status
+	it.each([
+		{ days: 0, shown: "Today" },
+		{ days: 1, shown: "1 day" },
+		{ days: 8, shown: "8 days" },
+	])("shows $shown in status", ({ days, shown }) => {
+		// The backend counts the days from the date the job moved and today (TestCardShowsDaysInStatus).
+		render(<JobCard card={card(1, "Acme", { daysInStatus: days })} onOpen={() => {}} />);
+
+		// @then [features/job-status-history.feature] the card shows "<shown>"
+		expect(screen.getByText(shown)).toBeInTheDocument();
+		expect(screen.getByText(/^In status/)).toHaveTextContent(`In status ${shown}`);
+	});
+
+	it("shows no days in status for a job with no history", () => {
+		render(<JobCard card={card(1, "Acme", { daysInStatus: null })} onOpen={() => {}} />);
+		expect(screen.queryByText(/^In status/)).not.toBeInTheDocument();
+	});
 });

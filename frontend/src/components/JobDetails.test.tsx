@@ -314,7 +314,7 @@ describe("JobDetails", () => {
 		// @when [features/job-cards.feature] I delete the job
 		await userEvent.click(screen.getByRole("button", { name: "Delete job" }));
 		const confirm = screen.getByRole("dialog", { name: "Delete Software Engineer at Acme?" });
-		expect(confirm).toHaveTextContent("attached documents will be removed");
+		expect(confirm).toHaveTextContent("its attached documents");
 		expect(onDelete).not.toHaveBeenCalled();
 		// @and [features/job-cards.feature] I confirm the deletion
 		await userEvent.click(within(confirm).getByRole("button", { name: "Delete" }));
@@ -750,6 +750,45 @@ describe("JobDetails", () => {
 		it("shows the backend's due mark", () => {
 			renderDetails(job({ nextAction: { ...waiting, due: "overdue" } }));
 			expect(inPanel().getByText("Overdue")).toBeInTheDocument();
+		});
+	});
+
+	describe("status history", () => {
+		const history = [
+			{ status: "saved", date: "2026-10-01", closingReason: "", closingReasonText: "" },
+			{ status: "applied", date: "2026-10-09", closingReason: "", closingReasonText: "" },
+		];
+
+		// @scenario [features/job-status-history.feature#history-read-only] The status history can't be edited
+		it("shows the status history with nothing to edit", () => {
+			// @given [features/job-status-history.feature#history-read-only] I have a job for "Software Engineer" at "Acme" with a status history
+			// @when [features/job-status-history.feature] I open the card
+			renderDetails(job({ status: "applied", statusHistory: history }));
+
+			// @then [features/job-status-history.feature] I can see the status history
+			const region = screen.getByRole("region", { name: "Status history" });
+			expect(within(region).getAllByRole("listitem")).toHaveLength(2);
+			// @but [features/job-status-history.feature] I can't change, add, or remove its entries
+			expect(within(region).queryAllByRole("button")).toHaveLength(0);
+			expect(within(region).queryAllByRole("textbox")).toHaveLength(0);
+			expect(within(region).queryAllByRole("combobox")).toHaveLength(0);
+		});
+
+		// @scenario [features/job-status-history.feature#history-deleted-with-job] Deleting a job deletes its status history
+		it("warns that deleting a job deletes its status history", async () => {
+			const { onDelete } = renderDetails(job({ id: 4, statusHistory: history }));
+
+			// @when [features/job-status-history.feature] I delete the job
+			await userEvent.click(screen.getByRole("button", { name: "Delete job" }));
+			const confirm = screen.getByRole("dialog", { name: "Delete Software Engineer at Acme?" });
+			// @and [features/job-status-history.feature] I confirm the deletion
+			await userEvent.click(within(confirm).getByRole("button", { name: "Delete" }));
+
+			// @then [features/job-status-history.feature] its status history is removed too
+			// The backend deletes it with the job (TestDeleteJobDeletesItsStatusHistory); the
+			// confirmation says so.
+			expect(confirm).toHaveTextContent("its status history");
+			expect(onDelete).toHaveBeenCalledWith(4);
 		});
 	});
 });

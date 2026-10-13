@@ -11,6 +11,7 @@ import { InterviewList } from "./InterviewList";
 import styles from "./JobDetails.module.css";
 import { JobFields } from "./JobFields";
 import { NextActionPanel } from "./NextActionPanel";
+import { StatusHistory } from "./StatusHistory";
 
 type Props = {
 	jobId: number;
@@ -22,7 +23,7 @@ type Props = {
 };
 
 // JobDetails shows everything about a job when its card is opened, including its next action,
-// interviews, contacts, and documents, and edits it.
+// interviews, contacts, documents, and status history, and edits it.
 // @scenario [features/job-cards.feature#view-job-details] View a job's full details
 // @scenario [features/job-board.feature#change-closing-reason] Change the closing reason of a closed job
 export function JobDetails({ jobId, onClose, onChanged, onDelete }: Props) {
@@ -101,6 +102,7 @@ export function JobDetails({ jobId, onClose, onChanged, onDelete }: Props) {
 							onChanged();
 						}}
 					/>
+					<StatusHistory history={job.statusHistory} />
 					{changingReason && (
 						<ClosingReasonDialog
 							title="Change the closing reason"
@@ -250,8 +252,8 @@ function ConfirmDelete({ name, onConfirm, onCancel }: ConfirmProps) {
 	return (
 		<Dialog title={`Delete ${name}?`} onClose={onCancel}>
 			<p className={styles.warning}>
-				The job, its interviews, its contacts, and its attached documents will be removed. This
-				can't be undone.
+				The job, its interviews, its contacts, its attached documents, and its status history will
+				be removed. This can't be undone.
 			</p>
 			{error !== "" && (
 				<p role="alert" className={styles.error}>

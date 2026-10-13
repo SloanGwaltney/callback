@@ -35,15 +35,25 @@ type Card struct {
 	NextInterview *NextInterview `json:"nextInterview"`
 	// NextAction is what's next on the job, or nil when nothing is.
 	NextAction *NextAction `json:"nextAction"`
+	// DaysInStatus is how many days the job has been in its current status, from 0 for today, or
+	// nil when it has no status history.
+	DaysInStatus *int `json:"daysInStatus"`
 }
 
 // Board returns every job, laid out in status columns.
+// @scenario [features/job-status-history.feature#card-shows-days-in-status] The card shows how many days the job has been in its current status
+// @scenario [features/job-status-history.feature#days-in-status-from-added] A job that hasn't moved counts from when it was added
+// @scenario [features/job-status-history.feature#days-in-status-any-column] Every column's cards show their days in status
 func (s *Service) Board(ctx context.Context) (Board, error) {
 	rows, err := s.store.ListJobs(ctx)
 	if err != nil {
 		return Board{}, err
 	}
 	next, err := s.nextInterviews(ctx)
+	if err != nil {
+		return Board{}, err
+	}
+	days, err := s.daysInStatus(ctx)
 	if err != nil {
 		return Board{}, err
 	}
@@ -63,6 +73,9 @@ func (s *Service) Board(ctx context.Context) (Board, error) {
 		}
 		card := cardFromRow(row, today)
 		card.NextInterview = next[row.ID]
+		if d, ok := days[row.ID]; ok {
+			card.DaysInStatus = &d
+		}
 		board.Columns[i].Cards = append(board.Columns[i].Cards, card)
 	}
 

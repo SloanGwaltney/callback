@@ -215,6 +215,10 @@ const page = {
 	//   contacts:   [{ name: "Dana Smith", relationship: "recruiter", email?, phone?, profileLink?, notes? }]
 	// and its next action:
 	//   nextAction: { text: "Waiting for a call back", expectedDate?: "2026-10-14" }
+	// A job's status history starts with the column it's added to and gains each move. To give it a
+	// longer one, list the statuses it passes through before its own, oldest first:
+	//   history: ["applied", "interviewing"]
+	// Every entry is dated today, since the app takes today from the clock.
 	// Jobs show in each column in the order given, since a new job goes to the top of its column.
 	// Documents aren't seeded: attaching one copies a real file. When a job gets a new kind of
 	// record, add it here.
@@ -229,15 +233,20 @@ const page = {
 				interviews = [],
 				contacts = [],
 				nextAction,
+				history = [],
 				...details
 			} of jobs.reverse()) {
 				const closed = status === "closed";
+				const [first = closed ? "saved" : status, ...through] = history;
 				const job = await app.AddJob(
 					{ description: "", link: "", salary: "", location: "", notes: "", dateApplied: "", ...details },
-					closed ? "saved" : status,
+					first,
 				);
-				if (closed) {
-					// To the top of Closed, as an added job goes to the top of its column.
+				for (const s of through) {
+					await app.MoveJob({ jobId: job.id, status: s, index: 0, closingReason: "", closingReasonOther: "" });
+				}
+				if (first !== status || through.length > 0) {
+					// To the top of its column, as an added job goes to the top of its column.
 					await app.MoveJob({ jobId: job.id, status, index: 0, closingReason, closingReasonOther });
 				}
 				for (const interview of interviews) {
