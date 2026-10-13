@@ -188,16 +188,28 @@ const page = {
 		await page.goto();
 	},
 	// seed adds jobs through the app's own bindings, then reloads the page. Each job is
-	// { company, role, status, ...other details }, with status defaulting to "saved". Jobs show in
-	// each column in the order given, since a new job goes to the top of its column.
+	// { company, role, status, ...other details }, with status defaulting to "saved", and can list
+	// the records it has:
+	//   interviews: [{ date: "2026-10-14", kind: "technical", time?: "14:00", notes? }]
+	//   contacts:   [{ name: "Dana Smith", relationship: "recruiter", email?, phone?, profileLink?, notes? }]
+	// Jobs show in each column in the order given, since a new job goes to the top of its column.
+	// Documents aren't seeded: attaching one copies a real file. When a job gets a new kind of
+	// record, add it here.
 	async seed(jobs) {
 		await evaluate(`(async () => {
+			const app = window.go.main.App;
 			const jobs = ${JSON.stringify(jobs)};
-			for (const { status = "saved", ...details } of jobs.reverse()) {
-				await window.go.main.App.AddJob(
+			for (const { status = "saved", interviews = [], contacts = [], ...details } of jobs.reverse()) {
+				const job = await app.AddJob(
 					{ description: "", link: "", salary: "", location: "", notes: "", dateApplied: "", ...details },
 					status,
 				);
+				for (const interview of interviews) {
+					await app.AddInterview(job.id, { time: "", notes: "", ...interview });
+				}
+				for (const contact of contacts) {
+					await app.AddContact(job.id, { email: "", phone: "", profileLink: "", notes: "", ...contact });
+				}
 			}
 		})()`);
 		await page.goto();

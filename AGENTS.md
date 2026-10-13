@@ -4,7 +4,9 @@
 
 Each entry links to the ADR that chose it.
 
-- **Desktop shell:** Wails v2, with a Go backend and a web frontend
+- **Desktop shell:** Wails v2, with a Go backend and a web frontend. Run `wails generate module`
+  after changing a bound method in `app.go` or a struct it sends or receives, to regenerate the
+  bindings in `frontend/wailsjs/`. Never edit those files by hand.
   ([docs/adr/0002-use-wails-for-the-desktop-shell.md](docs/adr/0002-use-wails-for-the-desktop-shell.md))
 - **Database:** SQLite, embedded in the app
   ([docs/adr/0003-store-user-data-in-sqlite.md](docs/adr/0003-store-user-data-in-sqlite.md))
@@ -74,6 +76,37 @@ isn't feasible, but only when a package replaces work we can't reasonably do our
   [docs/adr/0009-keep-user-data-in-the-os-conventional-app-data-directory.md](docs/adr/0009-keep-user-data-in-the-os-conventional-app-data-directory.md)
   for an example.
 
+## Editing files on Windows
+
+When a script edits files (Python, `sed` with inserted lines, and so on), it must keep the file's
+LF line endings. Python on Windows writes CRLF in text mode, which `gofmt` and Biome then reject,
+so open files with `newline=''`, or use the Edit tool instead. Keep each shell call to one step: a
+long chain of heredocs fails on quoting and applies none of its edits.
+
+## Adding something to a job
+
+A new kind of record on a job, like its contacts or interviews, touches every layer. Copy the
+closest one that exists (`internal/jobs/interviews.go` and `InterviewList` are a good start) and
+go through each step:
+
+1. **Storage.** A goose migration whose table has `job_id ... REFERENCES jobs (id) ON DELETE
+   CASCADE`, a query file in `internal/db/queries/`, then `sqlc generate`. Storage tests in
+   `internal/db/` for the schema's checks, the queries, the list order, and the cascade.
+2. **Service.** The rules in `internal/jobs/<thing>.go`, an `Err<Thing>NotFound` in `jobs.go`, the
+   list on `Job` and loaded in `Service.Job` (`job.go`), and, if the board shows it, a field on
+   `Card` (`board.go`).
+3. **Fakes.** The new `Querier` methods on `fakeStore`, the table in `tables` and its `clone`
+   (`internal/jobs/fakes_test.go`), and a `seed<Thing>` harness helper. Tests that compare a
+   whole `Job` (`job_test.go`) need the new empty list.
+4. **Bindings.** Methods in `app.go`, then `wails generate module`.
+5. **Frontend.** The types in `frontend/src/hooks/types.ts` (and the field in `Job`'s `Omit`
+   list), the default in `frontend/src/test/fixtures.ts`, labels in `frontend/src/jobs/constants.ts`,
+   a hook in `frontend/src/hooks/`, and a list component in `JobDetails`. Mock the new hook in
+   `JobDetails.test.tsx`.
+6. **Deleting a job.** Name the new record in `JobDetails`' delete confirmation and in the comments
+   on `DeleteJob` in `app.go`, `job.go`, and `internal/db/queries/jobs.sql`.
+7. **Seeing it.** Let `page.seed` in `scripts/drive/cdp.mjs` add the new record to a job.
+
 ## Tests
 
 Run `bash scripts/check.sh` after your work, and fix any failures before you finish. It runs every
@@ -91,14 +124,16 @@ telling the user they work.
 
 1. Start the app in the background with `bash scripts/drive/dev.sh`. It runs `wails dev -s -m`
    with `CALLBACK_START_HIDDEN` to keep the window hidden and `CALLBACK_DATA_DIR` pointed at
-   `temp/drive/appdata`, and serves the app at `http://localhost:34115`.
+   `temp/drive/appdata`, and serves the app at `http://localhost:34115`. Then run
+   `bash scripts/drive/dev.sh wait`, which returns once the app is served.
 2. Write a steps file and run it with `node scripts/drive/cdp.mjs <steps.mjs>`. See
    `scripts/drive/example.mjs`. Screenshots land in `temp/drive/shots`; read them to look.
 3. Stop with `bash scripts/drive/dev.sh stop`. Stopping the background shell alone leaves the
    app running.
 
 To set up the data a check needs, call `page.clearBoard()` and `page.seed([...jobs])` from the
-steps file while the app runs, or delete it all with `bash scripts/drive/dev.sh reset` while it's
+steps file while the app runs. A seeded job can list its `interviews` and `contacts`; see `seed`
+in `scripts/drive/cdp.mjs`. Or delete it all with `bash scripts/drive/dev.sh reset` while it's
 stopped. `page.click(selector, { wait: 0 })` returns right away, to screenshot an animation
 partway through.
 
@@ -118,7 +153,9 @@ How we do that:
 - **Spec annotations.** A scenario in `features/*.feature` is linked by a comment like
   `// @scenario [features/x.feature#<id>] <title>` on its entry points in code and on its tests,
   and each step by a comment like `// @then [features/x.feature] <step text>` in the tests, so
-  grepping a spec file, scenario ID, or step text finds its implementation and tests. Start new features from their `@status:not-implemented` scenarios. Read
+  grepping a spec file, scenario ID, or step text finds its implementation and tests. A step
+  annotation goes on the test code that carries the step out, in the layer that does it, never
+  on a comment with nothing under it. Start new features from their `@status:not-implemented` scenarios. Read
   [docs/spec-annotations.md](docs/spec-annotations.md) before implementing or testing a scenario.
 - **Decision records.** Architectural decisions live in `docs/adr/` and are written with the `adr`
   skill. Each ADR's Related section lists the scenarios it affects as

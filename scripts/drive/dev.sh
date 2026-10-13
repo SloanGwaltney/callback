@@ -6,6 +6,8 @@
 # neither of which an agent may run.
 #
 # Usage: bash scripts/drive/dev.sh        (run it in the background)
+#        bash scripts/drive/dev.sh wait   (returns once the app is served, or fails if it stopped
+#                                          or took longer than WAIT seconds, 180 by default)
 #        bash scripts/drive/dev.sh stop   (when done)
 #        bash scripts/drive/dev.sh reset  (while stopped: delete temp/drive/appdata, so the next
 #                                          run starts with no jobs)
@@ -24,14 +26,32 @@ if [ "$1" = "stop" ]; then
     exit 0
   fi
   pid="$(cat "$pidfile")"
+  # Removed first, so the run sees it was stopped on purpose when its app exits.
+  rm -f "$pidfile"
   if command -v taskkill >/dev/null; then
     taskkill //PID "$pid" //T //F
   else
     pkill -P "$pid"
     kill "$pid"
   fi
-  rm -f "$pidfile"
   exit 0
+fi
+
+if [ "$1" = "wait" ]; then
+  for ((i = 0; i < ${WAIT:-180}; i++)); do
+    # The run writes the pidfile just after it starts, so allow it a few seconds to appear.
+    if [ ! -f "$pidfile" ] && [ "$i" -ge 5 ]; then
+      echo "dev.sh: the app isn't running; start it in the background with: bash scripts/drive/dev.sh" >&2
+      exit 1
+    fi
+    if curl -s -o /dev/null http://localhost:34115; then
+      echo "dev.sh: serving at http://localhost:34115"
+      exit 0
+    fi
+    sleep 1
+  done
+  echo "dev.sh: the app didn't start within ${WAIT:-180} seconds" >&2
+  exit 1
 fi
 
 if [ "$1" = "reset" ]; then
@@ -61,3 +81,11 @@ else
   echo "$pid" >"$pidfile"
 fi
 wait "$pid"
+status=$?
+# `stop` removes the pidfile before killing the app, so a missing pidfile means it was stopped on
+# purpose, not that it failed.
+if [ ! -f "$pidfile" ]; then
+  exit 0
+fi
+rm -f "$pidfile"
+exit "$status"

@@ -23,12 +23,29 @@ import (
 // fakeStore is an in-memory Store. InTx snapshots the data and restores it if fn fails, so
 // rollback can be checked too.
 type fakeStore struct {
-	jobs     map[int64]store.Job
-	docs     map[int64]store.Document
-	contacts map[int64]store.Contact
-	nextID   int64
+	tables
 	// fail makes the named method return errFake.
 	fail string
+}
+
+// tables is the fake's data, which InTx snapshots. A new table goes here and in clone, and
+// nowhere else, for rollback to cover it.
+type tables struct {
+	jobs       map[int64]store.Job
+	docs       map[int64]store.Document
+	contacts   map[int64]store.Contact
+	interviews map[int64]store.Interview
+	nextID     int64
+}
+
+func (t tables) clone() tables {
+	return tables{
+		jobs:       maps.Clone(t.jobs),
+		docs:       maps.Clone(t.docs),
+		contacts:   maps.Clone(t.contacts),
+		interviews: maps.Clone(t.interviews),
+		nextID:     t.nextID,
+	}
 }
 
 var errFake = errors.New("fake failure")
@@ -36,13 +53,18 @@ var errFake = errors.New("fake failure")
 var _ Store = (*fakeStore)(nil)
 
 func newFakeStore() *fakeStore {
-	return &fakeStore{jobs: map[int64]store.Job{}, docs: map[int64]store.Document{}, contacts: map[int64]store.Contact{}}
+	return &fakeStore{tables: tables{
+		jobs:       map[int64]store.Job{},
+		docs:       map[int64]store.Document{},
+		contacts:   map[int64]store.Contact{},
+		interviews: map[int64]store.Interview{},
+	}}
 }
 
 func (f *fakeStore) InTx(ctx context.Context, fn func(store.Querier) error) error {
-	jobs, docs, contacts, next := maps.Clone(f.jobs), maps.Clone(f.docs), maps.Clone(f.contacts), f.nextID
+	saved := f.tables.clone()
 	if err := fn(f); err != nil {
-		f.jobs, f.docs, f.contacts, f.nextID = jobs, docs, contacts, next
+		f.tables = saved
 		return err
 	}
 	return nil
@@ -84,6 +106,19 @@ func (f *fakeStore) CreateDocument(ctx context.Context, arg store.CreateDocument
 	return doc, nil
 }
 
+func (f *fakeStore) CreateInterview(ctx context.Context, arg store.CreateInterviewParams) (store.Interview, error) {
+	if err := f.failing("CreateInterview"); err != nil {
+		return store.Interview{}, err
+	}
+	if _, ok := f.jobs[arg.JobID]; !ok {
+		return store.Interview{}, errors.New("FOREIGN KEY constraint failed")
+	}
+	f.nextID++
+	i := store.Interview{ID: f.nextID, JobID: arg.JobID, Date: arg.Date, Time: arg.Time, Kind: arg.Kind, Notes: arg.Notes}
+	f.interviews[i.ID] = i
+	return i, nil
+}
+
 func (f *fakeStore) CreateJob(ctx context.Context, arg store.CreateJobParams) (int64, error) {
 	if err := f.failing("CreateJob"); err != nil {
 		return 0, err
@@ -107,10 +142,16 @@ func (f *fakeStore) DeleteDocument(ctx context.Context, id int64) error {
 	return nil
 }
 
+func (f *fakeStore) DeleteInterview(ctx context.Context, id int64) error {
+	delete(f.interviews, id)
+	return nil
+}
+
 func (f *fakeStore) DeleteJob(ctx context.Context, id int64) error {
 	delete(f.jobs, id)
 	maps.DeleteFunc(f.docs, func(_ int64, d store.Document) bool { return d.JobID == id })
 	maps.DeleteFunc(f.contacts, func(_ int64, c store.Contact) bool { return c.JobID == id })
+	maps.DeleteFunc(f.interviews, func(_ int64, i store.Interview) bool { return i.JobID == id })
 	return nil
 }
 
@@ -128,6 +169,14 @@ func (f *fakeStore) GetDocument(ctx context.Context, id int64) (store.Document, 
 		return store.Document{}, sql.ErrNoRows
 	}
 	return doc, nil
+}
+
+func (f *fakeStore) GetInterview(ctx context.Context, id int64) (store.Interview, error) {
+	i, ok := f.interviews[id]
+	if !ok {
+		return store.Interview{}, sql.ErrNoRows
+	}
+	return i, nil
 }
 
 func (f *fakeStore) GetJob(ctx context.Context, id int64) (store.Job, error) {
@@ -158,6 +207,45 @@ func (f *fakeStore) ListDocumentsForJob(ctx context.Context, jobID int64) ([]sto
 	}
 	slices.SortFunc(out, func(a, b store.Document) int { return cmp.Compare(a.ID, b.ID) })
 	return out, nil
+}
+
+// ListInterviewsForJob orders like the real query: by date, then time with untimed last, then ID.
+func (f *fakeStore) ListInterviewsForJob(ctx context.Context, jobID int64) ([]store.Interview, error) {
+	var out []store.Interview
+	for _, i := range f.interviews {
+		if i.JobID == jobID {
+			out = append(out, i)
+		}
+	}
+	slices.SortFunc(out, interviewOrder)
+	return out, nil
+}
+
+func (f *fakeStore) ListUpcomingInterviews(ctx context.Context, date string) ([]store.Interview, error) {
+	if err := f.failing("ListUpcomingInterviews"); err != nil {
+		return nil, err
+	}
+	var out []store.Interview
+	for _, i := range f.interviews {
+		if i.Date >= date {
+			out = append(out, i)
+		}
+	}
+	slices.SortFunc(out, func(a, b store.Interview) int {
+		return cmp.Or(cmp.Compare(a.JobID, b.JobID), interviewOrder(a, b))
+	})
+	return out, nil
+}
+
+func interviewOrder(a, b store.Interview) int {
+	untimed := func(i store.Interview) int {
+		if i.Time == "" {
+			return 1
+		}
+		return 0
+	}
+	return cmp.Or(strings.Compare(a.Date, b.Date), cmp.Compare(untimed(a), untimed(b)),
+		strings.Compare(a.Time, b.Time), cmp.Compare(a.ID, b.ID))
 }
 
 func (f *fakeStore) ListJobIDsInStatus(ctx context.Context, status string) ([]int64, error) {
@@ -230,6 +318,18 @@ func (f *fakeStore) UpdateContact(ctx context.Context, arg store.UpdateContactPa
 		c.Name, c.Relationship, c.Email = arg.Name, arg.Relationship, arg.Email
 		c.Phone, c.ProfileLink, c.Notes = arg.Phone, arg.ProfileLink, arg.Notes
 		f.contacts[arg.ID] = c
+	}
+	return nil
+}
+
+func (f *fakeStore) UpdateInterview(ctx context.Context, arg store.UpdateInterviewParams) error {
+	if err := f.failing("UpdateInterview"); err != nil {
+		return err
+	}
+	i, ok := f.interviews[arg.ID]
+	if ok {
+		i.Date, i.Time, i.Kind, i.Notes = arg.Date, arg.Time, arg.Kind, arg.Notes
+		f.interviews[arg.ID] = i
 	}
 	return nil
 }
@@ -370,6 +470,14 @@ func (h *harness) seedContact(jobID int64, c store.Contact) int64 {
 	}
 	h.store.contacts[c.ID] = c
 	return c.ID
+}
+
+// seedInterview adds an interview straight in the store, bypassing the service.
+func (h *harness) seedInterview(jobID int64, i store.Interview) int64 {
+	h.store.nextID++
+	i.ID, i.JobID = h.store.nextID, jobID
+	h.store.interviews[i.ID] = i
+	return i.ID
 }
 
 func (h *harness) acme(status Status) int64 {

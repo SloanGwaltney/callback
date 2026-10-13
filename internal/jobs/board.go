@@ -31,11 +31,17 @@ type Card struct {
 	ClosingReason     ClosingReason `json:"closingReason"`
 	ClosingReasonText string        `json:"closingReasonText"`
 	DocumentCount     int           `json:"documentCount"`
+	// NextInterview is the job's soonest interview that hasn't passed, or nil when it has none.
+	NextInterview *NextInterview `json:"nextInterview"`
 }
 
 // Board returns every job, laid out in status columns.
 func (s *Service) Board(ctx context.Context) (Board, error) {
 	rows, err := s.store.ListJobs(ctx)
+	if err != nil {
+		return Board{}, err
+	}
+	next, err := s.nextInterviews(ctx)
 	if err != nil {
 		return Board{}, err
 	}
@@ -52,7 +58,9 @@ func (s *Service) Board(ctx context.Context) (Board, error) {
 		if !ok {
 			return Board{}, fmt.Errorf("job %d has unknown status %q", row.ID, row.Status)
 		}
-		board.Columns[i].Cards = append(board.Columns[i].Cards, cardFromRow(row))
+		card := cardFromRow(row)
+		card.NextInterview = next[row.ID]
+		board.Columns[i].Cards = append(board.Columns[i].Cards, card)
 	}
 
 	for i := range board.Columns {

@@ -73,3 +73,9 @@
 	color: var(--color-text-muted);
 	font-size: var(--font-size-xs);
 }
+
+.interview {
+	margin: 0;
+	color: var(--color-status-interviewing);
+	font-size: var(--font-size-sm);
+}

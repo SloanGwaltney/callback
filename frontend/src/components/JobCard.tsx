@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { Card } from "../hooks/types";
-import { MAX_INTEREST } from "../jobs/constants";
+import { formatTime, interviewKindLabel, MAX_INTEREST } from "../jobs/constants";
 import styles from "./JobCard.module.css";
 
 type Props = {
@@ -15,6 +15,9 @@ type Props = {
 // @scenario [features/job-interest.feature#card-shows-interest] The card shows the interest rating as stars
 // @scenario [features/job-interest.feature#card-unrated] An unrated card shows no stars
 // @scenario [features/job-interest.feature#interest-persists] The interest rating is the same after reopening the app
+// @scenario [features/job-interviews.feature#card-shows-next-interview] The card shows the date of the next upcoming interview
+// @scenario [features/job-interviews.feature#card-interview-today] An interview today counts as upcoming
+// @scenario [features/job-interviews.feature#card-no-upcoming-interview] The card shows no interview when every interview has passed
 export function JobCard({ card, onOpen, handle }: Props) {
 	const documents = card.documentCount === 1 ? "1 document" : `${card.documentCount} documents`;
 	return (
@@ -38,6 +41,13 @@ export function JobCard({ card, onOpen, handle }: Props) {
 			)}
 			{card.location !== "" && <p className={styles.detail}>{card.location}</p>}
 			{card.dateApplied !== "" && <p className={styles.detail}>Applied {card.dateApplied}</p>}
+			{card.nextInterview && (
+				<p className={styles.interview}>
+					{interviewKindLabel(card.nextInterview.kind)} interview{" "}
+					{card.nextInterview.today ? "today" : `on ${card.nextInterview.date}`}
+					{card.nextInterview.time !== "" && ` at ${formatTime(card.nextInterview.time)}`}
+				</p>
+			)}
 			{card.closingReasonText !== "" && (
 				<p className={styles.reason}>Closed: {card.closingReasonText}</p>
 			)}
