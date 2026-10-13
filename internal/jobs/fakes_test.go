@@ -280,7 +280,7 @@ func (f *fakeStore) ListJobs(ctx context.Context) ([]store.ListJobsRow, error) {
 			ID: j.ID, Company: j.Company, Role: j.Role, Description: j.Description, Link: j.Link,
 			Salary: j.Salary, Location: j.Location, Notes: j.Notes, Status: j.Status, Position: j.Position,
 			DateApplied: j.DateApplied, ClosingReason: j.ClosingReason, ClosingReasonOther: j.ClosingReasonOther,
-			Interest: j.Interest, DocumentCount: count,
+			Interest: j.Interest, NextAction: j.NextAction, NextActionDate: j.NextActionDate, DocumentCount: count,
 		}
 	}
 	return rows, nil
@@ -294,6 +294,20 @@ func (f *fakeStore) SetClosingReason(ctx context.Context, arg store.SetClosingRe
 	return f.update(arg.ID, func(j *store.Job) {
 		j.ClosingReason, j.ClosingReasonOther = arg.ClosingReason, arg.ClosingReasonOther
 	})
+}
+
+func (f *fakeStore) SetNextAction(ctx context.Context, arg store.SetNextActionParams) error {
+	if err := f.failing("SetNextAction"); err != nil {
+		return err
+	}
+	return f.update(arg.ID, func(j *store.Job) { j.NextAction, j.NextActionDate = arg.NextAction, arg.NextActionDate })
+}
+
+func (f *fakeStore) ClearNextAction(ctx context.Context, id int64) error {
+	if err := f.failing("ClearNextAction"); err != nil {
+		return err
+	}
+	return f.update(id, func(j *store.Job) { j.NextAction, j.NextActionDate = sql.NullString{}, sql.NullString{} })
 }
 
 func (f *fakeStore) SetDocumentKind(ctx context.Context, arg store.SetDocumentKindParams) error {
@@ -427,9 +441,15 @@ func newHarness(t *testing.T) *harness {
 		opener: &fakeOpener{},
 		ctx:    context.Background(),
 	}
-	now := func() time.Time { return time.Date(2026, 10, 9, 12, 0, 0, 0, time.Local) }
-	h.svc = New(h.store, h.files, h.opener, now)
+	h.svc = New(h.store, h.files, h.opener, nil)
+	h.setToday(2026, time.October, 9)
 	return h
+}
+
+// setToday sets the date the service takes as today, at noon local time. The harness starts on
+// 2026-10-09.
+func (h *harness) setToday(year int, month time.Month, day int) {
+	h.svc.now = func() time.Time { return time.Date(year, month, day, 12, 0, 0, 0, time.Local) }
 }
 
 // seed puts a job straight into the store at the bottom of its column, bypassing the service.

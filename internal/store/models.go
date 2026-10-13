@@ -51,4 +51,6 @@ type Job struct {
 	ClosingReason      sql.NullString
 	ClosingReasonOther sql.NullString
 	Interest           sql.NullInt64
+	NextAction         sql.NullString
+	NextActionDate     sql.NullString
 }

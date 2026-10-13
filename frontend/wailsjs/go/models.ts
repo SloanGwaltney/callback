@@ -1,5 +1,21 @@
 export namespace jobs {
 	
+	export class NextAction {
+	    text: string;
+	    expectedDate: string;
+	    due: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new NextAction(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.text = source["text"];
+	        this.expectedDate = source["expectedDate"];
+	        this.due = source["due"];
+	    }
+	}
 	export class NextInterview {
 	    date: string;
 	    time: string;
@@ -29,6 +45,7 @@ export namespace jobs {
 	    closingReasonText: string;
 	    documentCount: number;
 	    nextInterview?: NextInterview;
+	    nextAction?: NextAction;
 	
 	    static createFrom(source: any = {}) {
 	        return new Card(source);
@@ -46,6 +63,7 @@ export namespace jobs {
 	        this.closingReasonText = source["closingReasonText"];
 	        this.documentCount = source["documentCount"];
 	        this.nextInterview = this.convertValues(source["nextInterview"], NextInterview);
+	        this.nextAction = this.convertValues(source["nextAction"], NextAction);
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
@@ -285,6 +303,7 @@ export namespace jobs {
 	    closingReason: string;
 	    closingReasonOther: string;
 	    closingReasonText: string;
+	    nextAction?: NextAction;
 	    documents: Document[];
 	    contacts: Contact[];
 	    interviews: Interview[];
@@ -309,6 +328,7 @@ export namespace jobs {
 	        this.closingReason = source["closingReason"];
 	        this.closingReasonOther = source["closingReasonOther"];
 	        this.closingReasonText = source["closingReasonText"];
+	        this.nextAction = this.convertValues(source["nextAction"], NextAction);
 	        this.documents = this.convertValues(source["documents"], Document);
 	        this.contacts = this.convertValues(source["contacts"], Contact);
 	        this.interviews = this.convertValues(source["interviews"], Interview);
@@ -352,6 +372,7 @@ export namespace jobs {
 	        this.closingReasonOther = source["closingReasonOther"];
 	    }
 	}
+	
 
 }
 

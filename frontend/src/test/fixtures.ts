@@ -1,5 +1,7 @@
 // Builders for the data the hooks return, for component and hook tests.
+import { vi } from "vitest";
 import type { Board, Card, Job } from "../hooks/types";
+import type { useJob } from "../hooks/useJob";
 
 const columns = [
 	{ status: "saved", label: "Saved" },
@@ -51,6 +53,25 @@ export function job(fields: Partial<Job> = {}): Job {
 		documents: [],
 		contacts: [],
 		interviews: [],
+		...fields,
+	};
+}
+
+// fakeUseJob is what a mocked useJob returns: the job, loaded, with every change a vi.fn() that
+// resolves. Pass fields to replace any of them. A hook method added to useJob gets its default
+// here, so the tests that mock useJob keep compiling.
+export function fakeUseJob(
+	fields: Partial<ReturnType<typeof useJob>> = {},
+): ReturnType<typeof useJob> {
+	return {
+		job: job(),
+		error: "",
+		reload: vi.fn().mockResolvedValue(undefined),
+		update: vi.fn().mockResolvedValue(job()),
+		setClosingReason: vi.fn().mockResolvedValue(undefined),
+		setNextAction: vi.fn().mockResolvedValue(undefined),
+		clearNextAction: vi.fn().mockResolvedValue(undefined),
+		openLink: vi.fn().mockResolvedValue(undefined),
 		...fields,
 	};
 }

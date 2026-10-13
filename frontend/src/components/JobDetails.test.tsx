@@ -7,7 +7,7 @@ import { useContacts } from "../hooks/useContacts";
 import { useDocuments } from "../hooks/useDocuments";
 import { useInterviews } from "../hooks/useInterviews";
 import { useJob } from "../hooks/useJob";
-import { job } from "../test/fixtures";
+import { fakeUseJob, job } from "../test/fixtures";
 import { JobDetails } from "./JobDetails";
 
 vi.mock("../hooks/useJob", () => ({ useJob: vi.fn() }));
@@ -21,12 +21,15 @@ const backend = {
 	update: vi.fn<(details: Details) => Promise<void>>(),
 	setClosingReason: vi.fn<(reason: string, other: string) => Promise<Job | undefined>>(),
 	openLink: vi.fn<() => Promise<void>>(),
+	setNextAction: vi.fn<(text: string, expectedDate: string) => Promise<void>>(),
+	clearNextAction: vi.fn<() => Promise<void>>(),
 };
 
 function mockJob(start: Job) {
 	vi.mocked(useJob).mockImplementation(() => {
 		const [current, setCurrent] = useState(start);
 		return {
+			...fakeUseJob(),
 			job: current,
 			error: "",
 			reload: async () => {},
@@ -42,6 +45,16 @@ function mockJob(start: Job) {
 					setCurrent(reloaded);
 				}
 			},
+			// Setting or clearing the next action replaces the job with it changed, as the backend
+			// returns it. Due marks are the backend's, so a set next action has none here.
+			setNextAction: async (text: string, expectedDate: string) => {
+				await backend.setNextAction(text, expectedDate);
+				setCurrent({ ...current, nextAction: { text, expectedDate, due: "" } });
+			},
+			clearNextAction: async () => {
+				await backend.clearNextAction();
+				setCurrent({ ...current, nextAction: null });
+			},
 			openLink: backend.openLink,
 		};
 	});
@@ -51,6 +64,8 @@ beforeEach(() => {
 	backend.update.mockResolvedValue();
 	backend.setClosingReason.mockResolvedValue(undefined);
 	backend.openLink.mockResolvedValue();
+	backend.setNextAction.mockResolvedValue();
+	backend.clearNextAction.mockResolvedValue();
 	vi.mocked(useContacts).mockReturnValue({
 		add: vi.fn(),
 		update: vi.fn(),
@@ -534,5 +549,177 @@ describe("JobDetails", () => {
 		expect(screen.getByRole("alert")).toHaveTextContent(
 			"the interest rating must be from 1 to 5 stars",
 		);
+	});
+
+	describe("next action", () => {
+		const panel = () => screen.getByRole("region", { name: "Next action" });
+		const inPanel = () => within(panel());
+		const waiting = { text: "Waiting for a call back", expectedDate: "2026-10-14", due: "" };
+		// setNextAction opens the form, writes text and picks date, and saves.
+		const setNextAction = async (text: string, date: string) => {
+			const open = inPanel().queryByRole("button", { name: "Set next action" });
+			await userEvent.click(open ?? inPanel().getByRole("button", { name: "Edit" }));
+			const what = inPanel().getByLabelText(/^What's next/);
+			await userEvent.clear(what);
+			if (text !== "") {
+				await userEvent.type(what, text);
+			}
+			fireEvent.change(inPanel().getByLabelText("Expected on"), { target: { value: date } });
+			await userEvent.click(inPanel().getByRole("button", { name: "Save next action" }));
+		};
+
+		// @scenario [features/job-next-action.feature#set-next-action] Set a next action with an expected date
+		it("sets a next action with an expected date", async () => {
+			// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with no next action
+			const { onChanged } = renderDetails(job({ status: "applied" }));
+			expect(inPanel().getByText("No next action.")).toBeInTheDocument();
+
+			// @when [features/job-next-action.feature] I set the next action to "Waiting for a call back from the recruiter" expected on 2026-10-14
+			await setNextAction("Waiting for a call back from the recruiter", "2026-10-14");
+
+			expect(backend.setNextAction).toHaveBeenCalledWith(
+				"Waiting for a call back from the recruiter",
+				"2026-10-14",
+			);
+			// @then [features/job-next-action.feature] the job's next action is "Waiting for a call back from the recruiter"
+			expect(inPanel().getByText("Waiting for a call back from the recruiter")).toBeInTheDocument();
+			// @and [features/job-next-action.feature#set-next-action] its expected date is 2026-10-14
+			expect(inPanel().getByText("Expected 2026-10-14")).toBeInTheDocument();
+			expect(onChanged).toHaveBeenCalled();
+		});
+
+		// @scenario [features/job-next-action.feature#set-next-action-no-date] Set a next action without an expected date
+		it("sets a next action without an expected date", async () => {
+			// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with no next action
+			renderDetails(job({ status: "applied" }));
+
+			// @when [features/job-next-action.feature] I set the next action to "Send a thank-you email" with no expected date
+			await setNextAction("Send a thank-you email", "");
+
+			expect(backend.setNextAction).toHaveBeenCalledWith("Send a thank-you email", "");
+			// @then [features/job-next-action.feature] the job's next action is "Send a thank-you email"
+			expect(inPanel().getByText("Send a thank-you email")).toBeInTheDocument();
+			// @and [features/job-next-action.feature#set-next-action-no-date] it has no expected date
+			expect(inPanel().getByText("No expected date")).toBeInTheDocument();
+		});
+
+		// @scenario [features/job-next-action.feature#next-action-needs-text] A next action can't be saved without saying what it is
+		it("says why a next action with nothing written isn't saved", async () => {
+			// The backend refuses it (TestNextActionNeedsText); the form shows its message.
+			backend.setNextAction.mockRejectedValueOnce("write what the next action is");
+			// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with no next action
+			renderDetails(job({ status: "applied" }));
+
+			// @when [features/job-next-action.feature] I try to set a next action expected on 2026-10-14 with nothing but spaces written
+			await setNextAction("   ", "2026-10-14");
+
+			// @then [features/job-next-action.feature] the next action is not saved
+			expect(inPanel().getByRole("button", { name: "Save next action" })).toBeInTheDocument();
+			expect(inPanel().getByLabelText("Expected on")).toHaveValue("2026-10-14");
+			// @and [features/job-next-action.feature] I am told to write what the next action is
+			expect(inPanel().getByRole("alert")).toHaveTextContent("write what the next action is");
+		});
+
+		// @scenario [features/job-next-action.feature#next-action-past-date] The expected date can be in the past
+		it("sets an expected date in the past", async () => {
+			renderDetails(job({ status: "applied" }));
+
+			// @when [features/job-next-action.feature] I set the next action to "Follow up on application" expected on 2026-10-05
+			await setNextAction("Follow up on application", "2026-10-05");
+
+			expect(backend.setNextAction).toHaveBeenCalledWith("Follow up on application", "2026-10-05");
+			// @then [features/job-next-action.feature] the job's next action is "Follow up on application"
+			expect(inPanel().getByText("Follow up on application")).toBeInTheDocument();
+			// @and [features/job-next-action.feature] its expected date is 2026-10-05
+			expect(inPanel().getByText("Expected 2026-10-05")).toBeInTheDocument();
+		});
+
+		// @scenario [features/job-next-action.feature#next-action-any-status] A next action can be set on a job in any status
+		it.each(["saved", "applied", "interviewing", "offer", "closed"])(
+			"sets a next action on a job in %s",
+			async (status) => {
+				// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" in "<status>"
+				renderDetails(job({ status, closingReasonText: status === "closed" ? "Rejected" : "" }));
+
+				// @when [features/job-next-action.feature] I set the next action to "Check the posting is still open" expected on 2026-10-14
+				await setNextAction("Check the posting is still open", "2026-10-14");
+
+				// @then [features/job-next-action.feature] the job's next action is "Check the posting is still open"
+				expect(inPanel().getByText("Check the posting is still open")).toBeInTheDocument();
+			},
+		);
+
+		// @scenario [features/job-next-action.feature#edit-next-action] Change the next action and its expected date
+		it("changes the next action and its expected date", async () => {
+			// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with the next action "Waiting for a call back" expected on 2026-10-14
+			renderDetails(job({ status: "offer", nextAction: waiting }));
+			await userEvent.click(inPanel().getByRole("button", { name: "Edit" }));
+			expect(inPanel().getByLabelText(/^What's next/)).toHaveValue("Waiting for a call back");
+			expect(inPanel().getByLabelText("Expected on")).toHaveValue("2026-10-14");
+			await userEvent.click(inPanel().getByRole("button", { name: "Cancel" }));
+
+			// @when [features/job-next-action.feature] I change the next action to "Expecting an email with the offer details" expected on 2026-10-16
+			await setNextAction("Expecting an email with the offer details", "2026-10-16");
+
+			// @then [features/job-next-action.feature] the job's next action is "Expecting an email with the offer details"
+			expect(inPanel().getByText("Expecting an email with the offer details")).toBeInTheDocument();
+			// @and [features/job-next-action.feature] its expected date is 2026-10-16
+			expect(inPanel().getByText("Expected 2026-10-16")).toBeInTheDocument();
+		});
+
+		// @scenario [features/job-next-action.feature#clear-next-action-date] Clear only the expected date
+		it("clears only the expected date", async () => {
+			// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with the next action "Waiting for a call back" expected on 2026-10-14
+			renderDetails(job({ status: "applied", nextAction: waiting }));
+
+			// @when [features/job-next-action.feature#clear-next-action-date] I clear the expected date
+			await userEvent.click(inPanel().getByRole("button", { name: "Clear date" }));
+
+			expect(backend.setNextAction).toHaveBeenCalledWith("Waiting for a call back", "");
+			// @then [features/job-next-action.feature#clear-next-action-date] the job's next action is still "Waiting for a call back"
+			expect(inPanel().getByText("Waiting for a call back")).toBeInTheDocument();
+			// @and [features/job-next-action.feature#clear-next-action-date] it has no expected date
+			expect(inPanel().getByText("No expected date")).toBeInTheDocument();
+			expect(inPanel().queryByRole("button", { name: "Clear date" })).not.toBeInTheDocument();
+		});
+
+		// @scenario [features/job-next-action.feature#clear-next-action] Clear the next action once it's done
+		it("clears the next action once it's done", async () => {
+			// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with the next action "Waiting for a call back" expected on 2026-10-14
+			const { onChanged } = renderDetails(job({ status: "applied", nextAction: waiting }));
+
+			// @when [features/job-next-action.feature#clear-next-action] I clear the next action
+			await userEvent.click(inPanel().getByRole("button", { name: "Clear next action" }));
+
+			expect(backend.clearNextAction).toHaveBeenCalled();
+			// @then [features/job-next-action.feature#clear-next-action] the job has no next action
+			expect(inPanel().getByText("No next action.")).toBeInTheDocument();
+			// The board reloads, and the card shows none (JobCard.test.tsx).
+			expect(onChanged).toHaveBeenCalled();
+		});
+
+		it("shows why the next action couldn't be cleared", async () => {
+			backend.clearNextAction.mockRejectedValueOnce("job not found");
+			renderDetails(job({ nextAction: waiting }));
+			await userEvent.click(inPanel().getByRole("button", { name: "Clear next action" }));
+			expect(inPanel().getByRole("alert")).toHaveTextContent("job not found");
+			expect(inPanel().getByText("Waiting for a call back")).toBeInTheDocument();
+		});
+
+		// @scenario [features/job-next-action.feature#view-next-action] See the next action when opening the card
+		it("shows the next action when the card is opened", () => {
+			// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with the next action "Waiting for a call back" expected on 2026-10-14
+			// @when [features/job-next-action.feature] I open the card
+			renderDetails(job({ nextAction: waiting }));
+
+			// @then [features/job-next-action.feature] I see the next action "Waiting for a call back" and its expected date 2026-10-14
+			expect(inPanel().getByText("Waiting for a call back")).toBeInTheDocument();
+			expect(inPanel().getByText("Expected 2026-10-14")).toBeInTheDocument();
+		});
+
+		it("shows the backend's due mark", () => {
+			renderDetails(job({ nextAction: { ...waiting, due: "overdue" } }));
+			expect(inPanel().getByText("Overdue")).toBeInTheDocument();
+		});
 	});
 });

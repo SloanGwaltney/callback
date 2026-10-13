@@ -107,12 +107,45 @@ go through each step:
    on `DeleteJob` in `app.go`, `job.go`, and `internal/db/queries/jobs.sql`.
 7. **Seeing it.** Let `page.seed` in `scripts/drive/cdp.mjs` add the new record to a job.
 
+## Adding a field to a job
+
+A new field stored on the job itself, like its interest rating or next action, is a column on
+`jobs`, not a table. Copy the closest one (`interest` for a field edited with the job's details,
+`internal/jobs/next_action.go` for one with its own bindings) and go through each step:
+
+1. **Storage.** A goose migration that runs `ALTER TABLE jobs ADD COLUMN` with its checks, then
+   either the column in `CreateJob` and `UpdateJobDetails` or its own query in
+   `internal/db/queries/jobs.sql`, then `sqlc generate`. Storage tests for the checks and the
+   queries. Check that `UpdateJobDetails` and `UpdateJobPlacement` leave the column alone if
+   editing or moving a job shouldn't change it.
+2. **Service.** The field on `Job` and set in `Service.Job` (`job.go`). If the board shows it, it
+   also goes on `Card` and in `cardFromRow` (`board.go`). Anything that depends on today comes
+   from `s.today()`.
+3. **Fakes.** The fake copies each field by hand, so add the column to the `ListJobsRow` built in
+   `fakeStore.ListJobs`, and to `CreateJob` or `UpdateJobDetails` if they set it, in
+   `internal/jobs/fakes_test.go`. Any new `Querier` methods go on `fakeStore` too. If you miss one,
+   the board tests see an empty field and fail with nothing to explain why.
+4. **Bindings.** If it has its own methods, add them to `app.go`. Then run `wails generate module`.
+5. **Frontend.** Go sends a missing value as `null`, so in `frontend/src/hooks/types.ts` add the
+   field to the `Omit` lists for `Card` and `Job` and re-add it as `| null`. If the field's own
+   bindings go in `useJob`, add them to the `fakeUseJob` defaults in `frontend/src/test/fixtures.ts`.
+6. **Seeing it.** Let `page.seed` in `scripts/drive/cdp.mjs` set the field on a job.
+
 ## Tests
 
 Run `bash scripts/check.sh` after your work, and fix any failures before you finish. It runs every
 check, including the tests. The Stop hook runs it with `--no-tests`, so nothing else will catch
 a failing test until CI. See
 [docs/adr/0014-check-code-with-one-script-run-by-the-stop-hook-and-ci.md](docs/adr/0014-check-code-with-one-script-run-by-the-stop-hook-and-ci.md).
+
+### Language server diagnostics
+
+Generating code (`sqlc generate`, `wails generate module`) can leave a language server out of
+date. It may then report errors, such as missing fields or undefined types, that the compiler
+doesn't have. When a diagnostic doesn't match what you expect, check it with `go vet`, `go test`,
+`npm --prefix frontend run typecheck`, or the check script before acting on it. You may not need
+the language server much here: these checks are fast, and because the codebase is grep-complete, a
+text search usually finds a definition or its uses as well as "go to definition" would.
 
 ## Seeing the app
 
@@ -132,10 +165,11 @@ telling the user they work.
    app running.
 
 To set up the data a check needs, call `page.clearBoard()` and `page.seed([...jobs])` from the
-steps file while the app runs. A seeded job can list its `interviews` and `contacts`; see `seed`
-in `scripts/drive/cdp.mjs`. Or delete it all with `bash scripts/drive/dev.sh reset` while it's
+steps file while the app runs. A seeded job can list its `interviews`, `contacts`, and
+`nextAction`, and can be in any status, including `closed` with a `closingReason`; see `seed` in
+`scripts/drive/cdp.mjs`. Or delete it all with `bash scripts/drive/dev.sh reset` while it's
 stopped. `page.click(selector, { wait: 0 })` returns right away, to screenshot an animation
-partway through.
+partway through. `page.select(selector, option)` chooses a `<select>` option by value or text.
 
 Don't click "Attach a document…" or anything else that opens a native dialog; it would appear
 on the user's screen. When `form.module.css` changes, re-save the stylesheets that `composes`

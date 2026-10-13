@@ -1,8 +1,10 @@
 // Pure helpers that turn the whole board, as GetBoard returns it, into what the board shows: the
-// cards matching the search, a page at a time in each column. Search and pagination happen here in
-// the frontend (docs/adr/0020-search-and-paginate-the-board-in-the-frontend.md); card order stays
-// in the jobs service.
+// cards matching the search and the overdue filter, a page at a time in each column. Search,
+// filtering, and pagination happen here in the frontend
+// (docs/adr/0020-search-and-paginate-the-board-in-the-frontend.md); card order, and whether a next
+// action is overdue, stay in the jobs service.
 import type { Board, Card, Column, Move } from "../hooks/types";
+import { DUE_OVERDUE } from "../jobs/constants";
 
 // PAGE_SIZE is how many cards a column shows per page. It's a system setting, not a user one.
 export const PAGE_SIZE = 10;
@@ -37,15 +39,45 @@ export function matches(card: Card, query: string): boolean {
 	);
 }
 
-// filterBoard keeps the cards matching query in each column, in order. While searching, each
-// column's count is how many of its cards match. Every column stays, even with no matches.
-export function filterBoard(board: Board, query: string): Board {
-	if (!searching(query)) {
+// DueFilter shows every job, only overdue jobs, or only jobs that aren't overdue.
+export type DueFilter = "all" | "overdue" | "not-overdue";
+
+export const DUE_FILTERS: { value: DueFilter; label: string }[] = [
+	{ value: "all", label: "All jobs" },
+	{ value: "overdue", label: "Overdue" },
+	{ value: "not-overdue", label: "Not overdue" },
+];
+
+// overdue reports whether a card's next action is overdue, as the backend marks it. A job due
+// today, a closed job, and a job with no next action or no expected date aren't overdue.
+export function overdue(card: Card): boolean {
+	return card.nextAction?.due === DUE_OVERDUE;
+}
+
+// passes reports whether a card is shown under filter.
+export function passes(card: Card, filter: DueFilter): boolean {
+	switch (filter) {
+		case "overdue":
+			return overdue(card);
+		case "not-overdue":
+			return !overdue(card);
+		default:
+			return true;
+	}
+}
+
+// filterBoard keeps the cards matching query and passing filter in each column, in order. While
+// searching or filtering, each column's count is how many of its cards are shown. Every column
+// stays, even with no matches.
+export function filterBoard(board: Board, query: string, filter: DueFilter = "all"): Board {
+	if (!searching(query) && filter === "all") {
 		return board;
 	}
 	return {
 		columns: board.columns.map((column) => {
-			const cards = column.cards.filter((card) => matches(card, query));
+			const cards = column.cards.filter(
+				(card) => (!searching(query) || matches(card, query)) && passes(card, filter),
+			);
 			return { ...column, cards, count: cards.length };
 		}),
 	};

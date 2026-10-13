@@ -44,7 +44,9 @@ type Job struct {
 	ClosingReason      ClosingReason `json:"closingReason"`
 	ClosingReasonOther string        `json:"closingReasonOther"`
 	ClosingReasonText  string        `json:"closingReasonText"`
-	Documents          []Document    `json:"documents"`
+	// NextAction is what's next on the job, or nil when nothing is.
+	NextAction *NextAction `json:"nextAction"`
+	Documents  []Document  `json:"documents"`
 	// Contacts are in the order they were added.
 	Contacts []Contact `json:"contacts"`
 	// Interviews are from earliest to latest, by date and then time, with untimed interviews last
@@ -100,7 +102,7 @@ func (s *Service) AddJob(ctx context.Context, d Details, status Status) (Job, er
 	return s.Job(ctx, id)
 }
 
-// Job returns a job with all its details, documents, contacts, and interviews.
+// Job returns a job with all its details, next action, documents, contacts, and interviews.
 func (s *Service) Job(ctx context.Context, id int64) (Job, error) {
 	row, err := s.store.GetJob(ctx, id)
 	if err != nil {
@@ -120,6 +122,7 @@ func (s *Service) Job(ctx context.Context, id int64) (Job, error) {
 	}
 
 	reason := ClosingReason(row.ClosingReason.String)
+	today := s.today()
 	job := Job{
 		ID:                 row.ID,
 		Company:            row.Company,
@@ -135,6 +138,7 @@ func (s *Service) Job(ctx context.Context, id int64) (Job, error) {
 		ClosingReason:      reason,
 		ClosingReasonOther: row.ClosingReasonOther.String,
 		ClosingReasonText:  closingReasonText(reason, row.ClosingReasonOther.String),
+		NextAction:         nextActionFromRow(row.NextAction, row.NextActionDate, Status(row.Status), today),
 		Documents:          make([]Document, 0, len(docs)),
 		Contacts:           make([]Contact, 0, len(contacts)),
 		Interviews:         make([]Interview, 0, len(interviews)),
@@ -145,7 +149,6 @@ func (s *Service) Job(ctx context.Context, id int64) (Job, error) {
 	for _, c := range contacts {
 		job.Contacts = append(job.Contacts, contactFromRow(c))
 	}
-	today := s.today()
 	for _, i := range interviews {
 		job.Interviews = append(job.Interviews, interviewFromRow(i, today))
 	}

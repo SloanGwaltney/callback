@@ -10,6 +10,7 @@ import { DocumentList } from "./DocumentList";
 import { InterviewList } from "./InterviewList";
 import styles from "./JobDetails.module.css";
 import { JobFields } from "./JobFields";
+import { NextActionPanel } from "./NextActionPanel";
 
 type Props = {
 	jobId: number;
@@ -20,12 +21,13 @@ type Props = {
 	onDelete: (id: number) => Promise<void>;
 };
 
-// JobDetails shows everything about a job when its card is opened, including its interviews,
-// contacts, and documents, and edits it.
+// JobDetails shows everything about a job when its card is opened, including its next action,
+// interviews, contacts, and documents, and edits it.
 // @scenario [features/job-cards.feature#view-job-details] View a job's full details
 // @scenario [features/job-board.feature#change-closing-reason] Change the closing reason of a closed job
 export function JobDetails({ jobId, onClose, onChanged, onDelete }: Props) {
-	const { job, error, reload, update, setClosingReason, openLink } = useJob(jobId);
+	const { job, error, reload, update, setClosingReason, setNextAction, clearNextAction, openLink } =
+		useJob(jobId);
 	const [changingReason, setChangingReason] = useState(false);
 
 	const title = job ? `${job.role} at ${job.company}` : "Job";
@@ -63,6 +65,17 @@ export function JobDetails({ jobId, onClose, onChanged, onDelete }: Props) {
 						onOpenLink={openLink}
 						onDelete={() => onDelete(job.id)}
 						onClose={onClose}
+					/>
+					<NextActionPanel
+						nextAction={job.nextAction ?? null}
+						onSet={async (text, expectedDate) => {
+							await setNextAction(text, expectedDate);
+							onChanged();
+						}}
+						onClear={async () => {
+							await clearNextAction();
+							onChanged();
+						}}
 					/>
 					<InterviewList
 						jobId={job.id}

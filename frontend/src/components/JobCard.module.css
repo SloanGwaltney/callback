@@ -79,3 +79,54 @@
 	color: var(--color-status-interviewing);
 	font-size: var(--font-size-sm);
 }
+
+/* The next action is set off from the details above it, as something to act on. */
+.nextAction {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	margin-top: var(--space-1);
+	padding-left: var(--space-2);
+	border-left: 2px solid var(--color-border-strong);
+	font-size: var(--font-size-sm);
+}
+
+.nextText {
+	margin: 0;
+	overflow-wrap: anywhere;
+}
+
+.nextWhen {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-1) var(--space-2);
+	margin: 0;
+	color: var(--color-text-muted);
+	font-size: var(--font-size-xs);
+}
+
+.dueToday,
+.overdue {
+	padding: 0 var(--space-2);
+	border: 1px solid currentcolor;
+	border-radius: var(--radius-sm);
+	font-weight: var(--font-weight-bold);
+}
+
+.dueToday {
+	color: var(--color-due-today);
+}
+
+.overdue {
+	color: var(--color-danger);
+}
+
+.srOnly {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}

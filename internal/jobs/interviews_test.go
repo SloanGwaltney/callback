@@ -302,7 +302,7 @@ func TestCardShowsNextInterview(t *testing.T) {
 func TestCardShowsInterviewToday(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-interviews.feature] today is 2026-10-14
-	h.svc.now = func() time.Time { return time.Date(2026, 10, 14, 12, 0, 0, 0, time.Local) }
+	h.setToday(2026, time.October, 14)
 	// @and [features/job-interviews.feature] I have a job for "Software Engineer" at "Acme" with a "Technical" interview on 2026-10-14
 	id := h.acme(StatusInterviewing)
 	h.seedInterview(id, store.Interview{Date: "2026-10-14", Kind: string(InterviewTechnical)})

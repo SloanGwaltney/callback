@@ -32,6 +32,8 @@ import {
 } from "../board/boardDnd";
 import {
 	type ColumnView,
+	DUE_FILTERS,
+	type DueFilter,
 	filterBoard,
 	type Pages,
 	pageBoard,
@@ -53,6 +55,8 @@ type Props = {
 	onAddJob: (status: string) => void;
 	// search is the text the board is searched for, or "" for every job.
 	search: string;
+	// filter shows only overdue jobs, only jobs that aren't, or every job.
+	filter: DueFilter;
 	// pages is each column's current page. onPageChange changes one column's page.
 	pages: Pages;
 	onPageChange: (status: string, page: number) => void;
@@ -62,8 +66,13 @@ type Props = {
 // searching. Only the matching cards are shown then, so it isn't clear where the card would land.
 const REORDER_WHILE_SEARCHING = "Cards can't be reordered while searching. Clear the search first.";
 
-// noSorting keeps the other cards still while a card is dragged within its column during a search,
-// since it can't be reordered there.
+// REORDER_WHILE_FILTERING is shown for the same drop while the board is filtered to overdue jobs or
+// jobs that aren't, which hides cards the same way.
+const REORDER_WHILE_FILTERING =
+	"Cards can't be reordered while the board is filtered. Show all jobs first.";
+
+// noSorting keeps the other cards still while a card is dragged within its column during a search
+// or filter, since it can't be reordered there.
 const noSorting: SortingStrategy = () => null;
 
 // Board lays out the jobs in status columns. Cards are dragged with the mouse or the keyboard to
@@ -111,7 +120,24 @@ const noSorting: SortingStrategy = () => null;
 // @scenario [features/board-pagination.feature#last-card-leaves-page] Moving the only card off the last page shows the page before it
 // @scenario [features/board-pagination.feature#page-filled-after-move] A page fills back up after a card moves out of it
 // @scenario [features/board-pagination.feature#search-results-paged] Matching cards are shown a page at a time
-export function Board({ board, onMove, onOpenCard, onAddJob, search, pages, onPageChange }: Props) {
+// @scenario [features/job-next-action.feature#filter-overdue] Show only overdue jobs
+// @scenario [features/job-next-action.feature#filter-not-overdue] Show only jobs that aren't overdue
+// @scenario [features/job-next-action.feature#filter-due-today-not-overdue] A job due today isn't overdue yet
+// @scenario [features/job-next-action.feature#filter-closed-never-overdue] A closed job is never overdue
+// @scenario [features/job-next-action.feature#filter-show-all] Show every job again
+// @scenario [features/job-next-action.feature#filter-keeps-columns] Filtered cards stay in their own columns and the counts show how many are shown
+// @scenario [features/job-next-action.feature#filter-with-search] The filter and the search both apply
+// @scenario [features/job-next-action.feature#filter-no-matches] Told when no jobs match the filter
+export function Board({
+	board,
+	onMove,
+	onOpenCard,
+	onAddJob,
+	search,
+	filter,
+	pages,
+	onPageChange,
+}: Props) {
 	// preview is where the cards are while one is dragged, or null when nothing is.
 	const [preview, setPreview] = useState<Items | null>(null);
 	// dragged is the card being dragged, drawn in the overlay above the columns.
@@ -132,10 +158,13 @@ export function Board({ board, onMove, onOpenCard, onAddJob, search, pages, onPa
 			cards.set(card.id, card);
 		}
 	}
-	// The board shows the cards matching the search, a page at a time in each column. Dragging works
-	// on what's shown, and a drop is turned back into a place in the whole column when it's saved.
+	// The board shows the cards matching the search and the filter, a page at a time in each column.
+	// Dragging works on what's shown, and a drop is turned back into a place in the whole column when
+	// it's saved.
 	const isSearching = searching(search);
-	const filtered = filterBoard(board, search);
+	// isFiltered is whether some cards may be hidden, by the search or the filter.
+	const isFiltered = isSearching || filter !== "all";
+	const filtered = filterBoard(board, search, filter);
 	const view = pageBoard(filtered, pages);
 	const items = preview ?? itemsFromBoard(view);
 
@@ -162,9 +191,9 @@ export function Board({ board, onMove, onOpenCard, onAddJob, search, pages, onPa
 					return current;
 				}
 				const moved = moveAcross(current, active.id, over.id);
-				// While searching, a card moved to another column goes to its top.
+				// While searching or filtering, a card moved to another column goes to its top.
 				const across = containerOf(moved, active.id) !== containerOf(current, active.id);
-				return isSearching && across ? toTop(moved, active.id) : moved;
+				return isFiltered && across ? toTop(moved, active.id) : moved;
 			});
 		}
 	};
@@ -182,10 +211,10 @@ export function Board({ board, onMove, onOpenCard, onAddJob, search, pages, onPa
 			return;
 		}
 		let move: Move;
-		if (isSearching) {
+		if (isFiltered) {
 			if (shown.status === statusOf(board, jobId)) {
 				// The drag preview is already dropped, so the card is back where it was.
-				setError(REORDER_WHILE_SEARCHING);
+				setError(isSearching ? REORDER_WHILE_SEARCHING : REORDER_WHILE_FILTERING);
 				return;
 			}
 			move = { ...shown, index: 0 };
@@ -222,7 +251,8 @@ export function Board({ board, onMove, onOpenCard, onAddJob, search, pages, onPa
 
 	const empty = board.columns.every((column) => column.cards.length === 0);
 	const noMatches =
-		isSearching && !empty && filtered.columns.every((column) => column.cards.length === 0);
+		isFiltered && !empty && filtered.columns.every((column) => column.cards.length === 0);
+	const filterLabel = DUE_FILTERS.find((f) => f.value === filter)?.label ?? filter;
 
 	return (
 		<div className={styles.board}>
@@ -236,7 +266,11 @@ export function Board({ board, onMove, onOpenCard, onAddJob, search, pages, onPa
 			)}
 			{noMatches && (
 				<p role="status" className={styles.noMatches}>
-					No jobs match "{search.trim()}".
+					{!isSearching
+						? `No jobs match the "${filterLabel}" filter.`
+						: filter === "all"
+							? `No jobs match "${search.trim()}".`
+							: `No jobs match "${search.trim()}" with the "${filterLabel}" filter.`}
 				</p>
 			)}
 			{error !== "" && (
@@ -265,7 +299,7 @@ export function Board({ board, onMove, onOpenCard, onAddJob, search, pages, onPa
 							key={column.status}
 							column={column}
 							cards={(items[column.status] ?? []).flatMap((id) => cards.get(id) ?? [])}
-							strategy={isSearching ? noSorting : verticalListSortingStrategy}
+							strategy={isFiltered ? noSorting : verticalListSortingStrategy}
 							onOpenCard={onOpenCard}
 							onAddJob={onAddJob}
 							onPageChange={onPageChange}
@@ -361,7 +395,7 @@ function Column({ column, cards, strategy, onOpenCard, onAddJob, onPageChange }:
 				<h2 id={headingId} className={styles.columnTitle}>
 					{column.label}
 				</h2>
-				{/* While searching, the count is how many cards match (see filterBoard). */}
+				{/* While searching or filtering, the count is how many cards are shown (see filterBoard). */}
 				<span className={styles.count}>
 					<span aria-hidden="true">{column.count}</span>
 					<span className={styles.srOnly}>

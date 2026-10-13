@@ -51,3 +51,20 @@ WHERE id = ?;
 -- @scenario [features/job-interviews.feature#interviews-deleted-with-job] Deleting a job deletes its interviews
 DELETE FROM jobs
 WHERE id = ?;
+
+-- name: SetNextAction :exec
+-- Sets what's next on a job and when it's expected, or NULL for no expected date. Nothing else on
+-- the job changes, so its column and place in it stay the same.
+-- @scenario [features/job-next-action.feature#set-next-action] Set a next action with an expected date
+-- @scenario [features/job-next-action.feature#set-next-action-no-date] Set a next action without an expected date
+-- @scenario [features/job-next-action.feature#edit-next-action] Change the next action and its expected date
+-- @scenario [features/job-next-action.feature#clear-next-action-date] Clear only the expected date
+UPDATE jobs
+SET next_action = ?, next_action_date = ?
+WHERE id = ?;
+
+-- name: ClearNextAction :exec
+-- @scenario [features/job-next-action.feature#clear-next-action] Clear the next action once it's done
+UPDATE jobs
+SET next_action = NULL, next_action_date = NULL
+WHERE id = ?;

@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { board, card } from "../test/fixtures";
-import { filterBoard, matches, PAGE_SIZE, pageBoard, pageCount, placeInColumn } from "./boardView";
+import {
+	filterBoard,
+	matches,
+	overdue,
+	PAGE_SIZE,
+	pageBoard,
+	pageCount,
+	passes,
+	placeInColumn,
+} from "./boardView";
 
 const many = (n: number) => Array.from({ length: n }, (_, i) => card(i + 1, `Company ${i + 1}`));
 const ids = (cards: { id: number }[]) => cards.map((c) => c.id);
@@ -102,5 +111,55 @@ describe("placeInColumn", () => {
 			closingReasonOther: "",
 		};
 		expect(placeInColumn(view, move).index).toBe(3);
+	});
+});
+
+describe("overdue filter", () => {
+	const marked = (id: number, due: string) =>
+		card(id, `Company ${id}`, {
+			nextAction: { text: "Follow up", expectedDate: "2026-10-10", due },
+		});
+	const late = marked(1, "overdue");
+	const today = marked(2, "today");
+	const later = marked(3, "");
+	const none = card(4, "Company 4");
+	const noneNull = card(5, "Company 5", { nextAction: null });
+
+	it("counts only the cards the backend marked overdue", () => {
+		expect([late, today, later, none, noneNull].map(overdue)).toEqual([
+			true,
+			false,
+			false,
+			false,
+			false,
+		]);
+	});
+
+	it("passes every card, only overdue ones, or only the rest", () => {
+		const all = [late, today, later, none];
+		expect(all.filter((c) => passes(c, "all"))).toEqual(all);
+		expect(all.filter((c) => passes(c, "overdue"))).toEqual([late]);
+		expect(all.filter((c) => passes(c, "not-overdue"))).toEqual([today, later, none]);
+	});
+
+	it("filters every column and counts what's shown", () => {
+		const filtered = filterBoard(board({ applied: [later, late], offer: [today] }), "", "overdue");
+		expect(filtered.columns.map((c) => [c.status, ids(c.cards), c.count])).toEqual([
+			["saved", [], 0],
+			["applied", [1], 1],
+			["interviewing", [], 0],
+			["offer", [], 0],
+			["closed", [], 0],
+		]);
+	});
+
+	it("applies the search and the filter together", () => {
+		const designer = { ...marked(6, "overdue"), role: "Designer" };
+		const filtered = filterBoard(
+			board({ applied: [late, designer, later] }),
+			"engineer",
+			"overdue",
+		);
+		expect(ids(filtered.columns[1].cards)).toEqual([1]);
 	});
 });

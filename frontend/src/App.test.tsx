@@ -8,7 +8,7 @@ import type { Board, Details } from "./hooks/types";
 import { useBoard } from "./hooks/useBoard";
 import { useDocuments } from "./hooks/useDocuments";
 import { useJob } from "./hooks/useJob";
-import { board, card, job } from "./test/fixtures";
+import { board, card, fakeUseJob, job } from "./test/fixtures";
 
 vi.mock("./hooks/useBoard", () => ({ useBoard: vi.fn() }));
 vi.mock("./hooks/useJob", () => ({ useJob: vi.fn() }));
@@ -183,14 +183,7 @@ describe("App", () => {
 	it("removes a deleted job from the board", async () => {
 		// @given [features/job-cards.feature#delete-job] I have a job for "Software Engineer" at "Acme"
 		const { deleted } = mockBoard(board({ offer: [card(1, "Acme")] }));
-		vi.mocked(useJob).mockReturnValue({
-			job: job({ id: 1, status: "offer" }),
-			error: "",
-			reload: vi.fn(),
-			update: vi.fn(),
-			setClosingReason: vi.fn(),
-			openLink: vi.fn(),
-		});
+		vi.mocked(useJob).mockReturnValue(fakeUseJob({ job: job({ id: 1, status: "offer" }) }));
 		render(<App />);
 
 		// @when [features/job-cards.feature] I delete the job
@@ -211,14 +204,7 @@ describe("App", () => {
 	it("keeps the job on the board when deleting is cancelled", async () => {
 		// @given [features/job-cards.feature] I have a job for "Software Engineer" at "Acme"
 		const { deleted } = mockBoard(board({ offer: [card(1, "Acme")] }));
-		vi.mocked(useJob).mockReturnValue({
-			job: job({ id: 1, status: "offer" }),
-			error: "",
-			reload: vi.fn(),
-			update: vi.fn(),
-			setClosingReason: vi.fn(),
-			openLink: vi.fn(),
-		});
+		vi.mocked(useJob).mockReturnValue(fakeUseJob({ job: job({ id: 1, status: "offer" }) }));
 		render(<App />);
 
 		// @when [features/job-cards.feature] I delete the job
@@ -539,6 +525,262 @@ describe("App", () => {
 
 			// @then [features/board-pagination.feature#pages-reset-on-reopen] the "Saved" column is on page 1
 			expect(pageOf("Page 1 of 3")).toBeInTheDocument();
+		});
+	});
+
+	describe("next action filter", () => {
+		const filterBox = () => screen.getByRole("combobox", { name: "Show" });
+		const filterTo = (label: string) => userEvent.selectOptions(filterBox(), label);
+		const shown = (company: string) =>
+			screen.queryByRole("article", { name: new RegExp(` at ${company}$`) });
+		// The backend marks which next actions are overdue (internal/jobs/next_action_test.go);
+		// these cards come marked as it would mark them.
+		const due = (company: string, expectedDate: string, mark: string, id: number) =>
+			card(id, company, { nextAction: { text: "Follow up", expectedDate, due: mark } });
+		const threeJobs = () =>
+			board({
+				applied: [
+					due("Acme", "2026-10-10", "overdue", 1),
+					due("Globex", "2026-10-20", "", 2),
+					card(3, "Initech"),
+				],
+			});
+
+		// @scenario [features/job-next-action.feature#filter-overdue] Show only overdue jobs
+		it("shows only overdue jobs", async () => {
+			// @given [features/job-next-action.feature] I have a job at "Acme" with a next action expected on 2026-10-10
+			// @and [features/job-next-action.feature] a job at "Globex" with a next action expected on 2026-10-20
+			// @and [features/job-next-action.feature] a job at "Initech" with no next action
+			mockBoard(threeJobs());
+			render(<App />);
+
+			// @when [features/job-next-action.feature] I filter the board to overdue jobs
+			await filterTo("Overdue");
+
+			// @then [features/job-next-action.feature#filter-overdue] only the card for "Acme" is shown
+			expect(screen.getAllByRole("article")).toHaveLength(1);
+			expect(shown("Acme")).toBeInTheDocument();
+		});
+
+		// @scenario [features/job-next-action.feature#filter-not-overdue] Show only jobs that aren't overdue
+		it("shows only jobs that aren't overdue", async () => {
+			// @given [features/job-next-action.feature] I have a job at "Acme" with a next action expected on 2026-10-10
+			// @and [features/job-next-action.feature] a job at "Globex" with a next action expected on 2026-10-20
+			// @and [features/job-next-action.feature] a job at "Initech" with no next action
+			mockBoard(threeJobs());
+			render(<App />);
+
+			// @when [features/job-next-action.feature] I filter the board to jobs that aren't overdue
+			await filterTo("Not overdue");
+
+			// @then [features/job-next-action.feature] the cards for "Globex" and "Initech" are shown
+			expect(shown("Globex")).toBeInTheDocument();
+			expect(shown("Initech")).toBeInTheDocument();
+			// @and [features/job-next-action.feature] the card for "Acme" is not shown
+			expect(shown("Acme")).not.toBeInTheDocument();
+		});
+
+		// @scenario [features/job-next-action.feature#filter-due-today-not-overdue] A job due today isn't overdue yet
+		it("doesn't count a job due today as overdue", async () => {
+			// @given [features/job-next-action.feature] I have a job at "Acme" with a next action expected on 2026-10-14
+			mockBoard(
+				board({
+					applied: [
+						due("Acme", "2026-10-14", "today", 1),
+						due("Globex", "2026-10-01", "overdue", 2),
+					],
+				}),
+			);
+			render(<App />);
+
+			// @when [features/job-next-action.feature] I filter the board to overdue jobs
+			await filterTo("Overdue");
+
+			// @then [features/job-next-action.feature] the card for "Acme" is not shown
+			expect(shown("Acme")).not.toBeInTheDocument();
+			expect(shown("Globex")).toBeInTheDocument();
+		});
+
+		// @scenario [features/job-next-action.feature#filter-closed-never-overdue] A closed job is never overdue
+		it("doesn't count a closed job as overdue", async () => {
+			// @given [features/job-next-action.feature] I have a job at "Acme" in "Closed" with a next action expected on 2026-10-10
+			mockBoard(
+				board({
+					closed: [due("Acme", "2026-10-10", "", 1)],
+					applied: [due("Globex", "2026-10-01", "overdue", 2)],
+				}),
+			);
+			render(<App />);
+
+			// @when [features/job-next-action.feature] I filter the board to overdue jobs
+			await filterTo("Overdue");
+
+			// @then [features/job-next-action.feature] the card for "Acme" is not shown
+			expect(shown("Acme")).not.toBeInTheDocument();
+		});
+
+		// @scenario [features/job-next-action.feature#filter-show-all] Show every job again
+		it("shows every job again", async () => {
+			// @given [features/job-next-action.feature] I have a job at "Acme" with a next action expected on 2026-10-10
+			// @and [features/job-next-action.feature] a job at "Globex" with no next action
+			mockBoard(board({ applied: [due("Acme", "2026-10-10", "overdue", 1), card(2, "Globex")] }));
+			render(<App />);
+			// @and [features/job-next-action.feature] I have filtered the board to overdue jobs
+			await filterTo("Overdue");
+			expect(shown("Globex")).not.toBeInTheDocument();
+
+			// @when [features/job-next-action.feature] I filter the board to all jobs
+			await filterTo("All jobs");
+
+			// @then [features/job-next-action.feature] the cards for "Acme" and "Globex" are shown
+			expect(shown("Acme")).toBeInTheDocument();
+			expect(shown("Globex")).toBeInTheDocument();
+		});
+
+		// @scenario [features/job-next-action.feature#filter-keeps-columns] Filtered cards stay in their own columns and the counts show how many are shown
+		it("keeps filtered cards in their columns and counts them", async () => {
+			// @given [features/job-next-action.feature] I have 2 overdue jobs in "Applied" and 1 overdue job in "Interviewing"
+			// @and [features/job-next-action.feature] 3 jobs in "Applied" that aren't overdue
+			mockBoard(
+				board({
+					applied: [
+						due("Acme", "2026-10-10", "overdue", 1),
+						due("Hooli", "2026-10-14", "today", 4),
+						due("Globex", "2026-10-13", "overdue", 2),
+						due("Umbrella", "2026-10-30", "", 5),
+						card(6, "Vandelay"),
+					],
+					interviewing: [due("Initech", "2026-10-01", "overdue", 3)],
+				}),
+			);
+			render(<App />);
+
+			// @when [features/job-next-action.feature] I filter the board to overdue jobs
+			await filterTo("Overdue");
+
+			// @then [features/job-next-action.feature] the "Applied" column shows 2 cards and a count of 2
+			expect(within(column("Applied")).getAllByRole("article")).toHaveLength(2);
+			expect(within(column("Applied")).getByText("2 jobs")).toBeInTheDocument();
+			// @and [features/job-next-action.feature] the "Interviewing" column shows 1 card and a count of 1
+			expect(within(column("Interviewing")).getAllByRole("article")).toHaveLength(1);
+			expect(within(column("Interviewing")).getByText("1 job")).toBeInTheDocument();
+		});
+
+		// @scenario [features/job-next-action.feature#filter-with-search] The filter and the search both apply
+		it("applies both the filter and the search", async () => {
+			// @given [features/job-next-action.feature] I have an overdue job for "Software Engineer" at "Acme"
+			// @and [features/job-next-action.feature] an overdue job for "Designer" at "Globex"
+			// @and [features/job-next-action.feature] a job for "Software Engineer" at "Initech" that isn't overdue
+			mockBoard(
+				board({
+					applied: [
+						due("Acme", "2026-10-10", "overdue", 1),
+						{ ...due("Globex", "2026-10-10", "overdue", 2), role: "Designer" },
+						card(3, "Initech"),
+					],
+				}),
+			);
+			render(<App />);
+
+			// @when [features/job-next-action.feature] I filter the board to overdue jobs
+			await filterTo("Overdue");
+			// @and [features/job-next-action.feature] I search for "Engineer"
+			await userEvent.type(screen.getByRole("searchbox", { name: "Search jobs" }), "Engineer");
+
+			// @then [features/job-next-action.feature#filter-with-search] only the card for "Acme" is shown
+			expect(screen.getAllByRole("article")).toHaveLength(1);
+			expect(shown("Acme")).toBeInTheDocument();
+		});
+
+		// @scenario [features/job-next-action.feature#filter-no-matches] Told when no jobs match the filter
+		it("says when no jobs match the filter", async () => {
+			// @given [features/job-next-action.feature] none of my jobs are overdue
+			mockBoard(board({ applied: [due("Acme", "2026-10-20", "", 1), card(2, "Globex")] }));
+			render(<App />);
+
+			// @when [features/job-next-action.feature] I filter the board to overdue jobs
+			await filterTo("Overdue");
+
+			expect(screen.queryAllByRole("article")).toEqual([]);
+			// @then [features/job-next-action.feature] I am told that no jobs match
+			expect(screen.getByText('No jobs match the "Overdue" filter.')).toHaveAttribute(
+				"role",
+				"status",
+			);
+			expect(screen.queryByRole("button", { name: "Add your first job" })).not.toBeInTheDocument();
+		});
+
+		it("names the search and the filter when nothing matches both", async () => {
+			mockBoard(board({ applied: [due("Acme", "2026-10-10", "overdue", 1)] }));
+			render(<App />);
+			await filterTo("Overdue");
+			await userEvent.type(screen.getByRole("searchbox", { name: "Search jobs" }), "Globex");
+			expect(
+				screen.getByText('No jobs match "Globex" with the "Overdue" filter.'),
+			).toBeInTheDocument();
+		});
+
+		// @scenario [features/job-next-action.feature#filter-resets-pages] Changing the filter returns every column to its first page
+		it("returns to the first page when the filter changes", async () => {
+			// @given [features/job-next-action.feature] the "Applied" column has 3 pages of cards
+			mockBoard(
+				board({ applied: Array.from({ length: 25 }, (_, i) => card(i + 1, `Company ${i + 1}`)) }),
+			);
+			render(<App />);
+			// @and [features/job-next-action.feature] I am on its second page
+			await userEvent.click(screen.getByRole("button", { name: "Next page of Applied" }));
+			expect(within(column("Applied")).getByText("Page 2 of 3")).toBeInTheDocument();
+
+			// @when [features/job-next-action.feature] I filter the board to jobs that aren't overdue
+			await filterTo("Not overdue");
+
+			// @then [features/job-next-action.feature] the "Applied" column shows its first page
+			expect(within(column("Applied")).getByText("Page 1 of 3")).toBeInTheDocument();
+			expect(shown("Company 1")).toBeInTheDocument();
+		});
+
+		// @scenario [features/job-next-action.feature#add-job-clears-filter] Adding a job shows every job again
+		it("shows every job again when a job is added", async () => {
+			mockBoard(
+				board({ applied: [due("Globex", "2026-10-10", "overdue", 1), card(2, "Initech")] }),
+			);
+			render(<App />);
+			// @given [features/job-next-action.feature] I have filtered the board to overdue jobs
+			await filterTo("Overdue");
+			expect(shown("Initech")).not.toBeInTheDocument();
+
+			// @when [features/job-next-action.feature] I add a job for "Software Engineer" at "Acme" to the "Saved" column
+			await userEvent.click(screen.getByRole("button", { name: "Add a job to Saved" }));
+			await userEvent.type(field(/^Company/), "Acme");
+			await userEvent.type(field(/^Role/), "Software Engineer");
+			await userEvent.click(
+				within(screen.getByRole("dialog")).getByRole("button", { name: "Add job" }),
+			);
+
+			// @then [features/job-next-action.feature#add-job-clears-filter] the board shows all jobs
+			expect(filterBox()).toHaveValue("all");
+			expect(shown("Initech")).toBeInTheDocument();
+			// @and [features/job-next-action.feature] the card for "Acme" is shown
+			expect(acmeIn("Saved")).toBeInTheDocument();
+		});
+
+		// @scenario [features/job-next-action.feature#filter-not-kept] The filter is cleared after reopening the app
+		it("starts with every job shown when the app reopens", async () => {
+			mockBoard(
+				board({ applied: [due("Globex", "2026-10-10", "overdue", 1), card(2, "Initech")] }),
+			);
+			const { unmount } = render(<App />);
+			// @given [features/job-next-action.feature] I have filtered the board to overdue jobs
+			await filterTo("Overdue");
+
+			// @when [features/job-next-action.feature#filter-not-kept] I close and reopen the app
+			unmount();
+			render(<App />);
+
+			// @then [features/job-next-action.feature#filter-not-kept] the board shows all jobs
+			expect(filterBox()).toHaveValue("all");
+			expect(shown("Globex")).toBeInTheDocument();
+			expect(shown("Initech")).toBeInTheDocument();
 		});
 	});
 });

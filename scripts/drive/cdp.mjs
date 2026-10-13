@@ -175,6 +175,25 @@ const page = {
 		await mouse("mouseMoved", x, y, { buttons: 0 });
 		await sleep(200);
 	},
+	// select chooses an option of the <select> found by CSS selector, by the option's value or its
+	// visible text, as choosing it by hand would. A headless browser can't open the native list to
+	// click in it.
+	async select(selector, option) {
+		const chosen = await evaluate(`(() => {
+			const el = document.querySelector(${JSON.stringify(selector)});
+			if (!(el instanceof HTMLSelectElement)) return "no select";
+			const want = ${JSON.stringify(option)};
+			const opt = [...el.options].find((o) => o.value === want || o.textContent.trim() === want);
+			if (!opt) return "no option";
+			// The native setter, so React sees the change, then the event React listens for.
+			Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value").set.call(el, opt.value);
+			el.dispatchEvent(new Event("change", { bubbles: true }));
+			return "ok";
+		})()`);
+		if (chosen === "no select") throw new Error(`no <select> for ${selector}`);
+		if (chosen === "no option") throw new Error(`no option ${option} in ${selector}`);
+		await sleep(300);
+	},
 	// clearBoard deletes every job, with its documents, through the app's own bindings, then
 	// reloads the page. It only touches temp/drive/appdata, the data dev.sh points the app at.
 	async clearBoard() {
@@ -188,10 +207,14 @@ const page = {
 		await page.goto();
 	},
 	// seed adds jobs through the app's own bindings, then reloads the page. Each job is
-	// { company, role, status, ...other details }, with status defaulting to "saved", and can list
+	// { company, role, status, ...other details }, with status defaulting to "saved". A closed job
+	// takes closingReason (default "no_response") and, for "other", closingReasonOther; it's added to
+	// Saved and then moved to Closed, since a job can't be added straight to Closed. A job can list
 	// the records it has:
 	//   interviews: [{ date: "2026-10-14", kind: "technical", time?: "14:00", notes? }]
 	//   contacts:   [{ name: "Dana Smith", relationship: "recruiter", email?, phone?, profileLink?, notes? }]
+	// and its next action:
+	//   nextAction: { text: "Waiting for a call back", expectedDate?: "2026-10-14" }
 	// Jobs show in each column in the order given, since a new job goes to the top of its column.
 	// Documents aren't seeded: attaching one copies a real file. When a job gets a new kind of
 	// record, add it here.
@@ -199,16 +222,32 @@ const page = {
 		await evaluate(`(async () => {
 			const app = window.go.main.App;
 			const jobs = ${JSON.stringify(jobs)};
-			for (const { status = "saved", interviews = [], contacts = [], ...details } of jobs.reverse()) {
+			for (const {
+				status = "saved",
+				closingReason = "no_response",
+				closingReasonOther = "",
+				interviews = [],
+				contacts = [],
+				nextAction,
+				...details
+			} of jobs.reverse()) {
+				const closed = status === "closed";
 				const job = await app.AddJob(
 					{ description: "", link: "", salary: "", location: "", notes: "", dateApplied: "", ...details },
-					status,
+					closed ? "saved" : status,
 				);
+				if (closed) {
+					// To the top of Closed, as an added job goes to the top of its column.
+					await app.MoveJob({ jobId: job.id, status, index: 0, closingReason, closingReasonOther });
+				}
 				for (const interview of interviews) {
 					await app.AddInterview(job.id, { time: "", notes: "", ...interview });
 				}
 				for (const contact of contacts) {
 					await app.AddContact(job.id, { email: "", phone: "", profileLink: "", notes: "", ...contact });
+				}
+				if (nextAction) {
+					await app.SetNextAction(job.id, nextAction.text, nextAction.expectedDate ?? "");
 				}
 			}
 		})()`);
