@@ -1,6 +1,6 @@
 # 0022. Let users drive agent tasks from their own agent over MCP
 
-- **Status:** Accepted
+- **Status:** Superseded by [docs/adr/0023-let-users-drive-agent-tasks-from-their-own-agent-through-a-cli.md]
 - **Date:** 2026-10-12
 
 ## Context

@@ -13,9 +13,9 @@ Feature: Daily backups
       Then a backup of my data from 2026-10-14 is taken
 
       Examples:
-        | start                         |
-        | I open the app                |
-        | my agent connects to Callback |
+        | start                            |
+        | I open the app                   |
+        | my agent runs a Callback command |
 
     @status:implemented @id:backup-once-per-day
     Scenario: Starting Callback again the same day doesn't take another backup

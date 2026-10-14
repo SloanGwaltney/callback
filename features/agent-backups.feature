@@ -3,26 +3,25 @@ Feature: Agent backups
   I want my agent to back up my data before it makes changes, and restore it if they go wrong
   So that I can let my agent change my board without worrying about losing anything
 
-  Rule: My agent can make named backups
+  Rule: My agent can make named backups that are kept for a number of days it chooses
 
     @status:not-implemented @id:agent-backup
-    Scenario: My agent backs up my data under a name
-      Given my agent is connected to Callback
+    Scenario: My agent backs up my data under a name, kept for a number of days
+      Given today is 2026-10-14
       And I have a job for "Software Engineer" at "Acme"
-      When my agent makes a backup named "before-cleanup"
+      When my agent makes a backup named "before-cleanup" kept for 7 days
       Then a backup named "before-cleanup" holds my data as it is now
+      And the "before-cleanup" backup is kept until 2026-10-21
 
     @status:not-implemented @id:agent-backup-needs-name
     Scenario: A backup needs a name
-      Given my agent is connected to Callback
-      When my agent tries to make a backup with no name
+      When my agent tries to make a backup with no name, kept for 7 days
       Then no backup is made
       And my agent is told the backup needs a name
 
     @status:not-implemented @id:agent-backup-name-characters
     Scenario Outline: A backup name may only use letters, numbers, hyphens, and underscores
-      Given my agent is connected to Callback
-      When my agent tries to make a backup named "<name>"
+      When my agent tries to make a backup named "<name>" kept for 7 days
       Then no backup is made
       And my agent is told which characters a backup name may use
 
@@ -32,103 +31,148 @@ Feature: Agent backups
         | before cleanup |
         | notes.db       |
 
-    @status:not-implemented @id:agent-backup-name-taken
-    Scenario: A backup can't reuse the name of an existing backup
-      Given my agent made a backup named "before-cleanup" in an earlier session
-      And my agent is connected to Callback in a new session
-      When my agent tries to make a backup named "before-cleanup"
+    @status:not-implemented @id:agent-backup-needs-retention
+    Scenario: A backup needs to say how many days it's kept
+      When my agent tries to make a backup named "before-cleanup" without saying how many days to keep it
+      Then no backup is made
+      And my agent is told the backup needs a number of days from 1 to 90
+
+    @status:not-implemented @id:agent-backup-retention-range
+    Scenario Outline: A backup is kept for 1 to 90 days
+      Given today is 2026-10-14
+      When my agent tries to make a backup named "before-cleanup" kept for <days> days
+      Then <outcome>
+
+      Examples:
+        | days | outcome                                                        |
+        | 1    | the "before-cleanup" backup is kept until 2026-10-15           |
+        | 90   | the "before-cleanup" backup is kept until 2027-01-12           |
+        | 0    | no backup is made, and my agent is told to use 1 to 90 days    |
+        | 91   | no backup is made, and my agent is told to use 1 to 90 days    |
+
+    @status:not-implemented @id:agent-backup-name-in-use
+    Scenario: A backup can't reuse the name of a backup that's still kept
+      Given another agent made a backup named "before-cleanup" that is still kept
+      When my agent tries to make a backup named "before-cleanup" kept for 7 days
       Then no backup is made
       And the existing "before-cleanup" backup is unchanged
       And my agent is told that name is already taken
 
-    @status:not-implemented @id:agent-list-session-backups
-    Scenario: My agent can see the backups it made this session
-      Given my agent made a backup named "old-backup" in an earlier session
-      And my agent is connected to Callback in a new session
-      And my agent has made backups named "before-cleanup" and "before-merge" this session
-      When my agent lists its backups
-      Then it sees "before-cleanup" and "before-merge"
-      But it doesn't see "old-backup"
+    @status:not-implemented @id:agent-backup-name-freed
+    Scenario: An expired backup's name can be used again
+      Given today is 2026-10-22
+      And my agent made a backup named "before-cleanup" that was kept until 2026-10-21
+      When my agent makes a backup named "before-cleanup" kept for 7 days
+      Then a backup named "before-cleanup" holds my data as it is now
+      And the "before-cleanup" backup is kept until 2026-10-29
 
-  Rule: My agent can only delete backups it made this session
+  Rule: My agent can see every backup an agent made, but not the daily backups
 
-    @status:not-implemented @id:agent-delete-backup
-    Scenario: My agent deletes a backup it made this session
-      Given my agent is connected to Callback
-      And my agent made a backup named "before-cleanup"
-      When my agent deletes the backup "before-cleanup"
-      Then there is no backup named "before-cleanup"
-      And my data is unchanged
+    @status:not-implemented @id:agent-list-backups
+    Scenario: My agent lists the backups agents have made
+      Given an agent made a backup named "old-backup" last week that is still kept
+      And my agent has just made a backup named "before-cleanup"
+      And a daily backup was taken today
+      When my agent lists the backups
+      Then it sees "old-backup" and "before-cleanup", each with the day it's kept until
+      But it doesn't see the daily backup
 
-    @status:not-implemented @id:agent-delete-other-session
-    Scenario: My agent can't delete a backup from an earlier session
-      Given my agent made a backup named "before-cleanup" in an earlier session
-      And my agent is connected to Callback in a new session
-      When my agent tries to delete the backup "before-cleanup"
+  Rule: Expired backups are removed whenever Callback runs
+
+    @status:not-implemented @id:agent-backup-kept-through-last-day
+    Scenario: A backup is still kept on the last day it's kept until
+      Given today is 2026-10-21
+      And my agent made a backup named "before-cleanup" kept until 2026-10-21
+      When I open the app
       Then the "before-cleanup" backup is still kept
-      And my agent is told it can only delete backups it made this session
 
-    @status:not-implemented @id:agent-delete-daily-backup
-    Scenario: My agent can't delete a daily backup
-      Given a daily backup was taken today
-      And my agent is connected to Callback
-      When my agent tries to delete the daily backup
-      Then the daily backup is still kept
-      And my agent is told it can only delete backups it made this session
+    @status:not-implemented @id:agent-backup-expires
+    Scenario Outline: An expired backup is removed when Callback runs
+      Given today is 2026-10-22
+      And my agent made a backup named "before-cleanup" kept until 2026-10-21
+      When <run>
+      Then there is no backup named "before-cleanup"
 
-    @status:not-implemented @id:agent-delete-unknown
-    Scenario: My agent is told when there's no backup with that name to delete
-      Given my agent is connected to Callback
-      When my agent tries to delete a backup named "never-made"
-      Then my agent is told there's no backup it made this session with that name
+      Examples:
+        | run                              |
+        | I open the app                   |
+        | my agent runs a Callback command |
 
-  Rule: My agent can only restore backups it made this session
+    @status:not-implemented @id:agent-backup-expiry-retries
+    Scenario: An expired backup that can't be removed yet is removed on a later run
+      Given today is 2026-10-22
+      And my agent made a backup named "before-cleanup" kept until 2026-10-21
+      And the "before-cleanup" backup can't be removed right now
+      When I open the app
+      Then the app opens as usual
+      And the "before-cleanup" backup is removed the next time Callback runs and can remove it
+
+    @status:not-implemented @id:agent-backup-expiry-keeps-daily
+    Scenario: Removing expired backups never removes a daily backup
+      Given there is a daily backup from 60 days ago
+      When my agent runs a Callback command
+      Then the daily backup from 60 days ago is still kept
+
+  Rule: My agent can't delete backups
+
+    @status:not-implemented @id:agent-cant-delete-backup
+    Scenario: My agent has no way to delete a backup
+      Given my agent made a backup named "before-cleanup"
+      When my agent looks at what it can do with backups
+      Then it can make, list, and restore backups
+      But it can't delete one
+
+  Rule: My agent can restore any backup an agent made, but not the daily backups
 
     @status:not-implemented @id:agent-restore
-    Scenario: My agent restores a backup it made this session
-      Given my agent is connected to Callback
-      And my agent made a backup named "before-cleanup" while I had a job at "Acme" in "Applied"
+    Scenario: My agent restores a backup
+      Given my agent made a backup named "before-cleanup" while I had a job at "Acme" in "Applied"
       And my agent then moved the job to "Closed"
       When my agent restores the backup "before-cleanup"
       Then the job at "Acme" is in "Applied" again
 
-    @status:not-implemented @id:agent-restore-other-session
-    Scenario: My agent can't restore a backup from an earlier session
-      Given my agent made a backup named "before-cleanup" in an earlier session
-      And my agent is connected to Callback in a new session
-      When my agent tries to restore the backup "before-cleanup"
-      Then my data is unchanged
-      And my agent is told it can only restore backups it made this session
+    @status:not-implemented @id:agent-restore-earlier-backup
+    Scenario: My agent restores a backup another agent made earlier
+      Given an agent made a backup named "last-week" last week, while I had a job at "Acme" in "Applied"
+      And the job at "Acme" has since moved to "Interviewing"
+      When my agent restores the backup "last-week"
+      Then the job at "Acme" is in "Applied" again
 
     @status:not-implemented @id:agent-restore-daily-backup
     Scenario: My agent can't restore a daily backup
       Given a daily backup was taken today
-      And my agent is connected to Callback
       When my agent tries to restore the daily backup
       Then my data is unchanged
-      And my agent is told it can only restore backups it made this session
+      And my agent is told it can only restore backups an agent made
 
     @status:not-implemented @id:agent-restore-unknown
     Scenario: My agent is told when there's no backup with that name
-      Given my agent is connected to Callback
       When my agent tries to restore a backup named "never-made"
       Then my data is unchanged
-      And my agent is told there's no backup it made this session with that name
+      And my agent is told there's no backup with that name
+
+    @status:not-implemented @id:restore-keeps-backups
+    Scenario: Restoring doesn't change which backups are kept
+      Given my agent made a backup named "first" and then a backup named "second"
+      When my agent restores the backup "first"
+      Then my agent still sees "first" and "second" when it lists the backups
+      And each is still kept until the same day as before
 
   Rule: A restore can be undone
 
     @status:not-implemented @id:restore-backs-up-first
     Scenario: Restoring backs up my current data first
-      Given my agent is connected to Callback
+      Given today is 2026-10-14
       And my agent made a backup named "before-cleanup"
       When my agent restores the backup "before-cleanup"
       Then a backup of my data from just before the restore is made first
+      And that backup is kept until 2026-10-21
+      And it's listed with the other backups agents made
       And my agent is told that backup's name
 
     @status:not-implemented @id:undo-restore
     Scenario: My agent undoes a restore
-      Given my agent is connected to Callback
-      And my agent made a backup named "before-cleanup" while I had a job at "Acme" in "Applied"
+      Given my agent made a backup named "before-cleanup" while I had a job at "Acme" in "Applied"
       And my agent then moved the job to "Closed"
       And my agent restored the backup "before-cleanup"
       When my agent restores the backup made just before that restore
@@ -147,7 +191,7 @@ Feature: Agent backups
     @status:not-implemented @id:restore-app-open
     Scenario: The app shows the restored data when I come back to it
       Given the app is open and I have switched to another window
-      And my agent restores a backup it made this session
+      And my agent restores a backup an agent made
       When I switch back to the app
       Then the board shows the restored data
 
