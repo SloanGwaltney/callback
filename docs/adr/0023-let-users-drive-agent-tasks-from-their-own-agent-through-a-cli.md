@@ -1,6 +1,6 @@
 # 0023. Let users drive agent tasks from their own agent through a CLI
 
-- **Status:** Accepted
+- **Status:** Superseded by [docs/adr/0024-give-the-agent-cli-a-prose-overview-alongside-its-help.md]
 - **Date:** 2026-10-13
 
 ## Context
@@ -103,3 +103,14 @@ executable returns the prompt at once, and its output is lost unless it attaches
 - [docs/adr/0022-let-users-drive-agent-tasks-from-their-own-agent-over-mcp.md] Let users drive agent tasks from their own agent over MCP
 - [docs/adr/0016-put-business-rules-in-services-over-a-transactional-store-interface.md] Put business rules in services over a transactional store interface
 - [docs/adr/0019-release-by-pushing-a-tag-that-builds-a-draft-github-release.md] Release by pushing a tag that builds a draft GitHub Release
+
+## Notes
+
+- **2026-10-13:** Decision 6 is settled in `features/agent-backups.feature`: agent backups have no
+  sessions. The decision to drop the session rules was made because agents can already reach the
+  backup files on disk, so session rules could only ever be a guardrail on the CLI, not a real
+  block. An agent lists and restores any backup an agent made, never a daily backup, and can't
+  delete backups. Each agent backup is kept for 1 to 90 days, chosen when it's made, with its
+  expiry date in its file name rather than in the database, so that restoring a backup doesn't
+  change which backups are kept. Expired backups are removed when the app starts and on every CLI
+  run. The backup a restore makes first is kept for 7 days.

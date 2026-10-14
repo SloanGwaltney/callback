@@ -28,9 +28,11 @@ Each entry links to the ADR that chose it.
   cards, with keyboard support.
   ([docs/adr/0013-use-dnd-kit-for-moving-and-reordering-board-cards.md](docs/adr/0013-use-dnd-kit-for-moving-and-reordering-board-cards.md))
 - **AI agents:** agent features are a CLI, its own binary under `cmd/` shipped beside the app,
-  that users drive from their own agent, outside the app. Its `--help` is what the agent reads.
-  No MCP server, and no agent, model, or API key inside the app.
-  ([docs/adr/0023-let-users-drive-agent-tasks-from-their-own-agent-through-a-cli.md](docs/adr/0023-let-users-drive-agent-tasks-from-their-own-agent-through-a-cli.md))
+  that users drive from their own agent, outside the app. `--help` lists its commands, and a
+  separate flag prints a prose overview for the agent. No MCP server, and no agent, model, or API
+  key inside the app.
+  ([docs/adr/0023-let-users-drive-agent-tasks-from-their-own-agent-through-a-cli.md](docs/adr/0023-let-users-drive-agent-tasks-from-their-own-agent-through-a-cli.md),
+  [docs/adr/0024-give-the-agent-cli-a-prose-overview-alongside-its-help.md](docs/adr/0024-give-the-agent-cli-a-prose-overview-alongside-its-help.md))
 - **Lint and format:** `gofmt` and `go vet` for Go. Biome and `tsc` for the frontend. One check
   script runs every check. The Stop hook runs it without tests, and CI runs it with tests.
   ([docs/adr/0014-check-code-with-one-script-run-by-the-stop-hook-and-ci.md](docs/adr/0014-check-code-with-one-script-run-by-the-stop-hook-and-ci.md))
