@@ -463,3 +463,14 @@ func TestMoveToUnknownStatus(t *testing.T) {
 		t.Error("moving to an unknown status succeeded")
 	}
 }
+
+func TestClosingReasonsListsEveryReason(t *testing.T) {
+	if len(ClosingReasons) != len(reasonLabels) {
+		t.Errorf("ClosingReasons has %d reasons, want %d", len(ClosingReasons), len(reasonLabels))
+	}
+	for _, r := range ClosingReasons {
+		if !r.valid() || r.Label() == "" {
+			t.Errorf("%q has no label", r)
+		}
+	}
+}

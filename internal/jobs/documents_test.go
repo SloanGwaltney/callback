@@ -381,3 +381,39 @@ func TestSameDocumentOnManyJobs(t *testing.T) {
 		t.Errorf("copies left: %v, want Globex's", h.files.copies)
 	}
 }
+
+func TestJobDocumentFiles(t *testing.T) {
+	h := newHarness(t)
+	id := h.acme(StatusSaved)
+	resume := h.seedDoc(id, "resume-2026.pdf", KindResume)
+	letter := h.seedDoc(id, "letter.pdf", KindCoverLetter)
+	delete(h.files.copies, h.store.docs[letter].StoredPath)
+
+	files, err := h.svc.JobDocumentFiles(h.ctx, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := []DocumentFile{
+		{DocumentID: resume, Path: "/data/" + h.store.docs[resume].StoredPath},
+		{DocumentID: letter, Path: "/data/" + h.store.docs[letter].StoredPath, Missing: true},
+	}
+	if !slices.Equal(files, want) {
+		t.Errorf("files = %v, want %v", files, want)
+	}
+}
+
+func TestJobDocumentFilesUnknownJob(t *testing.T) {
+	h := newHarness(t)
+	if _, err := h.svc.JobDocumentFiles(h.ctx, 999); !errors.Is(err, ErrJobNotFound) {
+		t.Errorf("err = %v, want ErrJobNotFound", err)
+	}
+}
+
+func TestDocumentKindLabels(t *testing.T) {
+	for kind, want := range map[DocumentKind]string{KindResume: "Resume", KindCoverLetter: "Cover letter", KindOther: "Other"} {
+		if got := kind.Label(); got != want {
+			t.Errorf("%q.Label() = %q, want %q", kind, got, want)
+		}
+	}
+}

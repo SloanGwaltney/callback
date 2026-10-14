@@ -59,10 +59,15 @@ func readDatabase(t *testing.T, dataDir string) []byte {
 	return data
 }
 
+// The app and the command line both open the data through Open (cmd/callback-cli), so these tests
+// carry their steps for both.
+
 // @scenario [features/data-version.feature#app-newer-data] The app refuses data a newer Callback has updated
+// @scenario [features/agent-cli.feature#cli-newer-data] The command line refuses data a newer Callback has updated
 func TestOpenRefusesDataFromANewerVersion(t *testing.T) {
 	dataDir := t.TempDir()
 	// @given [features/data-version.feature] my data was last updated by a newer version of Callback than the app
+	// @given [features/agent-cli.feature] my data was last updated by a newer version of Callback than the command line
 	conn, err := Open(context.Background(), dataDir, withNewerMigration(t))
 	if err != nil {
 		t.Fatal(err)
@@ -72,6 +77,7 @@ func TestOpenRefusesDataFromANewerVersion(t *testing.T) {
 	before := readDatabase(t, dataDir)
 
 	// @when [features/data-version.feature] I open the app
+	// @when [features/agent-cli.feature] my agent runs any command
 	conn, err = Open(context.Background(), dataDir, migrations.FS)
 
 	if conn != nil {
@@ -81,23 +87,28 @@ func TestOpenRefusesDataFromANewerVersion(t *testing.T) {
 		t.Fatalf("got %v, want ErrNewerData", err)
 	}
 	// @and [features/data-version.feature] my data is unchanged
+	// @then [features/agent-cli.feature] my data is unchanged
 	if !bytes.Equal(readDatabase(t, dataDir), before) {
 		t.Error("opening data from a newer version changed the database file")
 	}
 }
 
 // @scenario [features/data-version.feature#app-older-data] The app brings older data up to date
+// @scenario [features/agent-cli.feature#cli-older-data] The command line brings older data up to date, as the app does
 func TestOpenBringsOlderDataUpToDate(t *testing.T) {
 	dataDir := t.TempDir()
 	// @given [features/data-version.feature] my data was last updated by an older version of Callback
+	// @given [features/agent-cli.feature] my data was last updated by an older version of Callback
 	older := openBefore(t, dataDir, "00007")
 	createJob(t, NewStore(older), "Acme", "applied", 0)
 	older.Close()
 
 	// @when [features/data-version.feature] I open the app
+	// @when [features/agent-cli.feature] my agent runs any command
 	s := openWith(t, dataDir, migrations.FS)
 
 	// @then [features/data-version.feature] my data is brought up to date
+	// @then [features/agent-cli.feature] my data is brought up to date first
 	// Status changes came in 00007, so its table is only there once the data is up to date.
 	if _, err := s.ListStatusChangesForJob(context.Background(), 1); err != nil {
 		t.Errorf("the newest migration wasn't applied: %v", err)

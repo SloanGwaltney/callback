@@ -127,6 +127,37 @@ func (s *Service) RemoveDocument(ctx context.Context, id int64) error {
 	return nil
 }
 
+// DocumentFile is where an attachment's stored copy is.
+type DocumentFile struct {
+	DocumentID int64
+	// Path is the stored copy's absolute path.
+	Path string
+	// Missing is set when the stored copy is gone from the data directory.
+	Missing bool
+}
+
+// JobDocumentFiles returns where the stored copy of each of a job's attachments is, in the order
+// Job lists them, and whether it's missing. The agent command line shows them, since an agent
+// reads a document straight from its stored copy.
+func (s *Service) JobDocumentFiles(ctx context.Context, jobID int64) ([]DocumentFile, error) {
+	if _, err := s.store.GetJob(ctx, jobID); err != nil {
+		return nil, notFound(err, ErrJobNotFound)
+	}
+	docs, err := s.store.ListDocumentsForJob(ctx, jobID)
+	if err != nil {
+		return nil, err
+	}
+	files := make([]DocumentFile, 0, len(docs))
+	for _, doc := range docs {
+		ok, err := s.files.Exists(doc.StoredPath)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, DocumentFile{DocumentID: doc.ID, Path: s.files.Path(doc.StoredPath), Missing: !ok})
+	}
+	return files, nil
+}
+
 // OpenDocument opens an attachment's stored copy in the OS default app for its file type. If the
 // copy is gone from the data directory, it returns a MissingFileError and keeps the attachment on
 // its job.
