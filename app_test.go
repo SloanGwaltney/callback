@@ -65,3 +65,34 @@ func TestStartupStillStartsWhenTheBackupFails(t *testing.T) {
 	}
 	// No partial backup is left behind (TestAFailedBackupLeavesNothingBehind in internal/backups).
 }
+
+// @scenario [features/data-version.feature#app-newer-data-no-backup] The app takes no daily backup of data from a newer Callback
+func TestStartupTakesNoBackupOfNewerData(t *testing.T) {
+	// @given [features/data-version.feature] my data was last updated by a newer version of Callback than the app
+	// db.Open reports it (TestOpenRefusesDataFromANewerVersion in internal/db), and main then makes
+	// a NewNewerDataApp, which has no backups service; this fake would record any call.
+	a := NewNewerDataApp()
+	// @and [features/data-version.feature] no backup has been taken today
+	b := &fakeBackups{}
+	a.backups = b
+
+	// @when [features/data-version.feature] I open the app
+	a.startup(context.Background())
+
+	// @then [features/data-version.feature] no daily backup is taken
+	// @and [features/data-version.feature] no backup is removed
+	// TakeDaily is what takes the day's backup and then removes the oldest ones.
+	if b.calls != 0 {
+		t.Errorf("TakeDaily called %d times, want none", b.calls)
+	}
+}
+
+// @scenario [features/data-version.feature#app-newer-data] The app refuses data a newer Callback has updated
+func TestDataIsNewer(t *testing.T) {
+	if !NewNewerDataApp().DataIsNewer() {
+		t.Error("an App for newer data reports the data isn't newer")
+	}
+	if NewApp(nil, &fakeBackups{}).DataIsNewer() {
+		t.Error("an App with services reports the data is newer")
+	}
+}
