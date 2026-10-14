@@ -5,7 +5,7 @@ Feature: Daily backups
 
   Rule: Callback backs up my data once on each day it runs
 
-    @status:not-implemented @id:backup-on-first-start
+    @status:implemented @id:backup-on-first-start
     Scenario Outline: The first start of the day takes a backup
       Given today is 2026-10-14
       And no backup has been taken today
