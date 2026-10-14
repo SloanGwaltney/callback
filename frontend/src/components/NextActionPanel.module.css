@@ -105,7 +105,3 @@
 .primary {
 	composes: primary from "./form.module.css";
 }
-
-.error {
-	composes: error from "./form.module.css";
-}

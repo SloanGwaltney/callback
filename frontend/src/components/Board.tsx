@@ -40,11 +40,12 @@ import {
 	placeInColumn,
 	searching,
 } from "../board/boardView";
-import { errorMessage } from "../hooks/errors";
 import type { Board as BoardData, Card, Move } from "../hooks/types";
+import { useAction } from "../hooks/useAction";
 import { STATUS_CLOSED } from "../jobs/constants";
 import styles from "./Board.module.css";
 import { ClosingReasonDialog } from "./ClosingReasonDialog";
+import { ErrorMessage } from "./ErrorMessage";
 import { JobCard } from "./JobCard";
 
 type Props = {
@@ -145,7 +146,7 @@ export function Board({
 	const [dragged, setDragged] = useState<Card | null>(null);
 	// closing is a move into Closed waiting for its closing reason.
 	const [closing, setClosing] = useState<Move | null>(null);
-	const [error, setError] = useState("");
+	const { error, setError, run } = useAction();
 
 	const sensors = useSensors(
 		// A short distance before a drag starts lets a click on the card open it.
@@ -180,10 +181,7 @@ export function Board({
 		}
 	});
 
-	const save = (move: Move) => {
-		setError("");
-		onMove(move).catch((err) => setError(errorMessage(err)));
-	};
+	const save = (move: Move) => void run(() => onMove(move));
 
 	const dragOver = ({ active, over }: DragOverEvent) => {
 		if (over) {
@@ -274,11 +272,7 @@ export function Board({
 							: `No jobs match "${search.trim()}" with the "${filterLabel}" filter.`}
 				</p>
 			)}
-			{error !== "" && (
-				<p role="alert" className={styles.error}>
-					{error}
-				</p>
-			)}
+			<ErrorMessage message={error} className={styles.error} />
 			<DndContext
 				sensors={sensors}
 				collisionDetection={collision}

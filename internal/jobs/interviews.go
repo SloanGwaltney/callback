@@ -73,6 +73,12 @@ type NextInterview struct {
 	Today bool `json:"today"`
 }
 
+// Details returns the interview's details as the user fills them in, so a change can start from
+// what's saved and keep what it doesn't change.
+func (i Interview) Details() InterviewDetails {
+	return InterviewDetails{Date: i.Date, Time: i.Time, Kind: i.Kind, Notes: i.Notes}
+}
+
 func interviewFromRow(row store.Interview, today string) Interview {
 	return Interview{
 		ID:    row.ID,

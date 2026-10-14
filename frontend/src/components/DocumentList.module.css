@@ -76,7 +76,3 @@
 	font-size: var(--font-size-sm);
 	white-space: nowrap;
 }
-
-.error {
-	composes: error from "./form.module.css";
-}

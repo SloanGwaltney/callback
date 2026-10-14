@@ -5,6 +5,7 @@ import { AddJobDialog } from "./components/AddJobDialog";
 import { Board } from "./components/Board";
 import { DocumentLibrary } from "./components/DocumentLibrary";
 import { DueFilterSelect } from "./components/DueFilterSelect";
+import { ErrorMessage } from "./components/ErrorMessage";
 import { JobDetails } from "./components/JobDetails";
 import { SearchBar } from "./components/SearchBar";
 import { useBoard } from "./hooks/useBoard";
@@ -64,11 +65,7 @@ export default function App() {
 				</button>
 			</header>
 			<main className={styles.main}>
-				{error !== "" && (
-					<p role="alert" className={styles.error}>
-						{error}
-					</p>
-				)}
+				<ErrorMessage message={error} className={styles.error} />
 				{board && (
 					<Board
 						board={board}

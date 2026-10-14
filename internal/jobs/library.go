@@ -2,8 +2,6 @@ package jobs
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -56,11 +54,11 @@ func (s *Service) LibraryFiles(ctx context.Context) ([]DocumentFile, error) {
 	}
 	files := make([]DocumentFile, 0, len(rows))
 	for _, row := range rows {
-		ok, err := s.files.Exists(row.StoredPath)
+		f, err := s.documentFile(row.ID, row.StoredPath)
 		if err != nil {
 			return nil, err
 		}
-		files = append(files, DocumentFile{DocumentID: row.ID, Path: s.files.Path(row.StoredPath), Missing: !ok})
+		files = append(files, f)
 	}
 	return files, nil
 }
@@ -74,21 +72,16 @@ func (s *Service) AddLibraryDocument(ctx context.Context, src, description strin
 		return LibraryDocument{}, err
 	}
 
-	// The file is copied before its row is written, so a failure leaves at worst an orphaned copy,
-	// which is removed below, never a row pointing at a missing file.
-	stored, err := s.files.Save(src)
-	if err != nil {
-		return LibraryDocument{}, err
-	}
-	row, err := s.store.CreateLibraryDocument(ctx, store.CreateLibraryDocumentParams{
-		FileName:    filepath.Base(src),
-		Description: strings.TrimSpace(description),
-		StoredPath:  stored,
+	var row store.LibraryDocument
+	err := s.saveCopy(src, func(stored string) (err error) {
+		row, err = s.store.CreateLibraryDocument(ctx, store.CreateLibraryDocumentParams{
+			FileName:    filepath.Base(src),
+			Description: strings.TrimSpace(description),
+			StoredPath:  stored,
+		})
+		return err
 	})
 	if err != nil {
-		if rmErr := s.files.Remove(stored); rmErr != nil {
-			return LibraryDocument{}, errors.Join(err, rmErr)
-		}
 		return LibraryDocument{}, err
 	}
 	return libraryDocumentFromRow(row), nil
@@ -119,15 +112,7 @@ func (s *Service) RemoveLibraryDocument(ctx context.Context, id int64) error {
 	if err != nil {
 		return notFound(err, ErrLibraryDocumentNotFound)
 	}
-	// The row goes first, so a failure leaves an orphaned copy rather than a row pointing at a
-	// missing file.
-	if err := s.store.DeleteLibraryDocument(ctx, id); err != nil {
-		return err
-	}
-	if err := s.files.Remove(doc.StoredPath); err != nil {
-		return fmt.Errorf("the document was removed, but its file couldn't be deleted: %w", err)
-	}
-	return nil
+	return s.removeCopy(doc.StoredPath, func() error { return s.store.DeleteLibraryDocument(ctx, id) })
 }
 
 // OpenLibraryDocument opens a library document's stored copy in the OS default app for its file
@@ -138,13 +123,5 @@ func (s *Service) OpenLibraryDocument(ctx context.Context, id int64) error {
 	if err != nil {
 		return notFound(err, ErrLibraryDocumentNotFound)
 	}
-	ok, err := s.files.Exists(doc.StoredPath)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return &MissingFileError{FileName: doc.FileName}
-	}
-	// Opens the app's copy, never the original, which may have moved.
-	return s.opener.Open(s.files.Path(doc.StoredPath))
+	return s.openCopy(doc.FileName, doc.StoredPath)
 }

@@ -164,14 +164,7 @@ func updateContact(c *call) error {
 	if err != nil {
 		return missingErr("contact", c.id, err, jobs.ErrContactNotFound)
 	}
-	d := jobs.ContactDetails{
-		Name:         contact.Name,
-		Relationship: contact.Relationship,
-		Email:        contact.Email,
-		Phone:        contact.Phone,
-		ProfileLink:  contact.ProfileLink,
-		Notes:        contact.Notes,
-	}
+	d := contact.Details()
 	if err := c.applyContact(&d); err != nil {
 		return err
 	}
@@ -240,7 +233,7 @@ func updateInterview(c *call) error {
 	if err != nil {
 		return missingErr("interview", c.id, err, jobs.ErrInterviewNotFound)
 	}
-	d := jobs.InterviewDetails{Date: interview.Date, Time: interview.Time, Kind: interview.Kind, Notes: interview.Notes}
+	d := interview.Details()
 	if err := c.applyInterview(&d); err != nil {
 		return err
 	}

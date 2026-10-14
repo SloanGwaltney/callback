@@ -118,10 +118,6 @@
 	overflow-wrap: anywhere;
 }
 
-.warning {
-	margin: 0;
-}
-
 .field {
 	composes: field from "./form.module.css";
 }
@@ -142,14 +138,6 @@
 .primary {
 	composes: primary from "./form.module.css";
 	white-space: nowrap;
-}
-
-.danger {
-	composes: danger from "./form.module.css";
-}
-
-.error {
-	composes: error from "./form.module.css";
 }
 
 .pageError {

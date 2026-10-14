@@ -57,6 +57,22 @@ type Job struct {
 	StatusHistory []StatusChange `json:"statusHistory"`
 }
 
+// Details returns the job's details as the user fills them in, so a change can start from what's
+// saved and keep what it doesn't change.
+func (j Job) Details() Details {
+	return Details{
+		Company:     j.Company,
+		Role:        j.Role,
+		Description: j.Description,
+		Link:        j.Link,
+		Salary:      j.Salary,
+		Location:    j.Location,
+		Notes:       j.Notes,
+		DateApplied: j.DateApplied,
+		Interest:    j.Interest,
+	}
+}
+
 // AddJob adds a job to the top of the status column, or of Saved when status is "", and starts its
 // status history with that status today.
 // @scenario [features/job-status-history.feature#history-starts-when-added] A new job's history starts with the status it was added to

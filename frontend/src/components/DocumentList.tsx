@@ -1,9 +1,10 @@
 import { useId, useState } from "react";
-import { errorMessage } from "../hooks/errors";
 import type { JobDocument } from "../hooks/types";
+import { useAction } from "../hooks/useAction";
 import { useDocuments } from "../hooks/useDocuments";
 import { DOCUMENT_KINDS } from "../jobs/constants";
 import styles from "./DocumentList.module.css";
+import { ErrorMessage } from "./ErrorMessage";
 
 type Props = {
 	jobId: number;
@@ -31,19 +32,13 @@ type Props = {
 export function DocumentList({ jobId, documents, onChanged }: Props) {
 	const { attach, setKind, remove, open } = useDocuments();
 	const [kind, setNewKind] = useState("resume");
-	const [error, setError] = useState("");
+	const { error, run } = useAction();
 	const kindId = useId();
 
-	// run calls the backend, then reloads the job, or shows why it failed.
-	const run = async (action: () => Promise<unknown>, reload: boolean) => {
-		setError("");
-		try {
-			await action();
-			if (reload) {
-				onChanged();
-			}
-		} catch (err) {
-			setError(errorMessage(err));
+	// change calls the backend, then reloads the job, or shows why it failed.
+	const change = async (action: () => Promise<unknown>) => {
+		if (await run(action)) {
+			onChanged();
 		}
 	};
 
@@ -62,7 +57,7 @@ export function DocumentList({ jobId, documents, onChanged }: Props) {
 								type="button"
 								className={styles.fileName}
 								title={`Open ${doc.fileName}`}
-								onClick={() => run(() => open(doc.id), false)}
+								onClick={() => run(() => open(doc.id))}
 							>
 								{doc.fileName}
 							</button>
@@ -70,7 +65,7 @@ export function DocumentList({ jobId, documents, onChanged }: Props) {
 								className={styles.select}
 								aria-label={`Kind of ${doc.fileName}`}
 								value={doc.kind}
-								onChange={(e) => run(() => setKind(doc.id, e.target.value), true)}
+								onChange={(e) => change(() => setKind(doc.id, e.target.value))}
 							>
 								{DOCUMENT_KINDS.map((k) => (
 									<option key={k.value} value={k.value}>
@@ -82,7 +77,7 @@ export function DocumentList({ jobId, documents, onChanged }: Props) {
 								type="button"
 								className={styles.button}
 								aria-label={`Remove ${doc.fileName}`}
-								onClick={() => run(() => remove(doc.id), true)}
+								onClick={() => change(() => remove(doc.id))}
 							>
 								Remove
 							</button>
@@ -109,16 +104,12 @@ export function DocumentList({ jobId, documents, onChanged }: Props) {
 				<button
 					type="button"
 					className={styles.button}
-					onClick={() => run(() => attach(jobId, kind), true)}
+					onClick={() => change(() => attach(jobId, kind))}
 				>
 					Attach a document…
 				</button>
 			</div>
-			{error !== "" && (
-				<p role="alert" className={styles.error}>
-					{error}
-				</p>
-			)}
+			<ErrorMessage message={error} />
 		</section>
 	);
 }

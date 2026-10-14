@@ -1,9 +1,11 @@
 import { type FormEvent, useId, useState } from "react";
-import { errorMessage } from "../hooks/errors";
 import type { LibraryDocument } from "../hooks/types";
+import { useAction } from "../hooks/useAction";
 import { useLibrary } from "../hooks/useLibrary";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { Dialog } from "./Dialog";
 import styles from "./DocumentLibrary.module.css";
+import { ErrorMessage } from "./ErrorMessage";
 
 type Props = {
 	// onBack goes back to the job search board.
@@ -45,17 +47,7 @@ export function DocumentLibrary({ onBack }: Props) {
 	const [adding, setAdding] = useState<string | null>(null);
 	const [describing, setDescribing] = useState<LibraryDocument | null>(null);
 	const [removing, setRemoving] = useState<LibraryDocument | null>(null);
-	const [error, setError] = useState("");
-
-	// run calls the backend, or shows why it failed.
-	const run = async (action: () => Promise<unknown>) => {
-		setError("");
-		try {
-			await action();
-		} catch (err) {
-			setError(errorMessage(err));
-		}
-	};
+	const { error, run } = useAction();
 
 	const chooseFile = () =>
 		run(async () => {
@@ -83,11 +75,7 @@ export function DocumentLibrary({ onBack }: Props) {
 					Documents you use across your job search, like your base resume and cover letter
 					templates. Each is the app's own copy, so it opens even if you move the original.
 				</p>
-				{shownError !== "" && (
-					<p role="alert" className={styles.pageError}>
-						{shownError}
-					</p>
-				)}
+				<ErrorMessage message={shownError} className={styles.pageError} />
 				{library.documents?.length === 0 && (
 					<div className={styles.empty}>
 						<p className={styles.emptyText}>Your library is empty.</p>
@@ -161,8 +149,10 @@ export function DocumentLibrary({ onBack }: Props) {
 				/>
 			)}
 			{removing && (
-				<ConfirmRemove
-					fileName={removing.fileName}
+				<ConfirmDialog
+					title={`Remove ${removing.fileName}?`}
+					message={`${removing.fileName} will be removed from the library. The original file on your computer is kept.`}
+					confirmLabel="Remove"
 					onConfirm={async () => {
 						await library.remove(removing.id);
 						setRemoving(null);
@@ -188,17 +178,12 @@ type FormProps = {
 // backend refuses, the dialog stays open with what was entered and says why.
 function DescriptionForm({ title, fileName, initial, submitLabel, onSave, onCancel }: FormProps) {
 	const [description, setDescription] = useState(initial);
-	const [error, setError] = useState("");
+	const { error, run } = useAction();
 	const id = useId();
 
-	const submit = async (e: FormEvent) => {
+	const submit = (e: FormEvent) => {
 		e.preventDefault();
-		setError("");
-		try {
-			await onSave(description);
-		} catch (err) {
-			setError(errorMessage(err));
-		}
+		void run(() => onSave(description));
 	};
 
 	return (
@@ -215,11 +200,7 @@ function DescriptionForm({ title, fileName, initial, submitLabel, onSave, onCanc
 						onChange={(e) => setDescription(e.target.value)}
 					/>
 				</div>
-				{error !== "" && (
-					<p role="alert" className={styles.error}>
-						{error}
-					</p>
-				)}
+				<ErrorMessage message={error} />
 				<div className={styles.actions}>
 					<button type="button" className={styles.button} onClick={onCancel}>
 						Cancel
@@ -229,44 +210,6 @@ function DescriptionForm({ title, fileName, initial, submitLabel, onSave, onCanc
 					</button>
 				</div>
 			</form>
-		</Dialog>
-	);
-}
-
-type ConfirmProps = {
-	fileName: string;
-	onConfirm: () => Promise<void>;
-	onCancel: () => void;
-};
-
-function ConfirmRemove({ fileName, onConfirm, onCancel }: ConfirmProps) {
-	const [error, setError] = useState("");
-	const confirm = async () => {
-		setError("");
-		try {
-			await onConfirm();
-		} catch (err) {
-			setError(errorMessage(err));
-		}
-	};
-	return (
-		<Dialog title={`Remove ${fileName}?`} onClose={onCancel}>
-			<p className={styles.warning}>
-				{fileName} will be removed from the library. The original file on your computer is kept.
-			</p>
-			{error !== "" && (
-				<p role="alert" className={styles.error}>
-					{error}
-				</p>
-			)}
-			<div className={styles.actions}>
-				<button type="button" className={styles.button} onClick={onCancel}>
-					Cancel
-				</button>
-				<button type="button" className={styles.danger} onClick={confirm}>
-					Remove
-				</button>
-			</div>
 		</Dialog>
 	);
 }

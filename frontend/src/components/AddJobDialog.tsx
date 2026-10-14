@@ -1,9 +1,10 @@
 import { type FormEvent, useId, useState } from "react";
-import { errorMessage } from "../hooks/errors";
 import type { Details } from "../hooks/types";
+import { useAction } from "../hooks/useAction";
 import { STATUS_SAVED } from "../jobs/constants";
 import styles from "./AddJobDialog.module.css";
 import { Dialog } from "./Dialog";
+import { ErrorMessage } from "./ErrorMessage";
 import { emptyDetails, JobFields } from "./JobFields";
 
 type Props = {
@@ -26,18 +27,15 @@ type Props = {
 export function AddJobDialog({ columns, initialStatus, onAdd, onCancel }: Props) {
 	const [details, setDetails] = useState<Details>(emptyDetails);
 	const [status, setStatus] = useState(initialStatus || STATUS_SAVED);
-	const [error, setError] = useState("");
+	const { error, run } = useAction();
 	const [saving, setSaving] = useState(false);
 	const columnId = useId();
 
 	const submit = async (e: FormEvent) => {
 		e.preventDefault();
 		setSaving(true);
-		try {
-			await onAdd(details, status);
-		} catch (err) {
-			// The dialog stays open with what was entered.
-			setError(errorMessage(err));
+		// When adding fails, the dialog stays open with what was entered.
+		if (!(await run(() => onAdd(details, status)))) {
 			setSaving(false);
 		}
 	};
@@ -61,11 +59,7 @@ export function AddJobDialog({ columns, initialStatus, onAdd, onCancel }: Props)
 						))}
 					</select>
 				</div>
-				{error !== "" && (
-					<p role="alert" className={styles.error}>
-						{error}
-					</p>
-				)}
+				<ErrorMessage message={error} />
 				<div className={styles.actions}>
 					<button type="button" className={styles.button} onClick={onCancel}>
 						Cancel

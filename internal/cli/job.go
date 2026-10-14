@@ -346,17 +346,7 @@ func updateJob(c *call) error {
 	if err != nil {
 		return jobErr(id, err)
 	}
-	d := jobs.Details{
-		Company:     job.Company,
-		Role:        job.Role,
-		Description: job.Description,
-		Link:        job.Link,
-		Salary:      job.Salary,
-		Location:    job.Location,
-		Notes:       job.Notes,
-		DateApplied: job.DateApplied,
-		Interest:    job.Interest,
-	}
+	d := job.Details()
 	if err := c.applyDetails(&d); err != nil {
 		return err
 	}
@@ -437,10 +427,6 @@ func moveJob(c *call) error {
 	return c.printJob(id)
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-close-job] Close a job with a reason
-// @scenario [features/agent-cli-jobs.feature#cli-close-other] Close a job with my own reason
-// @scenario [features/agent-cli-jobs.feature#cli-close-needs-reason] Closing a job needs a reason
-// @scenario [features/agent-cli-jobs.feature#cli-change-closing-reason] Change a closed job's reason
 // moveIndex is where in the column a job moves to, from 0 at the top: the top unless --bottom or
 // --position says otherwise. The jobs service puts an index past the bottom at the bottom.
 func moveIndex(c *call) (int, error) {
@@ -460,6 +446,10 @@ func moveIndex(c *call) (int, error) {
 	return *place - 1, nil
 }
 
+// @scenario [features/agent-cli-jobs.feature#cli-close-job] Close a job with a reason
+// @scenario [features/agent-cli-jobs.feature#cli-close-other] Close a job with my own reason
+// @scenario [features/agent-cli-jobs.feature#cli-close-needs-reason] Closing a job needs a reason
+// @scenario [features/agent-cli-jobs.feature#cli-change-closing-reason] Change a closed job's reason
 func closeJob(c *call) error {
 	id := c.id
 	given, ok := c.value("reason")

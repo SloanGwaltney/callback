@@ -1,7 +1,8 @@
 import { type FormEvent, useId, useState } from "react";
-import { errorMessage } from "../hooks/errors";
 import type { NextAction } from "../hooks/types";
+import { useAction } from "../hooks/useAction";
 import { DUE_LABELS, DUE_OVERDUE } from "../jobs/constants";
+import { ErrorMessage } from "./ErrorMessage";
 import styles from "./NextActionPanel.module.css";
 
 type Props = {
@@ -26,17 +27,8 @@ type Props = {
 // @scenario [features/job-next-action.feature#view-next-action] See the next action when opening the card
 export function NextActionPanel({ nextAction, onSet, onClear }: Props) {
 	const [editing, setEditing] = useState(false);
-	const [error, setError] = useState("");
+	const { error, run } = useAction();
 	const titleId = useId();
-
-	const act = async (change: () => Promise<void>) => {
-		setError("");
-		try {
-			await change();
-		} catch (err) {
-			setError(errorMessage(err));
-		}
-	};
 
 	return (
 		<section className={styles.panel} aria-labelledby={titleId}>
@@ -79,7 +71,7 @@ export function NextActionPanel({ nextAction, onSet, onClear }: Props) {
 							<button
 								type="button"
 								className={styles.button}
-								onClick={() => act(() => onSet(nextAction.text, ""))}
+								onClick={() => run(() => onSet(nextAction.text, ""))}
 							>
 								Clear date
 							</button>
@@ -88,7 +80,7 @@ export function NextActionPanel({ nextAction, onSet, onClear }: Props) {
 							type="button"
 							className={styles.button}
 							title="Clear the next action once it's done"
-							onClick={() => act(onClear)}
+							onClick={() => run(onClear)}
 						>
 							Clear next action
 						</button>
@@ -97,11 +89,7 @@ export function NextActionPanel({ nextAction, onSet, onClear }: Props) {
 			) : (
 				<p className={styles.none}>No next action.</p>
 			)}
-			{error !== "" && (
-				<p role="alert" className={styles.error}>
-					{error}
-				</p>
-			)}
+			<ErrorMessage message={error} />
 		</section>
 	);
 }
@@ -117,17 +105,12 @@ type FormProps = {
 function NextActionForm({ initial, onSave, onCancel }: FormProps) {
 	const [text, setText] = useState(initial?.text ?? "");
 	const [date, setDate] = useState(initial?.expectedDate ?? "");
-	const [error, setError] = useState("");
+	const { error, run } = useAction();
 	const id = useId();
 
-	const submit = async (e: FormEvent) => {
+	const submit = (e: FormEvent) => {
 		e.preventDefault();
-		setError("");
-		try {
-			await onSave(text, date);
-		} catch (err) {
-			setError(errorMessage(err));
-		}
+		void run(() => onSave(text, date));
 	};
 
 	return (
@@ -159,11 +142,7 @@ function NextActionForm({ initial, onSave, onCancel }: FormProps) {
 					/>
 				</div>
 			</div>
-			{error !== "" && (
-				<p role="alert" className={styles.error}>
-					{error}
-				</p>
-			)}
+			<ErrorMessage message={error} />
 			<div className={styles.actions}>
 				<button type="button" className={styles.button} onClick={onCancel}>
 					Cancel
