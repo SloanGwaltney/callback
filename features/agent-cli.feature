@@ -41,7 +41,7 @@ Feature: Agent command line
       And it reads how the commands fit together, from finding a job by its ID to changing it
       And it reads how output, IDs, dates, long text, and errors work
 
-    @status:not-implemented @id:cli-overview-working-safely
+    @status:implemented @id:cli-overview-working-safely
     Scenario: The overview tells my agent how to work safely
       When my agent asks Callback for its overview
       Then it's told to make a backup before changing many jobs at once, and how long to keep it

@@ -54,7 +54,7 @@ Feature: Daily backups
       When a new daily backup is taken
       Then all 4 daily backups are kept
 
-    @status:not-implemented @id:backup-rotation-keeps-agent-backups
+    @status:implemented @id:backup-rotation-keeps-agent-backups
     Scenario: Removing old daily backups never removes a backup my agent made
       Given there are 15 daily backups
       And my agent has made a backup named "before-cleanup"
