@@ -50,3 +50,19 @@ files is stored. Each of those is its own decision.
 
 - universal
 - [docs/adr/0002-use-wails-for-the-desktop-shell.md] Use Wails for the desktop shell
+
+## Notes
+
+- **2026-10-14:** With the data model now built, the relational argument in Reasons turned out
+  weaker than expected. Nearly everything belongs to a single job (its contacts, interviews,
+  documents, and status changes), so one file per job, with the board as a view over the files,
+  would have been workable. The decision still holds, for reasons that came later. The agent CLI
+  ([docs/adr/0023-let-users-drive-agent-tasks-from-their-own-agent-through-a-cli.md]) writes to
+  the data while the app is open, and SQLite's locking keeps the two writers from overwriting each
+  other's changes. With files, we would have to build cross-process locking and change detection
+  ourselves. Reordering cards also renumbers every job in a column
+  ([docs/adr/0015-store-card-order-as-an-integer-position.md]), which one transaction handles.
+  With files, each job's position would have to live either in that job's file, so that one
+  reorder rewrites several files, or in a separate order file that the board joins against. The
+  separate file would bring back the very relationship management that this note says the data
+  otherwise doesn't need. Either could be done, but less cleanly than in SQLite.
