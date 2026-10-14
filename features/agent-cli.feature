@@ -20,7 +20,7 @@ Feature: Agent command line
       Then it sees every option for moving a job
       And it sees every status a job can be moved to
 
-    @status:not-implemented @id:cli-help-lists-choices
+    @status:implemented @id:cli-help-lists-choices
     Scenario Outline: The help lists the values for every option that takes a fixed set
       When my agent asks for help on <command>
       Then it sees every <choice> it can use
