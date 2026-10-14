@@ -242,6 +242,28 @@ func TestOpenDocument(t *testing.T) {
 	}
 }
 
+// The restore that brings back the document without its file is
+// TestRestoreListsARemovedDocumentWithoutItsFile in internal/backups.
+// @scenario [features/agent-backups.feature#restore-missing-document-file] A document removed after the backup is listed again but its file is gone
+func TestOpenADocumentRestoredWithoutItsFile(t *testing.T) {
+	h := newHarness(t)
+	id := h.acme(StatusApplied)
+	// A restored document's row is back, but its stored copy was deleted when it was removed.
+	docID := h.seedDoc(id, "resume-2026.pdf", KindResume)
+	delete(h.files.copies, h.store.docs[docID].StoredPath)
+
+	err := h.svc.OpenDocument(h.ctx, docID)
+
+	// @but [features/agent-backups.feature] opening it tells me its file can't be found
+	var missing *MissingFileError
+	if !errors.As(err, &missing) || err.Error() != `the file for "resume-2026.pdf" can't be found` {
+		t.Errorf("err = %v, want a MissingFileError", err)
+	}
+	if len(h.opener.opened) != 0 {
+		t.Errorf("opened %v", h.opener.opened)
+	}
+}
+
 // @scenario [features/job-documents.feature#open-missing-document] Told when an attached document's file is missing
 func TestOpenMissingDocument(t *testing.T) {
 	h := newHarness(t)
@@ -379,5 +401,82 @@ func TestSameDocumentOnManyJobs(t *testing.T) {
 	}
 	if len(h.files.copies) != 1 {
 		t.Errorf("copies left: %v, want Globex's", h.files.copies)
+	}
+}
+
+func TestJobDocumentFiles(t *testing.T) {
+	h := newHarness(t)
+	id := h.acme(StatusSaved)
+	resume := h.seedDoc(id, "resume-2026.pdf", KindResume)
+	letter := h.seedDoc(id, "letter.pdf", KindCoverLetter)
+	delete(h.files.copies, h.store.docs[letter].StoredPath)
+
+	files, err := h.svc.JobDocumentFiles(h.ctx, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := []DocumentFile{
+		{DocumentID: resume, Path: "/data/" + h.store.docs[resume].StoredPath},
+		{DocumentID: letter, Path: "/data/" + h.store.docs[letter].StoredPath, Missing: true},
+	}
+	if !slices.Equal(files, want) {
+		t.Errorf("files = %v, want %v", files, want)
+	}
+}
+
+func TestJobDocumentFilesUnknownJob(t *testing.T) {
+	h := newHarness(t)
+	if _, err := h.svc.JobDocumentFiles(h.ctx, 999); !errors.Is(err, ErrJobNotFound) {
+		t.Errorf("err = %v, want ErrJobNotFound", err)
+	}
+}
+
+func TestDocumentKindLabels(t *testing.T) {
+	for kind, want := range map[DocumentKind]string{KindResume: "Resume", KindCoverLetter: "Cover letter", KindOther: "Other"} {
+		if got := kind.Label(); got != want {
+			t.Errorf("%q.Label() = %q, want %q", kind, got, want)
+		}
+	}
+}
+
+func TestDocument(t *testing.T) {
+	h := newHarness(t)
+	id := h.acme(StatusSaved)
+	docID := h.seedDoc(id, "acme-resume.pdf", KindResume)
+
+	got, err := h.svc.Document(h.ctx, docID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := (Document{ID: docID, JobID: id, Kind: KindResume, FileName: "acme-resume.pdf"}); got != want {
+		t.Errorf("Document = %+v, want %+v", got, want)
+	}
+	if _, err := h.svc.Document(h.ctx, 999); !errors.Is(err, ErrDocumentNotFound) {
+		t.Errorf("err = %v, want ErrDocumentNotFound", err)
+	}
+}
+
+func TestAttachMissingFile(t *testing.T) {
+	h := newHarness(t)
+	id := h.acme(StatusSaved)
+	h.files.absent = []string{"Documents/gone.pdf"}
+
+	_, err := h.svc.AttachDocument(h.ctx, id, "Documents/gone.pdf", KindResume)
+
+	wantValidation(t, err, "there's no file at Documents/gone.pdf")
+	if len(h.store.docs) != 0 || len(h.files.copies) != 0 {
+		t.Errorf("attached: rows %v, copies %v", h.store.docs, h.files.copies)
+	}
+}
+
+func TestDocumentKindsListsEveryOne(t *testing.T) {
+	if len(DocumentKinds) != len(documentKindLabels) {
+		t.Errorf("DocumentKinds has %d, labels have %d", len(DocumentKinds), len(documentKindLabels))
+	}
+	for _, k := range DocumentKinds {
+		if !k.valid() {
+			t.Errorf("%q isn't a document kind", k)
+		}
 	}
 }

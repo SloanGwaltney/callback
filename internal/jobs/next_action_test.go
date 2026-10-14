@@ -576,3 +576,25 @@ func TestNextActionDue(t *testing.T) {
 		}
 	}
 }
+
+// The command line lists and filters jobs by the due marks the board gives; its tests in
+// internal/cli take the marks as given.
+// @scenario [features/agent-cli-jobs.feature#cli-list-overdue-marked] The list marks a next action that's due or overdue
+// @scenario [features/agent-cli-jobs.feature#cli-filter-overdue] List only the jobs whose next action is overdue
+func TestDueMarksForTheCommandLine(t *testing.T) {
+	h := newHarness(t)
+	// @given [features/agent-cli-jobs.feature] today is 2026-10-14
+	h.setToday(2026, time.October, 14)
+	acme := h.seedNextAction("Acme", StatusApplied, "Follow up", "2026-10-10")
+	globex := h.seedNextAction("Globex", StatusApplied, "Follow up", "2026-10-14")
+
+	acmeCard, _ := h.card(t, acme)
+	globexCard, _ := h.card(t, globex)
+
+	if due := nextActionDueOf(acmeCard.NextAction); due != DueOverdue {
+		t.Errorf("Acme's next action is %q, want overdue", due)
+	}
+	if due := nextActionDueOf(globexCard.NextAction); due != DueToday {
+		t.Errorf("Globex's next action is %q, want due today", due)
+	}
+}

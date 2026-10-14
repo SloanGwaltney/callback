@@ -34,6 +34,10 @@ export function ClearNextAction(arg1) {
   return window['go']['main']['App']['ClearNextAction'](arg1);
 }
 
+export function DataIsNewer() {
+  return window['go']['main']['App']['DataIsNewer']();
+}
+
 export function DeleteJob(arg1) {
   return window['go']['main']['App']['DeleteJob'](arg1);
 }

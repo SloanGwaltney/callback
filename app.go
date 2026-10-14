@@ -16,24 +16,39 @@ import (
 type App struct {
 	ctx     context.Context
 	jobs    *jobs.Service
-	backups dailyBackups
+	backups startupBackups
+	// newerData is set when a newer version of Callback has updated the data. The app then has no
+	// services, and only tells the user to update Callback.
+	newerData bool
 	// logf reports what went wrong where the user can't be shown it.
 	logf func(format string, args ...any)
 }
 
-// dailyBackups takes the daily backup. *backups.Service satisfies it.
-type dailyBackups interface {
+// startupBackups takes the daily backup and removes expired agent backups. *backups.Service
+// satisfies it. The app has no restore; agents restore through the command line.
+type startupBackups interface {
 	TakeDaily(ctx context.Context) (bool, error)
+	RemoveExpired() error
 }
 
 // NewApp creates a new App application struct
-func NewApp(jobs *jobs.Service, backups dailyBackups) *App {
+func NewApp(jobs *jobs.Service, backups startupBackups) *App {
 	return &App{jobs: jobs, backups: backups, logf: log.Printf}
 }
 
+// NewNewerDataApp returns an App for data a newer version of Callback has updated
+// (db.ErrNewerData). It leaves the data alone: it takes no backup, and the frontend calls none of
+// the bindings that reach the services, only DataIsNewer. See
+// docs/adr/0025-restore-backups-with-sqlites-online-backup-api-and-check-data-versions-first.md.
+func NewNewerDataApp() *App {
+	return &App{newerData: true, logf: log.Printf}
+}
+
 // startup is called when the app starts. It saves the context for the runtime methods, then takes
-// the day's backup if none has been taken yet. A failed backup is logged and never stops the app
-// from starting.
+// the day's backup if none has been taken yet, and removes the agent backups that have expired. A
+// failed backup, or an expired one that can't be removed yet, is logged and never stops the app
+// from starting; the expired one is removed on a later run. Data from a newer version of Callback
+// gets no backup, and no backup is removed.
 // @scenario [features/daily-backups.feature#backup-on-first-start] The first start of the day takes a backup
 // @scenario [features/daily-backups.feature#backup-once-per-day] Starting Callback again the same day doesn't take another backup
 // @scenario [features/daily-backups.feature#backup-no-catch-up] Days when Callback didn't run get no backup
@@ -41,11 +56,29 @@ func NewApp(jobs *jobs.Service, backups dailyBackups) *App {
 // @scenario [features/daily-backups.feature#backup-keeps-last-15] Taking a 16th daily backup removes the oldest
 // @scenario [features/daily-backups.feature#backup-count-not-days] Backups are kept by count, not by age
 // @scenario [features/daily-backups.feature#backup-failure-still-starts] Callback still starts when the daily backup fails
+// @scenario [features/data-version.feature#app-newer-data-no-backup] The app takes no daily backup of data from a newer Callback
+// @scenario [features/daily-backups.feature#backup-rotation-keeps-agent-backups] Removing old daily backups never removes a backup my agent made
+// @scenario [features/agent-backups.feature#agent-backup-kept-through-last-day] A backup is still kept on the last day it's kept until
+// @scenario [features/agent-backups.feature#agent-backup-expires] An expired backup is removed when Callback runs
+// @scenario [features/agent-backups.feature#agent-backup-expiry-retries] An expired backup that can't be removed yet is removed on a later run
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	if a.newerData {
+		return
+	}
 	if _, err := a.backups.TakeDaily(ctx); err != nil {
 		a.logf("callback: the daily backup failed: %v", err)
 	}
+	if err := a.backups.RemoveExpired(); err != nil {
+		a.logf("callback: removing expired backups failed, and will be tried again next time: %v", err)
+	}
+}
+
+// DataIsNewer reports whether a newer version of Callback has updated the data, in which case the
+// frontend tells the user to update Callback and doesn't show the board.
+// @scenario [features/data-version.feature#app-newer-data] The app refuses data a newer Callback has updated
+func (a *App) DataIsNewer() bool {
+	return a.newerData
 }
 
 // GetBoard returns every job, laid out in status columns.

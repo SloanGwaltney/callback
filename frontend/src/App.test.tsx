@@ -1,6 +1,6 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 import { applyMove } from "./board/boardDnd";
@@ -17,12 +17,21 @@ vi.mock("./hooks/useDocuments", () => ({ useDocuments: vi.fn() }));
 vi.mock("./hooks/useLibrary", () => ({ useLibrary: vi.fn() }));
 
 // mockBoard makes useBoard keep the board in state, adding a job at the top of its column and
-// deleting it as the backend would.
-function mockBoard(start: Board) {
+// deleting it as the backend would. Given a refreshed board, the window getting focus again loads
+// it, as useBoard does (useBoard.test.ts proves that).
+function mockBoard(start: Board, refreshed?: Board) {
 	const added = vi.fn<(details: Details, status: string) => void>();
 	const deleted = vi.fn<(id: number) => void>();
 	vi.mocked(useBoard).mockImplementation(() => {
 		const [current, setCurrent] = useState(start);
+		useEffect(() => {
+			if (!refreshed) {
+				return;
+			}
+			const onFocus = () => setCurrent(refreshed);
+			window.addEventListener("focus", onFocus);
+			return () => window.removeEventListener("focus", onFocus);
+		}, []);
 		return {
 			board: current,
 			error: "",
@@ -537,6 +546,44 @@ describe("App", () => {
 
 			// @then [features/board-pagination.feature#pages-reset-on-reopen] the "Saved" column is on page 1
 			expect(pageOf("Page 1 of 3")).toBeInTheDocument();
+		});
+	});
+
+	describe("refreshing", () => {
+		const many = (n: number) =>
+			Array.from({ length: n }, (_, i) => card(i + 1, `Company ${i + 1}`));
+
+		// @scenario [features/job-board.feature#refresh-keeps-search-and-pages] Refreshing the board keeps my search and the page I'm on
+		it("keeps the search and each column's page when the board reloads", async () => {
+			const applied = many(25);
+			// The agent added a job to Saved while the app was in the background.
+			mockBoard(
+				board({ applied }),
+				board({ applied, saved: [card(99, "Globex", { role: "Data Engineer" })] }),
+			);
+			render(<App />);
+			// @given [features/job-board.feature] the app is open and I have searched for "Engineer"
+			await userEvent.type(screen.getByRole("searchbox", { name: "Search jobs" }), "Engineer");
+			// @and [features/job-board.feature] the "Applied" column is on its second page
+			await userEvent.click(screen.getByRole("button", { name: "Next page of Applied" }));
+			expect(within(column("Applied")).getByText("Page 2 of 3")).toBeInTheDocument();
+			// @and [features/job-board.feature] I switch to another window
+			act(() => {
+				window.dispatchEvent(new Event("blur"));
+			});
+
+			// @when [features/job-board.feature#refresh-keeps-search-and-pages] I switch back to the app
+			act(() => {
+				window.dispatchEvent(new Event("focus"));
+			});
+
+			expect(
+				within(column("Saved")).getByRole("article", { name: "Data Engineer at Globex" }),
+			).toBeInTheDocument();
+			// @then [features/job-board.feature] the search still shows "Engineer"
+			expect(screen.getByRole("searchbox", { name: "Search jobs" })).toHaveValue("Engineer");
+			// @and [features/job-board.feature] the "Applied" column is still on its second page
+			expect(within(column("Applied")).getByText("Page 2 of 3")).toBeInTheDocument();
 		});
 	});
 

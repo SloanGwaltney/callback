@@ -79,7 +79,7 @@ func TestABackupHoldsTheDataButNotTheDocumentsFiles(t *testing.T) {
 	}
 
 	// @when [features/daily-backups.feature] a daily backup is taken
-	svc := New(s, NewDir(dataDir), func() time.Time { return time.Date(2026, time.October, 14, 9, 0, 0, 0, time.Local) })
+	svc := New(s, db.NewRestorer(conn, migrations.FS), NewDir(dataDir), NewAgentDir(dataDir), func() time.Time { return time.Date(2026, time.October, 14, 9, 0, 0, 0, time.Local) })
 	if _, err := svc.TakeDaily(ctx); err != nil {
 		t.Fatal(err)
 	}

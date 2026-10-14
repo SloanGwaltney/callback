@@ -54,16 +54,67 @@ func (f *fakeFolder) Remove(date string) error {
 	return nil
 }
 
+// fakeAgentFolder holds agent backups in memory. failRemove makes the next Remove fail.
+type fakeAgentFolder struct {
+	backups    []AgentBackup
+	failRemove bool
+}
+
+func (f *fakeAgentFolder) Backups() ([]AgentBackup, error) {
+	return slices.Clone(f.backups), nil
+}
+
+func (f *fakeAgentFolder) Save(b AgentBackup, write func(string) error) error {
+	if err := write(f.Path(b) + partialExt); err != nil {
+		return err
+	}
+	f.backups = append(f.backups, b)
+	return nil
+}
+
+func (f *fakeAgentFolder) Remove(b AgentBackup) error {
+	if f.failRemove {
+		f.failRemove = false
+		return errFake
+	}
+	f.backups = slices.DeleteFunc(f.backups, func(o AgentBackup) bool { return o == b })
+	return nil
+}
+
+func (f *fakeAgentFolder) Path(b AgentBackup) string {
+	return "backups/agent/" + b.Name + "." + b.KeptUntil + ".db"
+}
+
+// fakeRestorer records the backups it restored. It runs before as the real one does, and restores
+// nothing if before fails or fail is set.
+type fakeRestorer struct {
+	restored []string
+	fail     error
+}
+
+func (f *fakeRestorer) RestoreFrom(_ context.Context, path string, before func() error) error {
+	if f.fail != nil {
+		return f.fail
+	}
+	if err := before(); err != nil {
+		return err
+	}
+	f.restored = append(f.restored, path)
+	return nil
+}
+
 type harness struct {
-	db     *fakeDB
-	folder *fakeFolder
-	svc    *Service
-	today  time.Time
+	db       *fakeDB
+	restorer *fakeRestorer
+	folder   *fakeFolder
+	agent    *fakeAgentFolder
+	svc      *Service
+	today    time.Time
 }
 
 func newHarness() *harness {
-	h := &harness{db: &fakeDB{}, folder: &fakeFolder{}}
-	h.svc = New(h.db, h.folder, func() time.Time { return h.today })
+	h := &harness{db: &fakeDB{}, restorer: &fakeRestorer{}, folder: &fakeFolder{}, agent: &fakeAgentFolder{}}
+	h.svc = New(h.db, h.restorer, h.folder, h.agent, func() time.Time { return h.today })
 	return h
 }
 

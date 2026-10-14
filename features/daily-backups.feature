@@ -5,7 +5,7 @@ Feature: Daily backups
 
   Rule: Callback backs up my data once on each day it runs
 
-    @status:not-implemented @id:backup-on-first-start
+    @status:implemented @id:backup-on-first-start
     Scenario Outline: The first start of the day takes a backup
       Given today is 2026-10-14
       And no backup has been taken today
@@ -54,7 +54,7 @@ Feature: Daily backups
       When a new daily backup is taken
       Then all 4 daily backups are kept
 
-    @status:not-implemented @id:backup-rotation-keeps-agent-backups
+    @status:implemented @id:backup-rotation-keeps-agent-backups
     Scenario: Removing old daily backups never removes a backup my agent made
       Given there are 15 daily backups
       And my agent has made a backup named "before-cleanup"

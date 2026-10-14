@@ -4,6 +4,7 @@ import (
 	"errors"
 	"slices"
 	"testing"
+	"time"
 
 	"callback/internal/store"
 )
@@ -461,5 +462,39 @@ func TestMoveToUnknownStatus(t *testing.T) {
 	id := h.acme(StatusSaved)
 	if err := h.svc.MoveJob(h.ctx, Move{JobID: id, Status: "ghosted"}); err == nil {
 		t.Error("moving to an unknown status succeeded")
+	}
+}
+
+func TestClosingReasonsListsEveryReason(t *testing.T) {
+	if len(ClosingReasons) != len(reasonLabels) {
+		t.Errorf("ClosingReasons has %d reasons, want %d", len(ClosingReasons), len(reasonLabels))
+	}
+	for _, r := range ClosingReasons {
+		if !r.valid() || r.Label() == "" {
+			t.Errorf("%q has no label", r)
+		}
+	}
+}
+
+// The command line's `job move` calls MoveJob; its test in internal/cli
+// (TestAgentMoveFollowsTheAppsRules) checks the move it asks for.
+// @scenario [features/agent-cli-jobs.feature#cli-move-follows-rules] Moving a job follows the app's rules
+func TestAgentMoveFollowsTheAppsRules(t *testing.T) {
+	h := newHarness(t)
+	// @given [features/agent-cli-jobs.feature] I have a job at "Acme" in "Saved" with no date applied
+	id := h.acme(StatusSaved)
+	h.seedStatusChange(id, StatusSaved, "2026-10-01")
+	// @and [features/agent-cli-jobs.feature] today is 2026-10-14
+	h.setToday(2026, time.October, 14)
+
+	mustMove(t, h, Move{JobID: id, Status: StatusApplied})
+
+	// @then [features/agent-cli-jobs.feature] the job's date applied is 2026-10-14
+	if got := h.job(t, id).DateApplied; got != "2026-10-14" {
+		t.Errorf("date applied = %q, want 2026-10-14", got)
+	}
+	// @and [features/agent-cli-jobs.feature] the move is in the job's status history
+	if got, want := h.history(t, id), []string{"Saved 2026-10-01", "Applied 2026-10-14"}; !slices.Equal(got, want) {
+		t.Errorf("history = %q, want %q", got, want)
 	}
 }

@@ -1,6 +1,6 @@
-# Pushing an annotated vX.Y.Z tag on main runs the checks, builds the app for Windows and Linux, and
-# creates a draft GitHub Release with the binaries and their SHA-256 checksums. The release notes
-# are written by hand in the draft before it's published
+# Pushing an annotated vX.Y.Z tag on main runs the checks, builds the app and its agent command line
+# for Windows and Linux, and creates a draft GitHub Release with the binaries and their SHA-256
+# checksums. The release notes are written by hand in the draft before it's published
 # (docs/adr/0019-release-by-pushing-a-tag-that-builds-a-draft-github-release.md).
 name: release
 
@@ -89,13 +89,19 @@ jobs:
 
       - run: wails build -s -skipbindings -clean -trimpath ${{ matrix.wails-flags }}
 
-      - name: Name the binary for the release
+      # The agent command line, built from the same commit into the same folder as the app, so the
+      # two always share a schema (docs/adr/0023-let-users-drive-agent-tasks-from-their-own-agent-through-a-cli.md).
+      # It's a console program, with no frontend or Wails build tags.
+      - run: go build -trimpath -o "build/bin/callback-cli${{ matrix.target == 'windows' && '.exe' || '' }}" ./cmd/callback-cli
+
+      - name: Name the binaries for the release
         run: |
           mkdir dist
           if [ "${{ matrix.target }}" = windows ]; then
             mv build/bin/callback.exe "dist/callback-$GITHUB_REF_NAME-windows-amd64.exe"
+            mv build/bin/callback-cli.exe "dist/callback-cli-$GITHUB_REF_NAME-windows-amd64.exe"
           else
-            tar -czf "dist/callback-$GITHUB_REF_NAME-linux-amd64.tar.gz" -C build/bin callback
+            tar -czf "dist/callback-$GITHUB_REF_NAME-linux-amd64.tar.gz" -C build/bin callback callback-cli
           fi
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

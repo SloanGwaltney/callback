@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"embed"
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -38,22 +39,28 @@ func main() {
 	if err != nil {
 		fail(err)
 	}
-	conn, err := db.Open(context.Background(), dataDir, migrations.FS)
-	if err != nil {
-		fail(err)
-	}
-	defer conn.Close()
 	now, err := clock(os.Getenv, time.Now)
 	if err != nil {
 		fail(err)
 	}
 
-	// Create an instance of the app structure
-	store := db.NewStore(conn)
-	app := NewApp(
-		jobs.New(store, docfiles.New(dataDir), desktop.Opener{}, now),
-		backups.New(store, backups.NewDir(dataDir), now),
-	)
+	// Create an instance of the app structure. Data a newer version of Callback has updated is left
+	// unopened, and the app only tells the user to update Callback.
+	var app *App
+	conn, err := db.Open(context.Background(), dataDir, migrations.FS)
+	switch {
+	case errors.Is(err, db.ErrNewerData):
+		app = NewNewerDataApp()
+	case err != nil:
+		fail(err)
+	default:
+		defer conn.Close()
+		store := db.NewStore(conn)
+		app = NewApp(
+			jobs.New(store, docfiles.New(dataDir), desktop.Opener{}, now),
+			backups.New(store, db.NewRestorer(conn, migrations.FS), backups.NewDir(dataDir), backups.NewAgentDir(dataDir), now),
+		)
+	}
 
 	// Create application with options
 	err = wails.Run(&options.App{

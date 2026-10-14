@@ -18,6 +18,8 @@ export function ChooseLibraryFile():Promise<string>;
 
 export function ClearNextAction(arg1:number):Promise<jobs.Job>;
 
+export function DataIsNewer():Promise<boolean>;
+
 export function DeleteJob(arg1:number):Promise<void>;
 
 export function GetBoard():Promise<jobs.Board>;

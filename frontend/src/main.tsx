@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
 import App from "./App";
+import { DataVersionCheck } from "./components/DataVersionCheck";
 
 const container = document.getElementById("root");
 if (!container) {
@@ -10,6 +11,8 @@ if (!container) {
 
 createRoot(container).render(
 	<StrictMode>
-		<App />
+		<DataVersionCheck>
+			<App />
+		</DataVersionCheck>
 	</StrictMode>,
 );

@@ -133,6 +133,9 @@ const (
 	ReasonOther ClosingReason = "other"
 )
 
+// ClosingReasons lists every closing reason, in the order they're offered.
+var ClosingReasons = []ClosingReason{ReasonRejected, ReasonWithdrew, ReasonNoResponse, ReasonDeclinedOffer, ReasonPositionFilled, ReasonOther}
+
 var reasonLabels = map[ClosingReason]string{
 	ReasonRejected:       "Rejected",
 	ReasonWithdrew:       "Withdrew",
@@ -156,9 +159,19 @@ const (
 	KindOther       DocumentKind = "other"
 )
 
-func (k DocumentKind) valid() bool {
-	return k == KindResume || k == KindCoverLetter || k == KindOther
+// DocumentKinds are the kinds a document can be, in the order they're offered.
+var DocumentKinds = []DocumentKind{KindResume, KindCoverLetter, KindOther}
+
+var documentKindLabels = map[DocumentKind]string{
+	KindResume:      "Resume",
+	KindCoverLetter: "Cover letter",
+	KindOther:       "Other",
 }
+
+// Label is the document kind as shown to the user.
+func (k DocumentKind) Label() string { return documentKindLabels[k] }
+
+func (k DocumentKind) valid() bool { _, ok := documentKindLabels[k]; return ok }
 
 // MinInterest and MaxInterest are the fewest and most stars an interest rating can have.
 const (

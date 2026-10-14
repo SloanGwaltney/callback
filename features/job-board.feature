@@ -195,7 +195,7 @@ Feature: Job search board
 
   Rule: The board shows changes made outside the app
 
-    @status:not-implemented @id:refresh-on-focus
+    @status:implemented @id:refresh-on-focus
     Scenario: The board shows my agent's changes when I come back to the app
       Given the app is open with a job for "Software Engineer" at "Acme" in "Applied"
       And I switch to another window
@@ -203,7 +203,7 @@ Feature: Job search board
       When I switch back to the app
       Then the card for "Software Engineer" at "Acme" is in the "Interviewing" column
 
-    @status:not-implemented @id:refresh-keeps-search-and-pages
+    @status:implemented @id:refresh-keeps-search-and-pages
     Scenario: Refreshing the board keeps my search and the page I'm on
       Given the app is open and I have searched for "Engineer"
       And the "Applied" column is on its second page

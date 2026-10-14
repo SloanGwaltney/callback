@@ -37,6 +37,34 @@ func (s *Service) Library(ctx context.Context) ([]LibraryDocument, error) {
 	return docs, nil
 }
 
+// LibraryDocument returns one document in the library.
+func (s *Service) LibraryDocument(ctx context.Context, id int64) (LibraryDocument, error) {
+	row, err := s.store.GetLibraryDocument(ctx, id)
+	if err != nil {
+		return LibraryDocument{}, notFound(err, ErrLibraryDocumentNotFound)
+	}
+	return libraryDocumentFromRow(row), nil
+}
+
+// LibraryFiles returns where the stored copy of each library document is, in the order Library
+// lists them, and whether it's missing. The agent command line shows them, since an agent reads a
+// document straight from its stored copy.
+func (s *Service) LibraryFiles(ctx context.Context) ([]DocumentFile, error) {
+	rows, err := s.store.ListLibraryDocuments(ctx)
+	if err != nil {
+		return nil, err
+	}
+	files := make([]DocumentFile, 0, len(rows))
+	for _, row := range rows {
+		ok, err := s.files.Exists(row.StoredPath)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, DocumentFile{DocumentID: row.ID, Path: s.files.Path(row.StoredPath), Missing: !ok})
+	}
+	return files, nil
+}
+
 // AddLibraryDocument adds a copy of the file at src to the library, with an optional description.
 // The copy is the app's own, so it keeps working if the original is moved or deleted, and adding
 // the same file again makes another copy. See

@@ -520,3 +520,33 @@ func TestCardOrderPersistsAcrossReopen(t *testing.T) {
 		t.Errorf("Saved = %v, want %v", got, want)
 	}
 }
+
+// The command line's `job delete` calls the jobs service's DeleteJob, which deletes the job's row
+// and its documents' stored copies (TestDeleteJob in internal/jobs); the rest go with the row.
+// @scenario [features/agent-cli-jobs.feature#cli-delete-job] Delete a job
+func TestDeleteJobDeletesEverythingOnIt(t *testing.T) {
+	s, _ := openStore(t, t.TempDir())
+	ctx := context.Background()
+	acme := createJob(t, s, "Acme", "applied", 0)
+	createContact(t, s, acme, "Dana Smith", "recruiter")
+	createInterview(t, s, acme, "2026-10-14", "", "technical")
+	if _, err := s.CreateDocument(ctx, store.CreateDocumentParams{JobID: acme, Kind: "resume", FileName: "r.pdf", StoredPath: "documents/r.pdf"}); err != nil {
+		t.Fatal(err)
+	}
+	addStatusChange(t, s, acme, "applied", "2026-10-09")
+
+	if err := s.InTx(ctx, func(q store.Querier) error { return q.DeleteJob(ctx, acme) }); err != nil {
+		t.Fatal(err)
+	}
+
+	// @and [features/agent-cli-jobs.feature] its contacts, interviews, attached documents, and status history are deleted with it
+	for _, table := range []string{"contacts", "interviews", "documents", "status_changes"} {
+		var left int
+		if err := s.conn.QueryRowContext(ctx, `SELECT COUNT(*) FROM `+table+` WHERE job_id = ?`, acme).Scan(&left); err != nil {
+			t.Fatal(err)
+		}
+		if left != 0 {
+			t.Errorf("%d rows in %s outlived the job", left, table)
+		}
+	}
+}

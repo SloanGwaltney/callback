@@ -517,3 +517,33 @@ func TestAddInterviewTrimsDateAndTime(t *testing.T) {
 		t.Errorf("interview = %+v", i)
 	}
 }
+
+func TestInterview(t *testing.T) {
+	h := newHarness(t)
+	h.setToday(2026, time.October, 14)
+	id := h.acme(StatusInterviewing)
+	past := h.seedInterview(id, store.Interview{Date: "2026-10-13", Time: "14:00", Kind: string(InterviewTechnical), Notes: "Bring a laptop."})
+
+	got, err := h.svc.Interview(h.ctx, past)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := Interview{ID: past, JobID: id, Date: "2026-10-13", Time: "14:00", Kind: InterviewTechnical, Notes: "Bring a laptop.", Past: true}
+	if got != want {
+		t.Errorf("Interview = %+v, want %+v", got, want)
+	}
+	if _, err := h.svc.Interview(h.ctx, 999); !errors.Is(err, ErrInterviewNotFound) {
+		t.Errorf("err = %v, want ErrInterviewNotFound", err)
+	}
+}
+
+func TestInterviewKindsListsEveryOne(t *testing.T) {
+	if len(InterviewKinds) != len(interviewKindLabels) {
+		t.Errorf("InterviewKinds has %d, labels have %d", len(InterviewKinds), len(interviewKindLabels))
+	}
+	for _, k := range InterviewKinds {
+		if !k.valid() {
+			t.Errorf("%q isn't an interview kind", k)
+		}
+	}
+}
