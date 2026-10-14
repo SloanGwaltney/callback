@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -38,6 +39,15 @@ type MissingFileError struct {
 
 func (e *MissingFileError) Error() string {
 	return fmt.Sprintf("the file for %q can't be found", e.FileName)
+}
+
+// Document returns one attached document.
+func (s *Service) Document(ctx context.Context, id int64) (Document, error) {
+	row, err := s.store.GetDocument(ctx, id)
+	if err != nil {
+		return Document{}, notFound(err, ErrDocumentNotFound)
+	}
+	return documentFromRow(row), nil
 }
 
 // AttachDocument attaches a copy of the file at src to a job. The copy is the app's own, so it
@@ -77,11 +87,15 @@ func (s *Service) AttachDocument(ctx context.Context, jobID int64, src string, k
 
 // checkDocumentFile checks that the file at src can be attached to a job or added to the library:
 // one of AllowedDocumentTypes, and at most MaxDocumentBytes. verb says which, for the message.
+// The app only offers files that exist, but the agent command line takes any path.
 func (s *Service) checkDocumentFile(src, verb string) error {
 	if !allowedType(src) {
 		return invalid("only these document types can be " + verb + ": " + strings.Join(AllowedDocumentTypes, ", "))
 	}
 	size, err := s.files.Size(src)
+	if errors.Is(err, fs.ErrNotExist) {
+		return invalid("there's no file at " + src)
+	}
 	if err != nil {
 		return err
 	}

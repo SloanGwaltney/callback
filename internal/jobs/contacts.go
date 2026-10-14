@@ -19,6 +19,11 @@ const (
 	RelationshipOther         Relationship = "other"
 )
 
+// Relationships are the ways a contact can relate to a job, in the order they're offered.
+var Relationships = []Relationship{
+	RelationshipRecruiter, RelationshipHiringManager, RelationshipReferrer, RelationshipInterviewer, RelationshipOther,
+}
+
 var relationshipLabels = map[Relationship]string{
 	RelationshipRecruiter:     "Recruiter",
 	RelationshipHiringManager: "Hiring manager",
@@ -67,6 +72,15 @@ func contactFromRow(row store.Contact) Contact {
 		ProfileLink:  row.ProfileLink,
 		Notes:        row.Notes,
 	}
+}
+
+// Contact returns one contact.
+func (s *Service) Contact(ctx context.Context, id int64) (Contact, error) {
+	row, err := s.store.GetContact(ctx, id)
+	if err != nil {
+		return Contact{}, notFound(err, ErrContactNotFound)
+	}
+	return contactFromRow(row), nil
 }
 
 // AddContact adds a contact to a job, after the job's other contacts. Nothing is saved if any

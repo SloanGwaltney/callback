@@ -34,6 +34,21 @@ type Jobs interface {
 	DeleteJob(ctx context.Context, id int64) error
 	SetNextAction(ctx context.Context, jobID int64, text, expectedDate string) (jobs.Job, error)
 	ClearNextAction(ctx context.Context, jobID int64) (jobs.Job, error)
+
+	Contact(ctx context.Context, id int64) (jobs.Contact, error)
+	AddContact(ctx context.Context, jobID int64, d jobs.ContactDetails) (jobs.Contact, error)
+	UpdateContact(ctx context.Context, id int64, d jobs.ContactDetails) (jobs.Contact, error)
+	RemoveContact(ctx context.Context, id int64) error
+
+	Interview(ctx context.Context, id int64) (jobs.Interview, error)
+	AddInterview(ctx context.Context, jobID int64, d jobs.InterviewDetails) (jobs.Interview, error)
+	UpdateInterview(ctx context.Context, id int64, d jobs.InterviewDetails) (jobs.Interview, error)
+	RemoveInterview(ctx context.Context, id int64) error
+
+	Document(ctx context.Context, id int64) (jobs.Document, error)
+	AttachDocument(ctx context.Context, jobID int64, src string, kind jobs.DocumentKind) (jobs.Document, error)
+	SetDocumentKind(ctx context.Context, id int64, kind jobs.DocumentKind) error
+	RemoveDocument(ctx context.Context, id int64) error
 }
 
 // DailyBackups takes the daily backup. *backups.Service satisfies it.

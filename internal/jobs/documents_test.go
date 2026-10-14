@@ -417,3 +417,44 @@ func TestDocumentKindLabels(t *testing.T) {
 		}
 	}
 }
+
+func TestDocument(t *testing.T) {
+	h := newHarness(t)
+	id := h.acme(StatusSaved)
+	docID := h.seedDoc(id, "acme-resume.pdf", KindResume)
+
+	got, err := h.svc.Document(h.ctx, docID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := (Document{ID: docID, JobID: id, Kind: KindResume, FileName: "acme-resume.pdf"}); got != want {
+		t.Errorf("Document = %+v, want %+v", got, want)
+	}
+	if _, err := h.svc.Document(h.ctx, 999); !errors.Is(err, ErrDocumentNotFound) {
+		t.Errorf("err = %v, want ErrDocumentNotFound", err)
+	}
+}
+
+func TestAttachMissingFile(t *testing.T) {
+	h := newHarness(t)
+	id := h.acme(StatusSaved)
+	h.files.absent = []string{"Documents/gone.pdf"}
+
+	_, err := h.svc.AttachDocument(h.ctx, id, "Documents/gone.pdf", KindResume)
+
+	wantValidation(t, err, "there's no file at Documents/gone.pdf")
+	if len(h.store.docs) != 0 || len(h.files.copies) != 0 {
+		t.Errorf("attached: rows %v, copies %v", h.store.docs, h.files.copies)
+	}
+}
+
+func TestDocumentKindsListsEveryOne(t *testing.T) {
+	if len(DocumentKinds) != len(documentKindLabels) {
+		t.Errorf("DocumentKinds has %d, labels have %d", len(DocumentKinds), len(documentKindLabels))
+	}
+	for _, k := range DocumentKinds {
+		if !k.valid() {
+			t.Errorf("%q isn't a document kind", k)
+		}
+	}
+}

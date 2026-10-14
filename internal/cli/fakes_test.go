@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"io/fs"
+	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
@@ -222,6 +224,188 @@ func (f *fakeJobs) ClearNextAction(_ context.Context, id int64) (jobs.Job, error
 	}
 	job.NextAction = nil
 	return *job, nil
+}
+
+// contactAt finds a contact on any job, with the job it's on.
+func (f *fakeJobs) contactAt(id int64) (*jobs.Job, int, bool) {
+	for _, job := range f.jobs {
+		if i := slices.IndexFunc(job.Contacts, func(c jobs.Contact) bool { return c.ID == id }); i >= 0 {
+			return job, i, true
+		}
+	}
+	return nil, 0, false
+}
+
+func (f *fakeJobs) Contact(_ context.Context, id int64) (jobs.Contact, error) {
+	job, i, ok := f.contactAt(id)
+	if !ok {
+		return jobs.Contact{}, jobs.ErrContactNotFound
+	}
+	return job.Contacts[i], nil
+}
+
+func (f *fakeJobs) AddContact(_ context.Context, jobID int64, d jobs.ContactDetails) (jobs.Contact, error) {
+	if err := f.change(); err != nil {
+		return jobs.Contact{}, err
+	}
+	job, ok := f.jobs[jobID]
+	if !ok {
+		return jobs.Contact{}, jobs.ErrJobNotFound
+	}
+	f.nextID++
+	c := contactFrom(f.nextID, jobID, d)
+	job.Contacts = append(job.Contacts, c)
+	return c, nil
+}
+
+func contactFrom(id, jobID int64, d jobs.ContactDetails) jobs.Contact {
+	return jobs.Contact{
+		ID: id, JobID: jobID, Name: d.Name, Relationship: d.Relationship, Email: d.Email,
+		Phone: d.Phone, ProfileLink: d.ProfileLink, Notes: d.Notes,
+	}
+}
+
+func (f *fakeJobs) UpdateContact(_ context.Context, id int64, d jobs.ContactDetails) (jobs.Contact, error) {
+	if err := f.change(); err != nil {
+		return jobs.Contact{}, err
+	}
+	job, i, ok := f.contactAt(id)
+	if !ok {
+		return jobs.Contact{}, jobs.ErrContactNotFound
+	}
+	job.Contacts[i] = contactFrom(id, job.ID, d)
+	return job.Contacts[i], nil
+}
+
+func (f *fakeJobs) RemoveContact(_ context.Context, id int64) error {
+	if err := f.change(); err != nil {
+		return err
+	}
+	job, i, ok := f.contactAt(id)
+	if !ok {
+		return jobs.ErrContactNotFound
+	}
+	job.Contacts = slices.Delete(job.Contacts, i, i+1)
+	return nil
+}
+
+// interviewAt finds an interview on any job, with the job it's on.
+func (f *fakeJobs) interviewAt(id int64) (*jobs.Job, int, bool) {
+	for _, job := range f.jobs {
+		if i := slices.IndexFunc(job.Interviews, func(v jobs.Interview) bool { return v.ID == id }); i >= 0 {
+			return job, i, true
+		}
+	}
+	return nil, 0, false
+}
+
+func (f *fakeJobs) Interview(_ context.Context, id int64) (jobs.Interview, error) {
+	job, i, ok := f.interviewAt(id)
+	if !ok {
+		return jobs.Interview{}, jobs.ErrInterviewNotFound
+	}
+	return job.Interviews[i], nil
+}
+
+func (f *fakeJobs) AddInterview(_ context.Context, jobID int64, d jobs.InterviewDetails) (jobs.Interview, error) {
+	if err := f.change(); err != nil {
+		return jobs.Interview{}, err
+	}
+	job, ok := f.jobs[jobID]
+	if !ok {
+		return jobs.Interview{}, jobs.ErrJobNotFound
+	}
+	f.nextID++
+	v := jobs.Interview{ID: f.nextID, JobID: jobID, Date: d.Date, Time: d.Time, Kind: d.Kind, Notes: d.Notes}
+	job.Interviews = append(job.Interviews, v)
+	return v, nil
+}
+
+func (f *fakeJobs) UpdateInterview(_ context.Context, id int64, d jobs.InterviewDetails) (jobs.Interview, error) {
+	if err := f.change(); err != nil {
+		return jobs.Interview{}, err
+	}
+	job, i, ok := f.interviewAt(id)
+	if !ok {
+		return jobs.Interview{}, jobs.ErrInterviewNotFound
+	}
+	job.Interviews[i] = jobs.Interview{ID: id, JobID: job.ID, Date: d.Date, Time: d.Time, Kind: d.Kind, Notes: d.Notes}
+	return job.Interviews[i], nil
+}
+
+func (f *fakeJobs) RemoveInterview(_ context.Context, id int64) error {
+	if err := f.change(); err != nil {
+		return err
+	}
+	job, i, ok := f.interviewAt(id)
+	if !ok {
+		return jobs.ErrInterviewNotFound
+	}
+	job.Interviews = slices.Delete(job.Interviews, i, i+1)
+	return nil
+}
+
+// documentAt finds an attached document on any job, with the job it's on.
+func (f *fakeJobs) documentAt(id int64) (*jobs.Job, int, bool) {
+	for _, job := range f.jobs {
+		if i := slices.IndexFunc(job.Documents, func(d jobs.Document) bool { return d.ID == id }); i >= 0 {
+			return job, i, true
+		}
+	}
+	return nil, 0, false
+}
+
+func (f *fakeJobs) Document(_ context.Context, id int64) (jobs.Document, error) {
+	job, i, ok := f.documentAt(id)
+	if !ok {
+		return jobs.Document{}, jobs.ErrDocumentNotFound
+	}
+	return job.Documents[i], nil
+}
+
+// AttachDocument attaches the file at src under its base name, with a stored copy in
+// /data/documents.
+func (f *fakeJobs) AttachDocument(_ context.Context, jobID int64, src string, kind jobs.DocumentKind) (jobs.Document, error) {
+	if err := f.change(); err != nil {
+		return jobs.Document{}, err
+	}
+	job, ok := f.jobs[jobID]
+	if !ok {
+		return jobs.Document{}, jobs.ErrJobNotFound
+	}
+	f.nextID++
+	doc := jobs.Document{ID: f.nextID, JobID: jobID, Kind: kind, FileName: filepath.Base(src)}
+	job.Documents = append(job.Documents, doc)
+	f.files[jobID] = append(f.files[jobID], jobs.DocumentFile{DocumentID: doc.ID, Path: storedPath(doc.ID)})
+	return doc, nil
+}
+
+// storedPath is where the fake keeps a document's stored copy.
+func storedPath(id int64) string { return fmt.Sprintf("/data/documents/%d.pdf", id) }
+
+func (f *fakeJobs) SetDocumentKind(_ context.Context, id int64, kind jobs.DocumentKind) error {
+	if err := f.change(); err != nil {
+		return err
+	}
+	job, i, ok := f.documentAt(id)
+	if !ok {
+		return jobs.ErrDocumentNotFound
+	}
+	job.Documents[i].Kind = kind
+	return nil
+}
+
+func (f *fakeJobs) RemoveDocument(_ context.Context, id int64) error {
+	if err := f.change(); err != nil {
+		return err
+	}
+	job, i, ok := f.documentAt(id)
+	if !ok {
+		return jobs.ErrDocumentNotFound
+	}
+	job.Documents = slices.Delete(job.Documents, i, i+1)
+	f.files[job.ID] = slices.DeleteFunc(f.files[job.ID], func(file jobs.DocumentFile) bool { return file.DocumentID == id })
+	return nil
 }
 
 // fakeBackups counts the daily backups it was asked for.

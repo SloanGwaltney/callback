@@ -93,14 +93,51 @@ func TestEveryCommandHasHelp(t *testing.T) {
 	}
 }
 
-func TestEveryOptionThatTakesAFixedSetListsIt(t *testing.T) {
-	r := newHarness().run("job", "close", "--help")
-	for _, reason := range jobs.ClosingReasons {
-		if !strings.Contains(r.stdout, string(reason)+" ("+reason.Label()+")") {
-			t.Errorf("the help on closing a job doesn't list %q:\n%s", reason, r.stdout)
+// @scenario [features/agent-cli.feature#cli-help-lists-choices] The help lists the values for every option that takes a fixed set
+func TestHelpListsTheChoices(t *testing.T) {
+	// described lists choices as the help writes them, "value (Label)".
+	described := func(values []string, label func(string) string) []string {
+		var out []string
+		for _, v := range values {
+			out = append(out, v+" ("+label(v)+")")
 		}
+		return out
 	}
-	r = newHarness().run("job", "add", "--help")
+	for _, tc := range []struct {
+		command string
+		args    []string
+		choice  string
+		want    []string
+	}{
+		{"moving a job", []string{"job", "move"}, "status",
+			described(values(jobs.Statuses), func(s string) string { return jobs.Status(s).Label() })},
+		{"closing a job", []string{"job", "close"}, "closing reason",
+			described(values(jobs.ClosingReasons), func(s string) string { return jobs.ClosingReason(s).Label() })},
+		{"adding a contact", []string{"contact", "add"}, "relationship",
+			described(values(jobs.Relationships), func(s string) string { return jobs.Relationship(s).Label() })},
+		{"adding an interview", []string{"interview", "add"}, "interview kind",
+			described(values(jobs.InterviewKinds), func(s string) string { return jobs.InterviewKind(s).Label() })},
+		{"attaching a document", []string{"document", "attach"}, "document kind",
+			described(values(jobs.DocumentKinds), func(s string) string { return jobs.DocumentKind(s).Label() })},
+		{"attaching a document", []string{"document", "attach"}, "file type it can attach", jobs.AllowedDocumentTypes},
+	} {
+		t.Run(tc.command+" lists every "+tc.choice, func(t *testing.T) {
+			// @when [features/agent-cli.feature] my agent asks for help on <command>
+			r := newHarness().run(append(tc.args, "--help")...)
+
+			r.wantCode(t, ExitOK)
+			// @then [features/agent-cli.feature] it sees every <choice> it can use
+			for _, want := range tc.want {
+				if !strings.Contains(r.stdout, want) {
+					t.Errorf("the help on %s doesn't list %q:\n%s", tc.command, want, r.stdout)
+				}
+			}
+		})
+	}
+}
+
+func TestAddingAJobDoesntOfferClosed(t *testing.T) {
+	r := newHarness().run("job", "add", "--help")
 	if strings.Contains(r.stdout, "closed (Closed)") {
 		t.Errorf("the help on adding a job offers Closed:\n%s", r.stdout)
 	}

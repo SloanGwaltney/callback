@@ -37,6 +37,7 @@ func writeHelp(w io.Writer) error {
 // take.
 // @scenario [features/agent-cli.feature#cli-command-help] The help for a command lists its options and the values they take
 // @scenario [features/agent-cli.feature#cli-help-stored-files] The help says how to use a document's stored copy
+// @scenario [features/agent-cli.feature#cli-help-lists-choices] The help lists the values for every option that takes a fixed set
 func writeCommandHelp(w io.Writer, cmd *command) error {
 	fmt.Fprintf(w, "Usage:\n  %s %s [options]\n\n%s\n\nOptions:\n", Name, cmd.usage(), wrap(cmd.about, 96))
 	tw := tabwriter.NewWriter(w, 0, 0, 3, ' ', 0)

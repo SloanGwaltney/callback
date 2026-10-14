@@ -159,6 +159,9 @@ const (
 	KindOther       DocumentKind = "other"
 )
 
+// DocumentKinds are the kinds a document can be, in the order they're offered.
+var DocumentKinds = []DocumentKind{KindResume, KindCoverLetter, KindOther}
+
 var documentKindLabels = map[DocumentKind]string{
 	KindResume:      "Resume",
 	KindCoverLetter: "Cover letter",

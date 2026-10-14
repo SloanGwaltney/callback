@@ -20,6 +20,11 @@ const (
 	InterviewOther       InterviewKind = "other"
 )
 
+// InterviewKinds are the kinds an interview can be, in the order they're offered.
+var InterviewKinds = []InterviewKind{
+	InterviewPhoneScreen, InterviewTechnical, InterviewBehavioral, InterviewPanel, InterviewOnsite, InterviewOther,
+}
+
 var interviewKindLabels = map[InterviewKind]string{
 	InterviewPhoneScreen: "Phone screen",
 	InterviewTechnical:   "Technical",
@@ -106,6 +111,15 @@ func (s *Service) nextInterviews(ctx context.Context) (map[int64]*NextInterview,
 		}
 	}
 	return next, nil
+}
+
+// Interview returns one interview.
+func (s *Service) Interview(ctx context.Context, id int64) (Interview, error) {
+	row, err := s.store.GetInterview(ctx, id)
+	if err != nil {
+		return Interview{}, notFound(err, ErrInterviewNotFound)
+	}
+	return interviewFromRow(row, s.today()), nil
 }
 
 // AddInterview adds an interview to a job. Nothing is saved if any detail is invalid. The date can

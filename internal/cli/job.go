@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -15,7 +14,10 @@ import (
 // commands is every command, in the order the help lists them. None opens anything on the user's
 // screen; `job show` gives the links and stored copies to read instead.
 // @scenario [features/agent-cli-jobs.feature#cli-no-opening] My agent can't open anything on my screen
-var commands = []*command{
+var commands = slices.Concat(jobCommands, recordCommands)
+
+// jobCommands are the commands for jobs themselves.
+var jobCommands = []*command{
 	{
 		path:    []string{"job", "list"},
 		summary: "List your jobs, one line each, in board order",
@@ -144,10 +146,7 @@ var detailOptions = []option{
 
 // jobErr names the job's ID when there's no job with it.
 func jobErr(id int64, err error) error {
-	if errors.Is(err, jobs.ErrJobNotFound) {
-		return notFoundErr("there's no job with ID %d", id)
-	}
-	return err
+	return missingErr("job", id, err, jobs.ErrJobNotFound)
 }
 
 // @scenario [features/agent-cli.feature#cli-text-output] Output is plain text by default

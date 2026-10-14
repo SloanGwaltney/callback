@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"io/fs"
 	"maps"
 	"path/filepath"
 	"slices"
@@ -479,6 +480,8 @@ func (f *fakeStore) update(id int64, change func(*store.Job)) error {
 type fakeFiles struct {
 	// sizes gives a source file's size; files not listed are 1 KB.
 	sizes map[string]int64
+	// absent lists the source files that don't exist.
+	absent []string
 	// copies maps each stored path to the source it was copied from.
 	copies  map[string]string
 	removed []string
@@ -490,6 +493,9 @@ type fakeFiles struct {
 var _ Files = (*fakeFiles)(nil)
 
 func (f *fakeFiles) Size(src string) (int64, error) {
+	if slices.Contains(f.absent, src) {
+		return 0, fmt.Errorf("docfiles: %w", &fs.PathError{Op: "stat", Path: src, Err: fs.ErrNotExist})
+	}
 	if size, ok := f.sizes[src]; ok {
 		return size, nil
 	}

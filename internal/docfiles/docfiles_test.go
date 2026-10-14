@@ -176,8 +176,8 @@ func TestSize(t *testing.T) {
 	if _, err := d.Size(t.TempDir()); err == nil {
 		t.Error("Size of a directory succeeded")
 	}
-	if _, err := d.Size(filepath.Join(t.TempDir(), "missing.pdf")); err == nil {
-		t.Error("Size of a missing file succeeded")
+	if _, err := d.Size(filepath.Join(t.TempDir(), "missing.pdf")); !errors.Is(err, fs.ErrNotExist) {
+		t.Errorf("Size of a missing file = %v, want fs.ErrNotExist", err)
 	}
 }
 

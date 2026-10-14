@@ -132,37 +132,19 @@ func writeJob(w io.Writer, job jobJSON) {
 	section("Notes", job.Notes == "", func() { writeIndented(w, job.Notes, "  ") })
 	section("Contacts", len(job.Contacts) == 0, func() {
 		for _, c := range job.Contacts {
-			fields := []string{fmt.Sprintf("#%d %s", c.ID, c.Name), c.Relationship.Label()}
-			for _, f := range [][2]string{{"email", c.Email}, {"phone", c.Phone}, {"profile", c.ProfileLink}} {
-				if f[1] != "" {
-					fields = append(fields, f[0]+" "+f[1])
-				}
-			}
-			fmt.Fprintf(w, "  %s\n", strings.Join(fields, " | "))
+			fmt.Fprintf(w, "  %s\n", contactLine(c))
 			writeIndented(w, c.Notes, "    ")
 		}
 	})
 	section("Interviews", len(job.Interviews) == 0, func() {
 		for _, i := range job.Interviews {
-			when := i.Date
-			if i.Time != "" {
-				when += " " + i.Time
-			}
-			past := ""
-			if i.Past {
-				past = " (past)"
-			}
-			fmt.Fprintf(w, "  #%d %s | %s%s\n", i.ID, when, i.Kind.Label(), past)
+			fmt.Fprintf(w, "  %s\n", interviewLine(i))
 			writeIndented(w, i.Notes, "    ")
 		}
 	})
 	section("Documents", len(job.Documents) == 0, func() {
 		for _, d := range job.Documents {
-			missing := ""
-			if d.Missing {
-				missing = " (missing: the stored copy is gone)"
-			}
-			fmt.Fprintf(w, "  #%d %s | %s | stored copy: %s%s\n", d.ID, d.FileName, d.Kind.Label(), d.StoredPath, missing)
+			fmt.Fprintf(w, "  %s\n", documentLine(d))
 		}
 	})
 	section("Status history", len(job.StatusHistory) == 0, func() {
@@ -174,6 +156,57 @@ func writeJob(w io.Writer, job jobJSON) {
 			fmt.Fprintf(w, "  %s\n", entry)
 		}
 	})
+}
+
+// contactLine is a contact on one line, starting with its ID, leaving out what it doesn't have.
+func contactLine(c jobs.Contact) string {
+	fields := []string{fmt.Sprintf("#%d %s", c.ID, c.Name), c.Relationship.Label()}
+	for _, f := range [][2]string{{"email", c.Email}, {"phone", c.Phone}, {"profile", c.ProfileLink}} {
+		if f[1] != "" {
+			fields = append(fields, f[0]+" "+f[1])
+		}
+	}
+	return strings.Join(fields, " | ")
+}
+
+// interviewLine is an interview on one line, starting with its ID.
+func interviewLine(i jobs.Interview) string {
+	when := i.Date
+	if i.Time != "" {
+		when += " " + i.Time
+	}
+	past := ""
+	if i.Past {
+		past = " (past)"
+	}
+	return fmt.Sprintf("#%d %s | %s%s", i.ID, when, i.Kind.Label(), past)
+}
+
+// documentLine is an attached document on one line, starting with its ID, with where its stored
+// copy is.
+func documentLine(d documentJSON) string {
+	missing := ""
+	if d.Missing {
+		missing = " (missing: the stored copy is gone)"
+	}
+	return fmt.Sprintf("#%d %s | %s | stored copy: %s%s", d.ID, d.FileName, d.Kind.Label(), d.StoredPath, missing)
+}
+
+// writeContact writes a contact, as adding or changing one prints it.
+func writeContact(w io.Writer, c jobs.Contact) {
+	fmt.Fprintf(w, "Contact on job #%d: %s\n", c.JobID, contactLine(c))
+	writeIndented(w, c.Notes, "  ")
+}
+
+// writeInterview writes an interview, as adding or changing one prints it.
+func writeInterview(w io.Writer, i jobs.Interview) {
+	fmt.Fprintf(w, "Interview on job #%d: %s\n", i.JobID, interviewLine(i))
+	writeIndented(w, i.Notes, "  ")
+}
+
+// writeDocument writes an attached document, as attaching or changing one prints it.
+func writeDocument(w io.Writer, d documentJSON) {
+	fmt.Fprintf(w, "Document on job #%d: %s\n", d.JobID, documentLine(d))
 }
 
 // writeIndented writes text with every line indented, keeping its blank lines. It writes nothing

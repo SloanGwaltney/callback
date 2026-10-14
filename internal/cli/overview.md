@@ -29,8 +29,7 @@ keeps track of and how to work with it. `{{.Name}} --help` lists the commands, a
   keeps its own stored copy of each file in its data folder.
 - **The document library.** Documents that aren't attached to any job, like a general resume.
 
-This version of the command line reads contacts, interviews, and attached documents through
-`{{.Name}} job show`, but can't add or change them yet, and can't reach the document library.
+This version of the command line can't reach the document library yet.
 
 ## How the commands fit together
 
@@ -50,16 +49,28 @@ This version of the command line reads contacts, interviews, and attached docume
    - `{{.Name}} job set-next-action <job-id>` and `{{.Name}} job clear-next-action <job-id>`
      set and clear its next action. Add `--only-date` to clear only its expected date.
    - `{{.Name}} job delete <job-id>` deletes it.
-4. `{{.Name}} job add` adds a new job.
+4. Keep its people, interviews, and documents up to date. `job show` lists each with its ID.
+   - `{{.Name}} contact add <job-id>` adds a contact, `{{.Name}} contact update <contact-id>`
+     changes the details you name and keeps the rest, and `{{.Name}} contact remove <contact-id>`
+     removes one.
+   - `{{.Name}} interview add <job-id>`, `{{.Name}} interview update <interview-id>`, and
+     `{{.Name}} interview remove <interview-id>` do the same for interviews.
+   - `{{.Name}} document attach <job-id> --file <path> --kind <kind>` attaches a copy of a file
+     on the person's computer. `{{.Name}} document set-kind <document-id>` changes whether it's a
+     resume, a cover letter, or other, and `{{.Name}} document remove <document-id>` removes it
+     and deletes its stored copy.
+5. `{{.Name}} job add` adds a new job.
 
 Commands follow the app's rules. Moving a job to Applied fills in today as its date applied if it
 has none, and moving it back to Saved clears it. Every move to another status is added to the
-job's status history.
+job's status history. Contacts, interviews, and documents can be added to a job in any status,
+and adding them doesn't move it.
 
 ## Output
 
 Output is plain text unless you add `--json` to the command, which prints JSON with the same
-details and more. Every command that changes a job prints the job as it is afterwards, so you can
+details and more. Every command that changes a job prints the job as it is afterwards, and every
+command that adds or changes a contact, interview, or document prints it, with its ID, so you can
 check what changed without another command.
 
 ## IDs
@@ -97,7 +108,7 @@ The exit codes:
 
 - Nothing asks you to confirm. A command does what it says at once, so be sure before you delete
   a job: it takes the job's contacts, interviews, documents, and status history with it, and it
-  can't be undone.
+  can't be undone. Removing a contact, interview, or document can't be undone either.
 - Callback backs up the person's data once on each day it runs, the first time the app opens or
   a command runs that day.
 - If the data was last opened by a newer version of Callback, every command stops with exit code

@@ -482,3 +482,31 @@ func TestDeleteJobDeletesItsContacts(t *testing.T) {
 		t.Errorf("Globex's contacts = %v, want Dana Smith kept", got)
 	}
 }
+
+func TestContact(t *testing.T) {
+	h := newHarness(t)
+	id := h.acme(StatusSaved)
+	added := h.mustAddContact(t, id, ContactDetails{Name: "Dana Smith", Relationship: RelationshipRecruiter, Email: "dana@acme.example.com"})
+
+	got, err := h.svc.Contact(h.ctx, added.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != added {
+		t.Errorf("Contact = %+v, want %+v", got, added)
+	}
+	if _, err := h.svc.Contact(h.ctx, 999); !errors.Is(err, ErrContactNotFound) {
+		t.Errorf("err = %v, want ErrContactNotFound", err)
+	}
+}
+
+func TestRelationshipsListsEveryOne(t *testing.T) {
+	if len(Relationships) != len(relationshipLabels) {
+		t.Errorf("Relationships has %d, labels have %d", len(Relationships), len(relationshipLabels))
+	}
+	for _, r := range Relationships {
+		if !r.valid() {
+			t.Errorf("%q isn't a relationship", r)
+		}
+	}
+}
