@@ -115,7 +115,7 @@ Feature: Agent command line
       When my agent tries to change the job's role to nothing
       Then the job's role is still "Software Engineer"
       And my agent is told the job needs a role
-      And the command reports that it failed
+      And the command ends with the exit code for a validation error
 
     @status:not-implemented @id:cli-error-lists-choices
     Scenario: A value that isn't one of the choices is answered with the choices
@@ -130,13 +130,87 @@ Feature: Agent command line
       When my agent runs a command Callback doesn't have
       Then my agent is told there's no such command
       And my agent is told how to see the help
-      And the command reports that it failed
+      And the command ends with the exit code for a usage error
 
     @status:not-implemented @id:cli-unknown-job
     Scenario: My agent is told when there's no job with an ID
       When my agent tries to show the job with ID 999
       Then my agent is told there's no job with ID 999
-      And the command reports that it failed
+      And the command ends with the exit code for something not found
+
+  Rule: Each kind of failure has its own exit code
+
+    @status:not-implemented @id:cli-exit-codes
+    Scenario Outline: A failed command ends with the exit code for its kind of failure
+      When my agent runs a command that fails because <failure>
+      Then the command ends with the exit code for <kind>
+      And no other kind of failure ends with that exit code
+
+      Examples:
+        | failure                                                  | kind                           |
+        | it isn't a command Callback has, or an option is wrong   | a usage error                  |
+        | a value breaks one of the app's rules                    | a validation error             |
+        | there's no job, contact, interview, document, or backup with that ID or name | something not found |
+        | my data was last opened by a newer Callback              | a newer version of my data     |
+        | anything else went wrong, like my data can't be opened   | an unexpected error            |
+
+    @status:not-implemented @id:cli-validation-one-code
+    Scenario Outline: Every validation error shares one exit code, with a message saying what's wrong
+      Given I have a job for "Software Engineer" at "Acme"
+      When my agent tries to <change>
+      Then the command ends with the exit code for a validation error
+      And my agent is told <message>
+
+      Examples:
+        | change                                   | message                                |
+        | change the job's role to nothing         | the job needs a role                   |
+        | rate the job 6 stars                     | a rating must be from 1 to 5 stars     |
+        | set a posting link that isn't a web address | the link must be a web address      |
+
+    @status:not-implemented @id:cli-success-code
+    Scenario: A command that works ends with exit code 0
+      Given I have a job for "Software Engineer" at "Acme"
+      When my agent lists my jobs
+      Then the command ends with exit code 0
+
+    @status:not-implemented @id:cli-exit-codes-listed
+    Scenario: The overview lists every exit code and what it means
+      When my agent asks Callback for its overview
+      Then it sees every exit code and the kind of failure each one means
+
+  Rule: Errors are JSON when my agent asks for JSON
+
+    @status:not-implemented @id:cli-json-errors
+    Scenario: An error is JSON when my agent asked for JSON output
+      Given I have a job for "Software Engineer" at "Acme"
+      When my agent tries to change the job's role to nothing, asking for JSON output
+      Then my agent is told the job needs a role, as JSON
+      And the JSON says what kind of failure it was
+      And the command ends with the exit code for a validation error
+
+    @status:not-implemented @id:cli-text-errors
+    Scenario: An error is plain text otherwise
+      Given I have a job for "Software Engineer" at "Acme"
+      When my agent tries to change the job's role to nothing
+      Then my agent is told the job needs a role, as plain text
+
+  Rule: The command line never works on data from a newer Callback
+
+    @status:not-implemented @id:cli-newer-data
+    Scenario: The command line refuses data a newer Callback has updated
+      Given my data was last updated by a newer version of Callback than the command line
+      When my agent runs any command
+      Then my data is unchanged
+      And no daily backup is taken and no backup is removed
+      And my agent is told my data is from a newer version of Callback, and to update Callback
+      And the command ends with the exit code for a newer version of my data
+
+    @status:not-implemented @id:cli-older-data
+    Scenario: The command line brings older data up to date, as the app does
+      Given my data was last updated by an older version of Callback
+      When my agent runs any command
+      Then my data is brought up to date first
+      And the command runs as usual
 
   Rule: My agent is never asked a question
 
