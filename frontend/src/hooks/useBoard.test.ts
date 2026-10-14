@@ -59,6 +59,63 @@ describe("useBoard", () => {
 		);
 	});
 
+	// @scenario [features/job-board.feature#refresh-on-focus] The board shows my agent's changes when I come back to the app
+	it("reloads the board when the window gets focus again", async () => {
+		// @given [features/job-board.feature] the app is open with a job for "Software Engineer" at "Acme" in "Applied"
+		vi.mocked(GetBoard).mockResolvedValue(asBoard(board({ applied: [card(1, "Acme")] })));
+		const { result } = renderHook(() => useBoard());
+		await waitFor(() => expect(result.current.board?.columns[1].cards[0]?.company).toBe("Acme"));
+		// @and [features/job-board.feature] I switch to another window
+		act(() => {
+			window.dispatchEvent(new Event("blur"));
+		});
+		// @and [features/job-board.feature] my agent moves the job to "Interviewing"
+		vi.mocked(GetBoard).mockResolvedValue(asBoard(board({ interviewing: [card(1, "Acme")] })));
+		expect(result.current.board?.columns[1].cards[0]?.company).toBe("Acme");
+
+		// @when [features/job-board.feature#refresh-on-focus] I switch back to the app
+		act(() => {
+			window.dispatchEvent(new Event("focus"));
+		});
+
+		// @then [features/job-board.feature] the card for "Software Engineer" at "Acme" is in the "Interviewing" column
+		await waitFor(() => expect(result.current.board?.columns[2].cards[0]?.company).toBe("Acme"));
+		expect(result.current.board?.columns[1].cards).toEqual([]);
+	});
+
+	it("stops reloading on focus once it's gone", async () => {
+		vi.mocked(GetBoard).mockResolvedValue(asBoard(board()));
+		const { result, unmount } = renderHook(() => useBoard());
+		await waitFor(() => expect(result.current.board).not.toBeNull());
+		unmount();
+		vi.mocked(GetBoard).mockClear();
+
+		window.dispatchEvent(new Event("focus"));
+
+		expect(GetBoard).not.toHaveBeenCalled();
+	});
+
+	it("keeps the newest board when an older load finishes last", async () => {
+		vi.mocked(GetBoard).mockResolvedValue(asBoard(board()));
+		const { result } = renderHook(() => useBoard());
+		await waitFor(() => expect(result.current.board).not.toBeNull());
+
+		let finishOlder = (_: jobs.Board) => {};
+		vi.mocked(GetBoard).mockReturnValueOnce(
+			new Promise<jobs.Board>((resolve) => {
+				finishOlder = resolve;
+			}),
+		);
+		const older = act(() => result.current.reload());
+		vi.mocked(GetBoard).mockResolvedValueOnce(asBoard(board({ interviewing: [card(1, "Acme")] })));
+		await act(() => result.current.reload());
+		finishOlder(asBoard(board({ applied: [card(1, "Acme")] })));
+		await older;
+
+		expect(result.current.board?.columns[2].cards[0]?.company).toBe("Acme");
+		expect(result.current.board?.columns[1].cards).toEqual([]);
+	});
+
 	it("shows why the board couldn't load", async () => {
 		vi.mocked(GetBoard).mockRejectedValue("database is locked");
 		const { result } = renderHook(() => useBoard());

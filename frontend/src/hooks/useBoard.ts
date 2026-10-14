@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AddJob, DeleteJob, GetBoard, MoveJob } from "../../wailsjs/go/main/App";
 import { applyMove } from "../board/boardDnd";
 import { errorMessage } from "./errors";
@@ -6,25 +6,42 @@ import type { Board, Details, Job, Move } from "./types";
 
 // useBoard loads the job board and changes it: adding, moving, and deleting jobs. Each change
 // reloads the board, since the backend decides details like positions and dates applied.
-// Changes reject with the backend's message, for the caller to show.
+// Changes reject with the backend's message, for the caller to show. It also reloads when the
+// window gets focus again, to show what the user's agent changed while they were away.
 // @scenario [features/job-board.feature#board-persists] Board is the same after reopening the app
 // @scenario [features/job-board.feature#card-order-persists] Card order is the same after reopening the app
+// @scenario [features/job-board.feature#refresh-on-focus] The board shows my agent's changes when I come back to the app
 export function useBoard() {
 	const [board, setBoard] = useState<Board | null>(null);
 	const [error, setError] = useState("");
+	// latest numbers each load, so a load that finishes after a later one can't show older data.
+	const latest = useRef(0);
 
 	const reload = useCallback(async () => {
+		const load = ++latest.current;
 		try {
-			setBoard(await GetBoard());
-			setError("");
+			const loaded = await GetBoard();
+			if (load === latest.current) {
+				setBoard(loaded);
+				setError("");
+			}
 		} catch (err) {
-			setError(errorMessage(err));
+			if (load === latest.current) {
+				setError(errorMessage(err));
+			}
 		}
 	}, []);
 
 	// The board comes from the database each time the app starts, so it's as it was left.
 	useEffect(() => {
 		void reload();
+	}, [reload]);
+
+	// Coming back to the window reloads the board, since the agent CLI changes the same database.
+	useEffect(() => {
+		const onFocus = () => void reload();
+		window.addEventListener("focus", onFocus);
+		return () => window.removeEventListener("focus", onFocus);
 	}, [reload]);
 
 	const addJob = useCallback(
