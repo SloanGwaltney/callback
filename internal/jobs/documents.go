@@ -64,22 +64,17 @@ func (s *Service) AttachDocument(ctx context.Context, jobID int64, src string, k
 		return Document{}, notFound(err, ErrJobNotFound)
 	}
 
-	// The file is copied before its row is written, so a failure leaves at worst an orphaned copy,
-	// which is removed below, never a row pointing at a missing file.
-	stored, err := s.files.Save(src)
-	if err != nil {
-		return Document{}, err
-	}
-	row, err := s.store.CreateDocument(ctx, store.CreateDocumentParams{
-		JobID:      jobID,
-		Kind:       string(kind),
-		FileName:   filepath.Base(src),
-		StoredPath: stored,
+	var row store.Document
+	err := s.saveCopy(src, func(stored string) (err error) {
+		row, err = s.store.CreateDocument(ctx, store.CreateDocumentParams{
+			JobID:      jobID,
+			Kind:       string(kind),
+			FileName:   filepath.Base(src),
+			StoredPath: stored,
+		})
+		return err
 	})
 	if err != nil {
-		if rmErr := s.files.Remove(stored); rmErr != nil {
-			return Document{}, errors.Join(err, rmErr)
-		}
 		return Document{}, err
 	}
 	return documentFromRow(row), nil
@@ -129,16 +124,8 @@ func (s *Service) RemoveDocument(ctx context.Context, id int64) error {
 	if err != nil {
 		return notFound(err, ErrDocumentNotFound)
 	}
-	// The row goes first, so a failure leaves an orphaned copy rather than a row pointing at a
-	// missing file.
-	if err := s.store.DeleteDocument(ctx, id); err != nil {
-		return err
-	}
 	// Each attachment has its own copy, so this deletes nothing another attachment uses.
-	if err := s.files.Remove(doc.StoredPath); err != nil {
-		return fmt.Errorf("the document was removed, but its file couldn't be deleted: %w", err)
-	}
-	return nil
+	return s.removeCopy(doc.StoredPath, func() error { return s.store.DeleteDocument(ctx, id) })
 }
 
 // DocumentFile is where an attachment's stored copy is.
@@ -163,13 +150,23 @@ func (s *Service) JobDocumentFiles(ctx context.Context, jobID int64) ([]Document
 	}
 	files := make([]DocumentFile, 0, len(docs))
 	for _, doc := range docs {
-		ok, err := s.files.Exists(doc.StoredPath)
+		f, err := s.documentFile(doc.ID, doc.StoredPath)
 		if err != nil {
 			return nil, err
 		}
-		files = append(files, DocumentFile{DocumentID: doc.ID, Path: s.files.Path(doc.StoredPath), Missing: !ok})
+		files = append(files, f)
 	}
 	return files, nil
+}
+
+// documentFile returns where the stored copy of the attachment or library document id is, and
+// whether it's missing.
+func (s *Service) documentFile(id int64, stored string) (DocumentFile, error) {
+	ok, err := s.files.Exists(stored)
+	if err != nil {
+		return DocumentFile{}, err
+	}
+	return DocumentFile{DocumentID: id, Path: s.files.Path(stored), Missing: !ok}, nil
 }
 
 // OpenDocument opens an attachment's stored copy in the OS default app for its file type. If the
@@ -180,13 +177,48 @@ func (s *Service) OpenDocument(ctx context.Context, id int64) error {
 	if err != nil {
 		return notFound(err, ErrDocumentNotFound)
 	}
-	ok, err := s.files.Exists(doc.StoredPath)
+	return s.openCopy(doc.FileName, doc.StoredPath)
+}
+
+// saveCopy copies the file at src, then has create write its row with the copy's stored path. The
+// file is copied before its row is written, so a failure leaves at worst an orphaned copy, which is
+// removed, never a row pointing at a missing file.
+func (s *Service) saveCopy(src string, create func(stored string) error) error {
+	stored, err := s.files.Save(src)
+	if err != nil {
+		return err
+	}
+	if err := create(stored); err != nil {
+		if rmErr := s.files.Remove(stored); rmErr != nil {
+			return errors.Join(err, rmErr)
+		}
+		return err
+	}
+	return nil
+}
+
+// removeCopy has deleteRow delete a document's row, then deletes its stored copy. The row goes
+// first, so a failure leaves an orphaned copy rather than a row pointing at a missing file.
+func (s *Service) removeCopy(stored string, deleteRow func() error) error {
+	if err := deleteRow(); err != nil {
+		return err
+	}
+	if err := s.files.Remove(stored); err != nil {
+		return fmt.Errorf("the document was removed, but its file couldn't be deleted: %w", err)
+	}
+	return nil
+}
+
+// openCopy opens a document's stored copy in the OS default app for its file type, or returns a
+// MissingFileError if the copy is gone from the data directory. It opens the app's copy, never the
+// original, which may have moved.
+func (s *Service) openCopy(fileName, stored string) error {
+	ok, err := s.files.Exists(stored)
 	if err != nil {
 		return err
 	}
 	if !ok {
-		return &MissingFileError{FileName: doc.FileName}
+		return &MissingFileError{FileName: fileName}
 	}
-	// Opens the app's copy, never the original, which may have moved.
-	return s.opener.Open(s.files.Path(doc.StoredPath))
+	return s.opener.Open(s.files.Path(stored))
 }
