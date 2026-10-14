@@ -61,6 +61,19 @@ type Contact struct {
 	Notes        string       `json:"notes"`
 }
 
+// Details returns the contact's details as the user fills them in, so a change can start from
+// what's saved and keep what it doesn't change.
+func (c Contact) Details() ContactDetails {
+	return ContactDetails{
+		Name:         c.Name,
+		Relationship: c.Relationship,
+		Email:        c.Email,
+		Phone:        c.Phone,
+		ProfileLink:  c.ProfileLink,
+		Notes:        c.Notes,
+	}
+}
+
 func contactFromRow(row store.Contact) Contact {
 	return Contact{
 		ID:           row.ID,

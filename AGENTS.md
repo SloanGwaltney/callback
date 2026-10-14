@@ -125,7 +125,8 @@ A new field stored on the job itself, like its interest rating or next action, i
    queries. Check that `UpdateJobDetails` and `UpdateJobPlacement` leave the column alone if
    editing or moving a job shouldn't change it. If the migration fills in the column for jobs
    already there, test it with `openBefore` (`internal/db/store_test.go`).
-2. **Service.** The field on `Job` and set in `Service.Job` (`job.go`). If the board shows it, it
+2. **Service.** The field on `Job` and set in `Service.Job` (`job.go`). If it's one of `Details`,
+   copy it in `Job.Details()` too, or the agent CLI's `job update` clears it. If the board shows it, it
    also goes on `Card` and in `cardFromRow` (`board.go`). Anything that depends on today comes
    from `s.today()`.
 3. **Fakes.** The fake copies each field by hand, so add the column to the `ListJobsRow` built in
