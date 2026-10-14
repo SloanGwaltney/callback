@@ -13,11 +13,12 @@ Feature: Agent command line for jobs
     Scenario: List my jobs
       Given I have a job for "Software Engineer" at "Acme" in "Applied"
       And it has been in "Applied" for 9 days
+      And its location is "Remote, US" and I applied on 2026-10-05
       And I rated it 4 stars
       And its next action is "Follow up" expected on 2026-10-15
       When my agent lists my jobs
       Then it sees one line for the job
-      And the line shows its ID, "Applied", 9 days in status, "Acme", "Software Engineer", 4 stars, and "Follow up" expected on 2026-10-15
+      And the line shows its ID, "Applied", 9 days in status, "Acme", "Software Engineer", "Remote, US", applied 2026-10-05, 4 stars, and "Follow up" expected on 2026-10-15
 
     @status:not-implemented @id:cli-list-board-order
     Scenario: Jobs are listed column by column, in each column's order

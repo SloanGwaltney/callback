@@ -158,6 +158,33 @@ Feature: Agent backups
       Then my agent still sees "first" and "second" when it lists the backups
       And each is still kept until the same day as before
 
+  Rule: A restore works with backups from older versions of Callback, but not newer ones
+
+    @status:not-implemented @id:restore-older-backup
+    Scenario: A backup from an older version is brought up to date when it's restored
+      Given my agent made a backup named "before-cleanup" while I had a job at "Acme" in "Applied"
+      And I have since updated to a version of Callback that changes how my data is stored
+      When my agent restores the backup "before-cleanup"
+      Then the job at "Acme" is in "Applied" again
+      And my data is stored the way the current version stores it
+      And the "before-cleanup" backup itself is unchanged
+
+    @status:not-implemented @id:restore-newer-backup
+    Scenario: A backup from a newer version can't be restored
+      Given a backup named "from-newer" was made by a newer version of Callback than the command line
+      When my agent tries to restore the backup "from-newer"
+      Then my data is unchanged
+      And my agent is told the backup is from a newer version of Callback
+      And the command ends with the exit code for a newer version of my data
+
+    @status:not-implemented @id:restore-app-open-safe
+    Scenario: Restoring while the app is open doesn't need the app closed
+      Given the app is open
+      And my agent made a backup named "before-cleanup"
+      When my agent restores the backup "before-cleanup"
+      Then the restore finishes without the app being closed
+      And the app keeps working with the restored data
+
   Rule: A restore can be undone
 
     @status:not-implemented @id:restore-backs-up-first
