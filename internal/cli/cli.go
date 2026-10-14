@@ -49,6 +49,13 @@ type Jobs interface {
 	AttachDocument(ctx context.Context, jobID int64, src string, kind jobs.DocumentKind) (jobs.Document, error)
 	SetDocumentKind(ctx context.Context, id int64, kind jobs.DocumentKind) error
 	RemoveDocument(ctx context.Context, id int64) error
+
+	Library(ctx context.Context) ([]jobs.LibraryDocument, error)
+	LibraryDocument(ctx context.Context, id int64) (jobs.LibraryDocument, error)
+	LibraryFiles(ctx context.Context) ([]jobs.DocumentFile, error)
+	AddLibraryDocument(ctx context.Context, src, description string) (jobs.LibraryDocument, error)
+	SetLibraryDescription(ctx context.Context, id int64, description string) (jobs.LibraryDocument, error)
+	RemoveLibraryDocument(ctx context.Context, id int64) error
 }
 
 // DailyBackups takes the daily backup. *backups.Service satisfies it.

@@ -86,6 +86,7 @@ var overviewTemplate = template.Must(template.New("overview").Parse(overviewSour
 // @scenario [features/agent-cli.feature#cli-overview-limits] The overview says what my agent can't do
 // @scenario [features/agent-cli.feature#cli-overview-matches-commands] Every command the overview names is one Callback has
 // @scenario [features/agent-cli.feature#cli-exit-codes-listed] The overview lists every exit code and what it means
+// @scenario [features/agent-cli.feature#cli-overview-read-documents] The overview tells my agent it can read my documents
 func writeOverview(w io.Writer) error {
 	return overviewTemplate.Execute(w, struct {
 		Name      string

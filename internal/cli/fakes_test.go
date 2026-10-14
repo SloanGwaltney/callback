@@ -26,6 +26,9 @@ type fakeJobs struct {
 	order []int64
 	days  map[int64]int
 	files map[int64][]jobs.DocumentFile
+	// library is the document library, newest first, and libraryFiles its stored copies.
+	library      []jobs.LibraryDocument
+	libraryFiles map[int64]jobs.DocumentFile
 	// fail is returned by the next change, which then changes nothing, as the service does for a
 	// value that breaks one of its rules.
 	fail error
@@ -38,7 +41,7 @@ type fakeJobs struct {
 var _ Jobs = (*fakeJobs)(nil)
 
 func newFakeJobs() *fakeJobs {
-	return &fakeJobs{jobs: map[int64]*jobs.Job{}, days: map[int64]int{}, files: map[int64][]jobs.DocumentFile{}, nextID: 100}
+	return &fakeJobs{jobs: map[int64]*jobs.Job{}, days: map[int64]int{}, files: map[int64][]jobs.DocumentFile{}, libraryFiles: map[int64]jobs.DocumentFile{}, nextID: 100}
 }
 
 // add puts a job at the bottom of its column, Saved if status is "".
@@ -405,6 +408,70 @@ func (f *fakeJobs) RemoveDocument(_ context.Context, id int64) error {
 	}
 	job.Documents = slices.Delete(job.Documents, i, i+1)
 	f.files[job.ID] = slices.DeleteFunc(f.files[job.ID], func(file jobs.DocumentFile) bool { return file.DocumentID == id })
+	return nil
+}
+
+// libraryAt finds a document in the library.
+func (f *fakeJobs) libraryAt(id int64) (int, bool) {
+	i := slices.IndexFunc(f.library, func(d jobs.LibraryDocument) bool { return d.ID == id })
+	return i, i >= 0
+}
+
+func (f *fakeJobs) Library(context.Context) ([]jobs.LibraryDocument, error) {
+	return slices.Clone(f.library), nil
+}
+
+func (f *fakeJobs) LibraryDocument(_ context.Context, id int64) (jobs.LibraryDocument, error) {
+	i, ok := f.libraryAt(id)
+	if !ok {
+		return jobs.LibraryDocument{}, jobs.ErrLibraryDocumentNotFound
+	}
+	return f.library[i], nil
+}
+
+func (f *fakeJobs) LibraryFiles(context.Context) ([]jobs.DocumentFile, error) {
+	files := make([]jobs.DocumentFile, 0, len(f.library))
+	for _, d := range f.library {
+		files = append(files, f.libraryFiles[d.ID])
+	}
+	return files, nil
+}
+
+// AddLibraryDocument adds the file at src, under its base name, at the top of the library, with a
+// stored copy in /data/documents.
+func (f *fakeJobs) AddLibraryDocument(_ context.Context, src, description string) (jobs.LibraryDocument, error) {
+	if err := f.change(); err != nil {
+		return jobs.LibraryDocument{}, err
+	}
+	f.nextID++
+	doc := jobs.LibraryDocument{ID: f.nextID, FileName: filepath.Base(src), Description: description}
+	f.library = slices.Insert(f.library, 0, doc)
+	f.libraryFiles[doc.ID] = jobs.DocumentFile{DocumentID: doc.ID, Path: storedPath(doc.ID)}
+	return doc, nil
+}
+
+func (f *fakeJobs) SetLibraryDescription(_ context.Context, id int64, description string) (jobs.LibraryDocument, error) {
+	if err := f.change(); err != nil {
+		return jobs.LibraryDocument{}, err
+	}
+	i, ok := f.libraryAt(id)
+	if !ok {
+		return jobs.LibraryDocument{}, jobs.ErrLibraryDocumentNotFound
+	}
+	f.library[i].Description = description
+	return f.library[i], nil
+}
+
+func (f *fakeJobs) RemoveLibraryDocument(_ context.Context, id int64) error {
+	if err := f.change(); err != nil {
+		return err
+	}
+	i, ok := f.libraryAt(id)
+	if !ok {
+		return jobs.ErrLibraryDocumentNotFound
+	}
+	f.library = slices.Delete(f.library, i, i+1)
+	delete(f.libraryFiles, id)
 	return nil
 }
 

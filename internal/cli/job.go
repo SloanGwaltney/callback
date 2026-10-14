@@ -14,7 +14,7 @@ import (
 // commands is every command, in the order the help lists them. None opens anything on the user's
 // screen; `job show` gives the links and stored copies to read instead.
 // @scenario [features/agent-cli-jobs.feature#cli-no-opening] My agent can't open anything on my screen
-var commands = slices.Concat(jobCommands, recordCommands)
+var commands = slices.Concat(jobCommands, recordCommands, libraryCommands)
 
 // jobCommands are the commands for jobs themselves.
 var jobCommands = []*command{

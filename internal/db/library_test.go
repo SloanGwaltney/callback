@@ -112,6 +112,26 @@ func TestListLibraryDocumentsIsNewestFirst(t *testing.T) {
 	}
 }
 
+// The command line prints the library in this order; internal/cli's TestAgentListsTheLibrary
+// checks what it prints for each document.
+// @scenario [features/agent-cli-library.feature#cli-list-library] List the library
+func TestAgentListsTheLibraryNewestFirst(t *testing.T) {
+	s, _ := openStore(t, t.TempDir())
+
+	// @given [features/agent-cli-library.feature] my library holds "resume-2026.pdf" described as "General resume"
+	createLibraryDocument(t, s, "resume-2026.pdf", "General resume")
+	// @and [features/agent-cli-library.feature] my library holds "cover-letter.docx" with no description
+	createLibraryDocument(t, s, "cover-letter.docx", "")
+
+	// @when [features/agent-cli-library.feature] my agent lists the library
+	got := libraryFileNames(t, s)
+
+	// @then [features/agent-cli-library.feature] it sees both documents, newest first
+	if want := []string{"cover-letter.docx", "resume-2026.pdf"}; !slices.Equal(got, want) {
+		t.Errorf("the library lists %v, want %v", got, want)
+	}
+}
+
 func TestNewestFirstAfterRemovingTheNewest(t *testing.T) {
 	s, _ := openStore(t, t.TempDir())
 	ctx := context.Background()

@@ -424,3 +424,94 @@ func TestRemoveLibraryDocumentKeepsAttachments(t *testing.T) {
 		t.Errorf("the job's copy %q was deleted with the library's", attachedCopy)
 	}
 }
+
+func TestLibraryDocumentLookup(t *testing.T) {
+	h := newHarness(t)
+	id := h.seedLibraryDoc("resume-2026.pdf", "General resume")
+
+	got, err := h.svc.LibraryDocument(h.ctx, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := (LibraryDocument{ID: id, FileName: "resume-2026.pdf", Description: "General resume"}); got != want {
+		t.Errorf("LibraryDocument = %+v, want %+v", got, want)
+	}
+	if _, err := h.svc.LibraryDocument(h.ctx, 999); !errors.Is(err, ErrLibraryDocumentNotFound) {
+		t.Errorf("err = %v, want ErrLibraryDocumentNotFound", err)
+	}
+}
+
+func TestLibraryFiles(t *testing.T) {
+	h := newHarness(t)
+	resume := h.seedLibraryDoc("resume-2026.pdf", "General resume")
+	letter := h.seedLibraryDoc("cover-letter.docx", "")
+
+	files, err := h.svc.LibraryFiles(h.ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// In the order Library lists them, newest first.
+	want := []DocumentFile{
+		{DocumentID: letter, Path: "/data/" + h.store.library[letter].StoredPath},
+		{DocumentID: resume, Path: "/data/" + h.store.library[resume].StoredPath},
+	}
+	if !slices.Equal(files, want) {
+		t.Errorf("files = %v, want %v", files, want)
+	}
+}
+
+// @scenario [features/agent-cli-library.feature#cli-list-library-missing] The list marks a library document whose file is missing
+func TestLibraryFilesMarksAMissingCopy(t *testing.T) {
+	h := newHarness(t)
+	// @given [features/agent-cli-library.feature] my library holds "resume-2026.pdf"
+	id := h.seedLibraryDoc("resume-2026.pdf", "")
+	// @and [features/agent-cli-library.feature] the stored copy of "resume-2026.pdf" is gone
+	delete(h.files.copies, h.store.library[id].StoredPath)
+
+	// @when [features/agent-cli-library.feature] my agent lists the library
+	files, err := h.svc.LibraryFiles(h.ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// @then [features/agent-cli-library.feature] "resume-2026.pdf" is marked as missing its file
+	if len(files) != 1 || files[0].DocumentID != id || !files[0].Missing {
+		t.Errorf("files = %v, want %d marked missing", files, id)
+	}
+	if got := libraryListing(t, h); !slices.Equal(got, []string{"resume-2026.pdf: "}) {
+		t.Errorf("the library lists %v, want the document kept", got)
+	}
+}
+
+// @scenario [features/agent-cli-library.feature#cli-add-library-rules] Adding a library document follows the app's rules
+func TestAddingToTheLibraryFollowsTheRules(t *testing.T) {
+	for _, tc := range []struct {
+		file   string
+		src    string
+		setup  func(h *harness)
+		reason string
+	}{
+		{"a file that doesn't exist", "Documents/gone.pdf", func(h *harness) { h.files.absent = []string{"Documents/gone.pdf"} },
+			"there's no file at Documents/gone.pdf"},
+		{"\"photo.png\"", "photo.png", func(*harness) {},
+			"only these document types can be added: .txt, .pdf, .md, .docx, .doc, .rtf, .odt"},
+		{"a PDF larger than 10 MB", "portfolio.pdf", func(h *harness) { h.files.sizes["portfolio.pdf"] = MaxDocumentBytes + 1 },
+			"files can be at most 10 MB"},
+	} {
+		t.Run(tc.file, func(t *testing.T) {
+			h := newHarness(t)
+			tc.setup(h)
+
+			// @when [features/agent-cli-library.feature] my agent tries to add <file> to the library
+			_, err := h.svc.AddLibraryDocument(h.ctx, tc.src, "")
+
+			// @then [features/agent-cli-library.feature] the library has no new document
+			if len(h.store.library) != 0 || len(h.files.copies) != 0 {
+				t.Errorf("added: rows %v, copies %v", h.store.library, h.files.copies)
+			}
+			// @and [features/agent-cli-library.feature] my agent is told <reason>
+			wantValidation(t, err, tc.reason)
+		})
+	}
+}

@@ -216,6 +216,21 @@ func TestOverviewSaysWhatTheAgentCantDo(t *testing.T) {
 	wantPhrases(t, text, "Never edit a document's stored copy. To change a job's document, attach a new file in its place.")
 }
 
+// @scenario [features/agent-cli.feature#cli-overview-read-documents] The overview tells my agent it can read my documents
+func TestOverviewSaysTheAgentCanReadDocuments(t *testing.T) {
+	// @when [features/agent-cli.feature] my agent asks Callback for its overview
+	text := overview(t)
+
+	// @then [features/agent-cli.feature] it's told where to find the stored copies of a job's documents and the library's
+	wantPhrases(t, text, "`job show` gives the path of the stored copy of each of a job's documents",
+		"`library list` gives the path of the stored copy of each document in the library")
+	if strings.Contains(text, "can't reach the document library") {
+		t.Error("the overview still says the library can't be reached")
+	}
+	// @and [features/agent-cli.feature] it's told to read them when they help with what it's doing
+	wantPhrases(t, text, "Read them when they help with what you're doing")
+}
+
 // @scenario [features/agent-cli.feature#cli-overview-matches-commands] Every command the overview names is one Callback has
 func TestEveryCommandTheOverviewNamesIsOne(t *testing.T) {
 	// @when [features/agent-cli.feature] my agent asks Callback for its overview

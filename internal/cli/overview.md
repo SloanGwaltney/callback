@@ -27,9 +27,8 @@ keeps track of and how to work with it. `{{.Name}} --help` lists the commands, a
 - **Interviews.** A job's interviews, each with its date, time if known, kind, and notes.
 - **Documents.** Files attached to a job, like the resume or cover letter sent for it. Callback
   keeps its own stored copy of each file in its data folder.
-- **The document library.** Documents that aren't attached to any job, like a general resume.
-
-This version of the command line can't reach the document library yet.
+- **The document library.** Documents that aren't attached to any job, like a general resume,
+  each with a description of what it is. Callback keeps a stored copy of each of these too.
 
 ## How the commands fit together
 
@@ -60,23 +59,39 @@ This version of the command line can't reach the document library yet.
      resume, a cover letter, or other, and `{{.Name}} document remove <document-id>` removes it
      and deletes its stored copy.
 5. `{{.Name}} job add` adds a new job.
+6. Keep the document library up to date. `{{.Name}} library list` lists it, newest first, with
+   each document's ID. `{{.Name}} library add --file <path>` adds a copy of a file on the
+   person's computer, `{{.Name}} library describe <library-document-id>` changes or clears its
+   description, and `{{.Name}} library remove <library-document-id>` removes it and deletes its
+   stored copy.
 
 Commands follow the app's rules. Moving a job to Applied fills in today as its date applied if it
 has none, and moving it back to Saved clears it. Every move to another status is added to the
 job's status history. Contacts, interviews, and documents can be added to a job in any status,
 and adding them doesn't move it.
 
+## Reading the person's documents
+
+The person's resumes, cover letters, and other documents are yours to read. `job show` gives the
+path of the stored copy of each of a job's documents, and `library list` gives the path of the
+stored copy of each document in the library. Read them when they help with what you're doing,
+like the resume sent for a job when you prepare for its interview, or the library's resumes and
+letters when you help with a new application. A document marked missing has lost its stored
+copy, so there's nothing to read; tell the person, who can attach or add the file again.
+
 ## Output
 
 Output is plain text unless you add `--json` to the command, which prints JSON with the same
 details and more. Every command that changes a job prints the job as it is afterwards, and every
-command that adds or changes a contact, interview, or document prints it, with its ID, so you can
-check what changed without another command.
+command that adds or changes a contact, interview, document, or library document prints it, with
+its ID, so you can check what changed without another command.
 
 ## IDs
 
-Every job, contact, interview, and document comes with its ID. In plain text it's written like
-`#12`; in JSON it's the `id` field. Commands take the number alone: `{{.Name}} job show 12`.
+Every job, contact, interview, document, and library document comes with its ID. A job's
+documents and the library's have IDs of their own, so give a library document's ID only to a
+`library` command. In plain text an ID is written like `#12`; in JSON it's the `id` field.
+Commands take the number alone: `{{.Name}} job show 12`.
 
 ## Dates
 
@@ -108,7 +123,7 @@ The exit codes:
 
 - Nothing asks you to confirm. A command does what it says at once, so be sure before you delete
   a job: it takes the job's contacts, interviews, documents, and status history with it, and it
-  can't be undone. Removing a contact, interview, or document can't be undone either.
+  can't be undone. Removing a contact, interview, document, or library document can't be undone either.
 - Callback backs up the person's data once on each day it runs, the first time the app opens or
   a command runs that day.
 - If the data was last opened by a newer version of Callback, every command stops with exit code
@@ -121,3 +136,4 @@ The exit codes:
   or a document. Read the link, or the document's stored copy, instead.
 - You can't delete backups, and you can't restore a daily backup.
 - Never edit a document's stored copy. To change a job's document, attach a new file in its place.
+  To change a library document, add the new file and remove the old one.
