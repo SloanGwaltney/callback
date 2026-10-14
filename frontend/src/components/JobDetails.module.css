@@ -3,18 +3,10 @@
 	color: var(--color-text-muted);
 }
 
-.error {
-	composes: error from "./form.module.css";
-}
-
 .saved {
 	margin: var(--space-3) 0 0;
 	color: var(--color-status-offer);
 	font-size: var(--font-size-sm);
-}
-
-.warning {
-	margin: 0;
 }
 
 .actions {

@@ -129,10 +129,6 @@
 	composes: textarea from "./form.module.css";
 }
 
-.warning {
-	margin: 0;
-}
-
 .actions {
 	composes: actions from "./form.module.css";
 }
@@ -144,12 +140,4 @@
 
 .primary {
 	composes: primary from "./form.module.css";
-}
-
-.danger {
-	composes: danger from "./form.module.css";
-}
-
-.error {
-	composes: error from "./form.module.css";
 }

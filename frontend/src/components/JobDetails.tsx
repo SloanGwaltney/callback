@@ -1,12 +1,14 @@
 import { type FormEvent, useState } from "react";
-import { errorMessage } from "../hooks/errors";
 import type { Details, Job } from "../hooks/types";
+import { useAction } from "../hooks/useAction";
 import { useJob } from "../hooks/useJob";
 import { STATUS_CLOSED, STATUS_LABELS } from "../jobs/constants";
 import { ClosingReasonDialog } from "./ClosingReasonDialog";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { ContactList } from "./ContactList";
 import { Dialog } from "./Dialog";
 import { DocumentList } from "./DocumentList";
+import { ErrorMessage } from "./ErrorMessage";
 import { InterviewList } from "./InterviewList";
 import styles from "./JobDetails.module.css";
 import { JobFields } from "./JobFields";
@@ -30,15 +32,16 @@ export function JobDetails({ jobId, onClose, onChanged, onDelete }: Props) {
 	const { job, error, reload, update, setClosingReason, setNextAction, clearNextAction, openLink } =
 		useJob(jobId);
 	const [changingReason, setChangingReason] = useState(false);
+	// recordChanged reloads the job after one of its records changes, and lets the board know.
+	const recordChanged = () => {
+		void reload();
+		onChanged();
+	};
 
 	const title = job ? `${job.role} at ${job.company}` : "Job";
 	return (
 		<Dialog title={title} onClose={onClose}>
-			{error !== "" && (
-				<p role="alert" className={styles.error}>
-					{error}
-				</p>
-			)}
+			<ErrorMessage message={error} />
 			{job && (
 				<>
 					<p className={styles.status}>
@@ -78,30 +81,9 @@ export function JobDetails({ jobId, onClose, onChanged, onDelete }: Props) {
 							onChanged();
 						}}
 					/>
-					<InterviewList
-						jobId={job.id}
-						interviews={job.interviews}
-						onChanged={() => {
-							void reload();
-							onChanged();
-						}}
-					/>
-					<ContactList
-						jobId={job.id}
-						contacts={job.contacts}
-						onChanged={() => {
-							void reload();
-							onChanged();
-						}}
-					/>
-					<DocumentList
-						jobId={job.id}
-						documents={job.documents}
-						onChanged={() => {
-							void reload();
-							onChanged();
-						}}
-					/>
+					<InterviewList jobId={job.id} interviews={job.interviews} onChanged={recordChanged} />
+					<ContactList jobId={job.id} contacts={job.contacts} onChanged={recordChanged} />
+					<DocumentList jobId={job.id} documents={job.documents} onChanged={recordChanged} />
 					<StatusHistory history={job.statusHistory} />
 					{changingReason && (
 						<ClosingReasonDialog
@@ -157,30 +139,15 @@ function DetailsForm({ job, onSave, onOpenLink, onDelete, onClose }: FormProps) 
 		// The backend sends null for no rating; the form uses undefined.
 		interest: job.interest ?? undefined,
 	});
-	const [error, setError] = useState("");
+	const { error, run } = useAction();
 	const [saved, setSaved] = useState(false);
 	const [confirmingDelete, setConfirmingDelete] = useState(false);
 
 	const submit = async (e: FormEvent) => {
 		e.preventDefault();
-		setError("");
 		setSaved(false);
-		try {
-			await onSave(details);
-			setSaved(true);
-		} catch (err) {
-			// The form keeps what was entered, and nothing is saved.
-			setError(errorMessage(err));
-		}
-	};
-
-	const openLink = async () => {
-		setError("");
-		try {
-			await onOpenLink();
-		} catch (err) {
-			setError(errorMessage(err));
-		}
+		// When saving fails, the form keeps what was entered, and nothing is saved.
+		setSaved(await run(() => onSave(details)));
 	};
 
 	return (
@@ -192,11 +159,7 @@ function DetailsForm({ job, onSave, onOpenLink, onDelete, onClose }: FormProps) 
 					setSaved(false);
 				}}
 			/>
-			{error !== "" && (
-				<p role="alert" className={styles.error}>
-					{error}
-				</p>
-			)}
+			<ErrorMessage message={error} />
 			{saved && (
 				<p role="status" className={styles.saved}>
 					Saved.
@@ -210,7 +173,7 @@ function DetailsForm({ job, onSave, onOpenLink, onDelete, onClose }: FormProps) 
 					type="button"
 					className={styles.button}
 					disabled={job.link === ""}
-					onClick={openLink}
+					onClick={() => run(onOpenLink)}
 				>
 					Open link
 				</button>
@@ -223,51 +186,14 @@ function DetailsForm({ job, onSave, onOpenLink, onDelete, onClose }: FormProps) 
 				</button>
 			</div>
 			{confirmingDelete && (
-				<ConfirmDelete
-					name={`${job.role} at ${job.company}`}
+				<ConfirmDialog
+					title={`Delete ${job.role} at ${job.company}?`}
+					message="The job, its interviews, its contacts, its attached documents, and its status history will be removed. This can't be undone."
+					confirmLabel="Delete"
 					onConfirm={onDelete}
 					onCancel={() => setConfirmingDelete(false)}
 				/>
 			)}
 		</form>
-	);
-}
-
-type ConfirmProps = {
-	name: string;
-	onConfirm: () => Promise<void>;
-	onCancel: () => void;
-};
-
-function ConfirmDelete({ name, onConfirm, onCancel }: ConfirmProps) {
-	const [error, setError] = useState("");
-	const confirm = async () => {
-		setError("");
-		try {
-			await onConfirm();
-		} catch (err) {
-			setError(errorMessage(err));
-		}
-	};
-	return (
-		<Dialog title={`Delete ${name}?`} onClose={onCancel}>
-			<p className={styles.warning}>
-				The job, its interviews, its contacts, its attached documents, and its status history will
-				be removed. This can't be undone.
-			</p>
-			{error !== "" && (
-				<p role="alert" className={styles.error}>
-					{error}
-				</p>
-			)}
-			<div className={styles.actions}>
-				<button type="button" className={styles.button} onClick={onCancel}>
-					Cancel
-				</button>
-				<button type="button" className={styles.danger} onClick={confirm}>
-					Delete
-				</button>
-			</div>
-		</Dialog>
 	);
 }

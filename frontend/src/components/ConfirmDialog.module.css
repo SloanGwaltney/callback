@@ -1,0 +1,15 @@
+.warning {
+	margin: 0;
+}
+
+.actions {
+	composes: actions from "./form.module.css";
+}
+
+.button {
+	composes: button from "./form.module.css";
+}
+
+.danger {
+	composes: danger from "./form.module.css";
+}

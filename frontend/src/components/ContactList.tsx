@@ -1,10 +1,12 @@
 import { type FormEvent, useId, useState } from "react";
-import { errorMessage } from "../hooks/errors";
 import type { Contact, ContactDetails } from "../hooks/types";
+import { useAction } from "../hooks/useAction";
 import { useContacts } from "../hooks/useContacts";
 import { RELATIONSHIPS, relationshipLabel } from "../jobs/constants";
+import { ConfirmDialog } from "./ConfirmDialog";
 import styles from "./ContactList.module.css";
 import { Dialog } from "./Dialog";
+import { ErrorMessage } from "./ErrorMessage";
 
 type Props = {
 	jobId: number;
@@ -46,17 +48,8 @@ export function ContactList({ jobId, contacts, onChanged }: Props) {
 	// editing is the contact being edited, "new" while adding one, or null.
 	const [editing, setEditing] = useState<Contact | "new" | null>(null);
 	const [removing, setRemoving] = useState<Contact | null>(null);
-	const [error, setError] = useState("");
+	const { error, run } = useAction();
 	const titleId = useId();
-
-	const openProfile = async (contact: Contact) => {
-		setError("");
-		try {
-			await openLink(contact.id);
-		} catch (err) {
-			setError(errorMessage(err));
-		}
-	};
 
 	return (
 		<section className={styles.contacts} aria-labelledby={titleId}>
@@ -97,16 +90,15 @@ export function ContactList({ jobId, contacts, onChanged }: Props) {
 									Remove
 								</button>
 							</div>
-							<ContactInfo contact={contact} onOpenProfile={() => openProfile(contact)} />
+							<ContactInfo
+								contact={contact}
+								onOpenProfile={() => run(() => openLink(contact.id))}
+							/>
 						</li>
 					))}
 				</ul>
 			)}
-			{error !== "" && (
-				<p role="alert" className={styles.error}>
-					{error}
-				</p>
-			)}
+			<ErrorMessage message={error} />
 			{editing === "new" && (
 				<ContactForm
 					title="Add a contact"
@@ -132,8 +124,10 @@ export function ContactList({ jobId, contacts, onChanged }: Props) {
 				/>
 			)}
 			{removing && (
-				<ConfirmRemove
-					name={removing.name}
+				<ConfirmDialog
+					title={`Remove ${removing.name}?`}
+					message={`${removing.name} will be removed from this job's contacts.`}
+					confirmLabel="Remove"
 					onConfirm={async () => {
 						await remove(removing.id);
 						setRemoving(null);
@@ -220,19 +214,14 @@ function ContactForm({ title, initial, onSave, onCancel }: FormProps) {
 		profileLink: initial.profileLink,
 		notes: initial.notes,
 	});
-	const [error, setError] = useState("");
+	const { error, run } = useAction();
 	const id = useId();
 	const set = (field: keyof ContactDetails) => (value: string) =>
 		setDetails({ ...details, [field]: value });
 
-	const submit = async (e: FormEvent) => {
+	const submit = (e: FormEvent) => {
 		e.preventDefault();
-		setError("");
-		try {
-			await onSave(details);
-		} catch (err) {
-			setError(errorMessage(err));
-		}
+		void run(() => onSave(details));
 	};
 
 	return (
@@ -312,11 +301,7 @@ function ContactForm({ title, initial, onSave, onCancel }: FormProps) {
 						/>
 					</div>
 				</div>
-				{error !== "" && (
-					<p role="alert" className={styles.error}>
-						{error}
-					</p>
-				)}
+				<ErrorMessage message={error} />
 				<div className={styles.actions}>
 					<button type="button" className={styles.button} onClick={onCancel}>
 						Cancel
@@ -326,42 +311,6 @@ function ContactForm({ title, initial, onSave, onCancel }: FormProps) {
 					</button>
 				</div>
 			</form>
-		</Dialog>
-	);
-}
-
-type ConfirmProps = {
-	name: string;
-	onConfirm: () => Promise<void>;
-	onCancel: () => void;
-};
-
-function ConfirmRemove({ name, onConfirm, onCancel }: ConfirmProps) {
-	const [error, setError] = useState("");
-	const confirm = async () => {
-		setError("");
-		try {
-			await onConfirm();
-		} catch (err) {
-			setError(errorMessage(err));
-		}
-	};
-	return (
-		<Dialog title={`Remove ${name}?`} onClose={onCancel}>
-			<p className={styles.warning}>{name} will be removed from this job's contacts.</p>
-			{error !== "" && (
-				<p role="alert" className={styles.error}>
-					{error}
-				</p>
-			)}
-			<div className={styles.actions}>
-				<button type="button" className={styles.button} onClick={onCancel}>
-					Cancel
-				</button>
-				<button type="button" className={styles.danger} onClick={confirm}>
-					Remove
-				</button>
-			</div>
 		</Dialog>
 	);
 }

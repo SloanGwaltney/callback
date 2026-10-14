@@ -1,8 +1,9 @@
 import { type FormEvent, useState } from "react";
-import { errorMessage } from "../hooks/errors";
+import { useAction } from "../hooks/useAction";
 import { CLOSING_REASONS, REASON_OTHER } from "../jobs/constants";
 import styles from "./ClosingReasonDialog.module.css";
 import { Dialog } from "./Dialog";
+import { ErrorMessage } from "./ErrorMessage";
 
 type Props = {
 	title: string;
@@ -26,7 +27,7 @@ export function ClosingReasonDialog({
 }: Props) {
 	const [reason, setReason] = useState(initialReason);
 	const [other, setOther] = useState(initialOther);
-	const [error, setError] = useState("");
+	const { error, setError, run } = useAction();
 	const [saving, setSaving] = useState(false);
 
 	const submit = async (e: FormEvent) => {
@@ -41,10 +42,7 @@ export function ClosingReasonDialog({
 			return;
 		}
 		setSaving(true);
-		try {
-			await onChoose(reason, reason === REASON_OTHER ? other : "");
-		} catch (err) {
-			setError(errorMessage(err));
+		if (!(await run(() => onChoose(reason, reason === REASON_OTHER ? other : "")))) {
 			setSaving(false);
 		}
 	};
@@ -77,11 +75,7 @@ export function ClosingReasonDialog({
 						/>
 					</label>
 				)}
-				{error !== "" && (
-					<p role="alert" className={styles.error}>
-						{error}
-					</p>
-				)}
+				<ErrorMessage message={error} />
 				<div className={styles.actions}>
 					<button type="button" className={styles.button} onClick={onCancel}>
 						Cancel

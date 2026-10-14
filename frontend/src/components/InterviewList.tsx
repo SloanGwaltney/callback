@@ -1,9 +1,11 @@
 import { type FormEvent, useId, useState } from "react";
-import { errorMessage } from "../hooks/errors";
 import type { Interview, InterviewDetails } from "../hooks/types";
+import { useAction } from "../hooks/useAction";
 import { useInterviews } from "../hooks/useInterviews";
 import { formatTime, INTERVIEW_KINDS, interviewKindLabel } from "../jobs/constants";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { Dialog } from "./Dialog";
+import { ErrorMessage } from "./ErrorMessage";
 import styles from "./InterviewList.module.css";
 
 type Props = {
@@ -123,8 +125,10 @@ export function InterviewList({ jobId, interviews, onChanged }: Props) {
 				/>
 			)}
 			{removing && (
-				<ConfirmRemove
-					name={`The ${interviewKindLabel(removing.kind)} interview on ${when(removing)}`}
+				<ConfirmDialog
+					title="Remove this interview?"
+					message={`The ${interviewKindLabel(removing.kind)} interview on ${when(removing)} will be removed from this job.`}
+					confirmLabel="Remove"
 					onConfirm={async () => {
 						await remove(removing.id);
 						setRemoving(null);
@@ -154,19 +158,14 @@ function InterviewForm({ title, initial, onSave, onCancel }: FormProps) {
 		kind: initial.kind,
 		notes: initial.notes,
 	});
-	const [error, setError] = useState("");
+	const { error, run } = useAction();
 	const id = useId();
 	const set = (field: keyof InterviewDetails) => (value: string) =>
 		setDetails({ ...details, [field]: value });
 
-	const submit = async (e: FormEvent) => {
+	const submit = (e: FormEvent) => {
 		e.preventDefault();
-		setError("");
-		try {
-			await onSave(details);
-		} catch (err) {
-			setError(errorMessage(err));
-		}
+		void run(() => onSave(details));
 	};
 
 	return (
@@ -227,11 +226,7 @@ function InterviewForm({ title, initial, onSave, onCancel }: FormProps) {
 						/>
 					</div>
 				</div>
-				{error !== "" && (
-					<p role="alert" className={styles.error}>
-						{error}
-					</p>
-				)}
+				<ErrorMessage message={error} />
 				<div className={styles.actions}>
 					<button type="button" className={styles.button} onClick={onCancel}>
 						Cancel
@@ -241,42 +236,6 @@ function InterviewForm({ title, initial, onSave, onCancel }: FormProps) {
 					</button>
 				</div>
 			</form>
-		</Dialog>
-	);
-}
-
-type ConfirmProps = {
-	name: string;
-	onConfirm: () => Promise<void>;
-	onCancel: () => void;
-};
-
-function ConfirmRemove({ name, onConfirm, onCancel }: ConfirmProps) {
-	const [error, setError] = useState("");
-	const confirm = async () => {
-		setError("");
-		try {
-			await onConfirm();
-		} catch (err) {
-			setError(errorMessage(err));
-		}
-	};
-	return (
-		<Dialog title="Remove this interview?" onClose={onCancel}>
-			<p className={styles.warning}>{name} will be removed from this job.</p>
-			{error !== "" && (
-				<p role="alert" className={styles.error}>
-					{error}
-				</p>
-			)}
-			<div className={styles.actions}>
-				<button type="button" className={styles.button} onClick={onCancel}>
-					Cancel
-				</button>
-				<button type="button" className={styles.danger} onClick={confirm}>
-					Remove
-				</button>
-			</div>
 		</Dialog>
 	);
 }
