@@ -1,4 +1,4 @@
-// @scenario [features/call-reminders.feature#shown-in-list] Reminder shows in the list
+// @scenario [#shown-in-list]
 export function List() {
   // @given [features/call-reminders.feature] I have a reminder
   return (

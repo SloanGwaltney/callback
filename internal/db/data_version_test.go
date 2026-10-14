@@ -62,8 +62,7 @@ func readDatabase(t *testing.T, dataDir string) []byte {
 // The app and the command line both open the data through Open (cmd/callback-cli), so these tests
 // carry their steps for both.
 
-// @scenario [features/data-version.feature#app-newer-data] The app refuses data a newer Callback has updated
-// @scenario [features/agent-cli.feature#cli-newer-data] The command line refuses data a newer Callback has updated
+// @scenario [#app-newer-data] [#cli-newer-data]
 func TestOpenRefusesDataFromANewerVersion(t *testing.T) {
 	dataDir := t.TempDir()
 	// @given [features/data-version.feature] my data was last updated by a newer version of Callback than the app
@@ -93,8 +92,7 @@ func TestOpenRefusesDataFromANewerVersion(t *testing.T) {
 	}
 }
 
-// @scenario [features/data-version.feature#app-older-data] The app brings older data up to date
-// @scenario [features/agent-cli.feature#cli-older-data] The command line brings older data up to date, as the app does
+// @scenario [#app-older-data] [#cli-older-data]
 func TestOpenBringsOlderDataUpToDate(t *testing.T) {
 	dataDir := t.TempDir()
 	// @given [features/data-version.feature] my data was last updated by an older version of Callback
@@ -119,7 +117,7 @@ func TestOpenBringsOlderDataUpToDate(t *testing.T) {
 	}
 }
 
-// @scenario [features/data-version.feature#app-same-version-data] The app opens data from the same version as usual
+// @scenario [#app-same-version-data]
 func TestOpenOpensDataFromTheSameVersion(t *testing.T) {
 	dataDir := t.TempDir()
 	// @given [features/data-version.feature] my data was last updated by the same version of Callback as the app

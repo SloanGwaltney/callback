@@ -66,7 +66,7 @@ func (r result) wantStderr(t *testing.T, code int, reason string) {
 	}
 }
 
-// @scenario [features/agent-cli-job-records.feature#cli-add-contact] Add a contact to a job
+// @scenario [#cli-add-contact]
 func TestAgentAddsAContact(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-job-records.feature] I have a job at "Acme"
@@ -109,7 +109,7 @@ func TestAddingAContactToAJobThatIsntThere(t *testing.T) {
 	h.run("contact", "add", "999", "--name", "Jane Doe", "--relationship", "recruiter").wantStderr(t, ExitNotFound, "there's no job with ID 999")
 }
 
-// @scenario [features/agent-cli-job-records.feature#cli-add-contact-rules] Adding a contact follows the app's rules
+// @scenario [#cli-add-contact-rules]
 func TestAddingAContactFollowsTheAppsRules(t *testing.T) {
 	for _, tc := range []struct {
 		problem string
@@ -152,7 +152,7 @@ func TestAddingAContactFollowsTheAppsRules(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-job-records.feature#cli-update-contact] Change one of a contact's details and keep the rest
+// @scenario [#cli-update-contact]
 func TestAgentChangesAContactsPhone(t *testing.T) {
 	h := newHarness()
 	job := h.acme()
@@ -189,7 +189,7 @@ func TestAgentClearsAContactsDetail(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-job-records.feature#cli-remove-contact] Remove a contact
+// @scenario [#cli-remove-contact]
 func TestAgentRemovesAContact(t *testing.T) {
 	h := newHarness()
 	job := h.acme()
@@ -209,7 +209,7 @@ func TestAgentRemovesAContact(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-job-records.feature#cli-unknown-contact] My agent is told when there's no contact with an ID
+// @scenario [#cli-unknown-contact]
 func TestAgentIsToldThereIsNoContact(t *testing.T) {
 	h := newHarness()
 
@@ -224,7 +224,7 @@ func TestUpdatingAContactThatIsntThere(t *testing.T) {
 	newHarness().run("contact", "update", "999", "--phone", "555").wantStderr(t, ExitNotFound, "there's no contact with ID 999")
 }
 
-// @scenario [features/agent-cli-job-records.feature#cli-add-interview] Add an interview to a job
+// @scenario [#cli-add-interview]
 func TestAgentAddsAnInterview(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-job-records.feature] I have a job at "Acme"
@@ -247,7 +247,7 @@ func TestAgentAddsAnInterview(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-job-records.feature#cli-add-interview-rules] Adding an interview follows the app's rules
+// @scenario [#cli-add-interview-rules]
 func TestAddingAnInterviewFollowsTheAppsRules(t *testing.T) {
 	for _, tc := range []struct {
 		problem string
@@ -288,7 +288,7 @@ func TestAddingAnInterviewFollowsTheAppsRules(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-job-records.feature#cli-update-interview] Change an interview's time and keep the rest
+// @scenario [#cli-update-interview]
 func TestAgentChangesAnInterviewsTime(t *testing.T) {
 	h := newHarness()
 	job := h.acme()
@@ -326,7 +326,7 @@ func TestAgentGivesAnInterviewsNotesFromAFile(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-job-records.feature#cli-remove-interview] Remove an interview
+// @scenario [#cli-remove-interview]
 func TestAgentRemovesAnInterview(t *testing.T) {
 	h := newHarness()
 	job := h.acme()
@@ -352,7 +352,7 @@ func TestChangingAnInterviewThatIsntThere(t *testing.T) {
 	h.run("interview", "remove", "999").wantStderr(t, ExitNotFound, "there's no interview with ID 999")
 }
 
-// @scenario [features/agent-cli-job-records.feature#cli-attach-document] Attach a document from a file on my computer
+// @scenario [#cli-attach-document]
 func TestAgentAttachesADocument(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-job-records.feature] I have a job at "Acme"
@@ -402,7 +402,7 @@ func TestAttachingNeedsAFile(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-job-records.feature#cli-attach-document-rules] Attaching a document follows the app's rules
+// @scenario [#cli-attach-document-rules]
 func TestAttachingADocumentFollowsTheAppsRules(t *testing.T) {
 	for _, tc := range []struct {
 		file    string
@@ -445,7 +445,7 @@ func TestAttachingADocumentFollowsTheAppsRules(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-job-records.feature#cli-relabel-document] Change what kind of document an attachment is
+// @scenario [#cli-relabel-document]
 func TestAgentChangesADocumentsKind(t *testing.T) {
 	h := newHarness()
 	job := h.acme()
@@ -479,7 +479,7 @@ func TestSettingADocumentsKindNeedsOne(t *testing.T) {
 	h.run("document", "set-kind", "999", "--kind", "resume").wantStderr(t, ExitNotFound, "there's no document with ID 999")
 }
 
-// @scenario [features/agent-cli-job-records.feature#cli-remove-document] Remove an attached document
+// @scenario [#cli-remove-document]
 func TestAgentRemovesADocument(t *testing.T) {
 	h := newHarness()
 	job := h.acme()

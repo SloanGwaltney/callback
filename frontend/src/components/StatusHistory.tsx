@@ -10,10 +10,7 @@ type Props = {
 
 // StatusHistory shows every status a job has been in and the date it moved there, with the
 // closing reason chosen when it was closed. It's a record, so it has nothing to edit.
-// @scenario [features/job-status-history.feature#history-starts-when-added] A new job's history starts with the status it was added to
-// @scenario [features/job-status-history.feature#history-oldest-first] The history lists every change from oldest to newest
-// @scenario [features/job-status-history.feature#history-records-closing-reason] Closing a job records its closing reason in the history
-// @scenario [features/job-status-history.feature#history-read-only] The status history can't be edited
+// @scenario [#history-starts-when-added] [#history-oldest-first] [#history-records-closing-reason] [#history-read-only]
 export function StatusHistory({ history }: Props) {
 	const titleId = useId();
 	return (

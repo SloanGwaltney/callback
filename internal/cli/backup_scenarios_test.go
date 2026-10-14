@@ -35,7 +35,7 @@ func (r result) wantError(t *testing.T, msg string) {
 }
 
 // What the backup holds is TestAgentBackupHoldsTheDataAsItIsNow in internal/backups.
-// @scenario [features/agent-backups.feature#agent-backup] My agent backs up my data under a name, kept for a number of days
+// @scenario [#agent-backup]
 func TestAgentMakesABackup(t *testing.T) {
 	h := newHarness()
 
@@ -61,7 +61,7 @@ func TestMakeABackupAsJSON(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-backups.feature#agent-backup-needs-name] A backup needs a name
+// @scenario [#agent-backup-needs-name]
 func TestABackupNeedsANameFromTheCommandLine(t *testing.T) {
 	h := newHarness()
 
@@ -77,7 +77,7 @@ func TestABackupNeedsANameFromTheCommandLine(t *testing.T) {
 	r.wantError(t, "`callback-cli backup make` needs a backup name, like `callback-cli backup make before-cleanup`")
 }
 
-// @scenario [features/agent-backups.feature#agent-backup-name-characters] A backup name may only use letters, numbers, hyphens, and underscores
+// @scenario [#agent-backup-name-characters]
 func TestABackupNameTheRulesDontAllow(t *testing.T) {
 	h := newHarness()
 	h.backups.fail = errNameCharacters
@@ -89,7 +89,7 @@ func TestABackupNameTheRulesDontAllow(t *testing.T) {
 	r.wantError(t, errNameCharacters.Msg)
 }
 
-// @scenario [features/agent-backups.feature#agent-backup-needs-retention] A backup needs to say how many days it's kept
+// @scenario [#agent-backup-needs-retention]
 func TestABackupNeedsANumberOfDays(t *testing.T) {
 	h := newHarness()
 
@@ -117,7 +117,7 @@ func TestDaysMustBeAWholeNumber(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-backups.feature#agent-backup-retention-range] A backup is kept for 1 to 90 days
+// @scenario [#agent-backup-retention-range]
 func TestDaysOutsideTheRange(t *testing.T) {
 	h := newHarness()
 	h.backups.fail = errDaysRange
@@ -129,7 +129,7 @@ func TestDaysOutsideTheRange(t *testing.T) {
 	r.wantError(t, errDaysRange.Msg)
 }
 
-// @scenario [features/agent-backups.feature#agent-backup-name-in-use] A backup can't reuse the name of a backup that's still kept
+// @scenario [#agent-backup-name-in-use]
 func TestATakenBackupName(t *testing.T) {
 	h := newHarness()
 	h.backups.fail = errNameTaken
@@ -143,7 +143,7 @@ func TestATakenBackupName(t *testing.T) {
 }
 
 // Leaving out the daily backups is TestListingLeavesOutTheDailyBackups in internal/backups.
-// @scenario [features/agent-backups.feature#agent-list-backups] My agent lists the backups agents have made
+// @scenario [#agent-list-backups]
 func TestAgentListsTheBackups(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-backups.feature] an agent made a backup named "old-backup" last week that is still kept
@@ -171,7 +171,7 @@ func TestListingNoBackups(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-backups.feature#agent-cant-delete-backup] My agent has no way to delete a backup
+// @scenario [#agent-cant-delete-backup]
 func TestAgentHasNoWayToDeleteABackup(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-backups.feature] my agent made a backup named "before-cleanup"
@@ -200,8 +200,7 @@ func TestAgentHasNoWayToDeleteABackup(t *testing.T) {
 
 // What the restore brings back is TestRestoreBringsBackTheData in internal/backups, and the backup
 // it makes first is TestRestoringBacksUpTheDataFirst there.
-// @scenario [features/agent-backups.feature#agent-restore] My agent restores a backup
-// @scenario [features/agent-backups.feature#restore-backs-up-first] Restoring backs up my current data first
+// @scenario [#agent-restore] [#restore-backs-up-first]
 func TestAgentRestoresABackup(t *testing.T) {
 	h := newHarness()
 	h.backups.agent = []backups.AgentBackup{{Name: "before-cleanup", KeptUntil: "2026-10-21"}}
@@ -239,7 +238,7 @@ func TestRestoreAsJSON(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-backups.feature#agent-restore-daily-backup] My agent can't restore a daily backup
+// @scenario [#agent-restore-daily-backup]
 func TestRestoringADailyBackup(t *testing.T) {
 	h := newHarness()
 	h.backups.fail = &backups.ValidationError{Msg: `"2026-10-14" is a daily backup; you can only restore a backup an agent made`}
@@ -252,7 +251,7 @@ func TestRestoringADailyBackup(t *testing.T) {
 	r.wantError(t, `"2026-10-14" is a daily backup; you can only restore a backup an agent made`)
 }
 
-// @scenario [features/agent-backups.feature#agent-restore-unknown] My agent is told when there's no backup with that name
+// @scenario [#agent-restore-unknown]
 func TestRestoringABackupWithNoSuchName(t *testing.T) {
 	h := newHarness()
 	h.backups.fail = &backups.NotFoundError{Name: "never-made"}
@@ -266,7 +265,7 @@ func TestRestoringABackupWithNoSuchName(t *testing.T) {
 }
 
 // That the data is unchanged is TestRestoreRefusesANewerBackup in internal/db.
-// @scenario [features/agent-backups.feature#restore-newer-backup] A backup from a newer version can't be restored
+// @scenario [#restore-newer-backup]
 func TestRestoringANewerBackup(t *testing.T) {
 	h := newHarness()
 	h.backups.fail = db.ErrNewerBackup
@@ -296,8 +295,7 @@ func TestRestoreNeedsABackupName(t *testing.T) {
 
 // Which backups have expired is the backups service's (TestAnExpiredBackupIsRemoved and
 // TestRemovingExpiredBackupsKeepsTheDailyBackups in internal/backups).
-// @scenario [features/agent-backups.feature#agent-backup-expires] An expired backup is removed when Callback runs
-// @scenario [features/agent-backups.feature#agent-backup-expiry-keeps-daily] Removing expired backups never removes a daily backup
+// @scenario [#agent-backup-expires] [#agent-backup-expiry-keeps-daily]
 func TestEveryCommandRemovesExpiredBackups(t *testing.T) {
 	h := newHarness()
 	h.acme()

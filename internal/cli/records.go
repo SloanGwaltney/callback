@@ -141,8 +141,7 @@ type removedJSON struct {
 	Removed any `json:"removed"`
 }
 
-// @scenario [features/agent-cli-job-records.feature#cli-add-contact] Add a contact to a job
-// @scenario [features/agent-cli-job-records.feature#cli-add-contact-rules] Adding a contact follows the app's rules
+// @scenario [#cli-add-contact] [#cli-add-contact-rules]
 func addContact(c *call) error {
 	if err := c.required("relationship", "a contact", values(jobs.Relationships)); err != nil {
 		return err
@@ -158,7 +157,7 @@ func addContact(c *call) error {
 	return c.output(contact, func(w io.Writer) { writeContact(w, contact) })
 }
 
-// @scenario [features/agent-cli-job-records.feature#cli-update-contact] Change one of a contact's details and keep the rest
+// @scenario [#cli-update-contact]
 func updateContact(c *call) error {
 	contact, err := c.jobs.Contact(c.ctx, c.id)
 	if err != nil {
@@ -195,8 +194,7 @@ func (c *call) applyContact(d *jobs.ContactDetails) error {
 	return err
 }
 
-// @scenario [features/agent-cli-job-records.feature#cli-remove-contact] Remove a contact
-// @scenario [features/agent-cli-job-records.feature#cli-unknown-contact] My agent is told when there's no contact with an ID
+// @scenario [#cli-remove-contact] [#cli-unknown-contact]
 func removeContact(c *call) error {
 	contact, err := c.jobs.Contact(c.ctx, c.id)
 	if err != nil {
@@ -210,8 +208,7 @@ func removeContact(c *call) error {
 	})
 }
 
-// @scenario [features/agent-cli-job-records.feature#cli-add-interview] Add an interview to a job
-// @scenario [features/agent-cli-job-records.feature#cli-add-interview-rules] Adding an interview follows the app's rules
+// @scenario [#cli-add-interview] [#cli-add-interview-rules]
 func addInterview(c *call) error {
 	if err := c.required("kind", "an interview", values(jobs.InterviewKinds)); err != nil {
 		return err
@@ -227,7 +224,7 @@ func addInterview(c *call) error {
 	return c.output(interview, func(w io.Writer) { writeInterview(w, interview) })
 }
 
-// @scenario [features/agent-cli-job-records.feature#cli-update-interview] Change an interview's time and keep the rest
+// @scenario [#cli-update-interview]
 func updateInterview(c *call) error {
 	interview, err := c.jobs.Interview(c.ctx, c.id)
 	if err != nil {
@@ -265,7 +262,7 @@ func (c *call) applyInterview(d *jobs.InterviewDetails) error {
 	return err
 }
 
-// @scenario [features/agent-cli-job-records.feature#cli-remove-interview] Remove an interview
+// @scenario [#cli-remove-interview]
 func removeInterview(c *call) error {
 	interview, err := c.jobs.Interview(c.ctx, c.id)
 	if err != nil {
@@ -279,8 +276,7 @@ func removeInterview(c *call) error {
 	})
 }
 
-// @scenario [features/agent-cli-job-records.feature#cli-attach-document] Attach a document from a file on my computer
-// @scenario [features/agent-cli-job-records.feature#cli-attach-document-rules] Attaching a document follows the app's rules
+// @scenario [#cli-attach-document] [#cli-attach-document-rules]
 func attachDocument(c *call) error {
 	path, ok := c.value("file")
 	if !ok {
@@ -306,7 +302,7 @@ func (c *call) documentKind() (jobs.DocumentKind, error) {
 	return pick("document kind", given, jobs.DocumentKinds, jobs.DocumentKind.Label)
 }
 
-// @scenario [features/agent-cli-job-records.feature#cli-relabel-document] Change what kind of document an attachment is
+// @scenario [#cli-relabel-document]
 func setDocumentKind(c *call) error {
 	kind, err := c.documentKind()
 	if err != nil {
@@ -332,7 +328,7 @@ func (c *call) printDocument(doc jobs.Document) error {
 	return c.output(out, func(w io.Writer) { writeDocument(w, out) })
 }
 
-// @scenario [features/agent-cli-job-records.feature#cli-remove-document] Remove an attached document
+// @scenario [#cli-remove-document]
 func removeDocument(c *call) error {
 	doc, err := c.jobs.Document(c.ctx, c.id)
 	if err != nil {

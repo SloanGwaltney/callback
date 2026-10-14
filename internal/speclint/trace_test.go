@@ -36,7 +36,7 @@ func TestTraceCollectsEntryPointsAndSteps(t *testing.T) {
 		t.Errorf("entry points: got %v, want %v", got, want)
 	}
 	// The shared Given is linked once and counts for this scenario too.
-	if got, want := locations(tr.Steps[0].Links), []string{"scheduler.go:7 @given", "scheduler_test.go:6 @given"}; !reflect.DeepEqual(got, want) {
+	if got, want := locations(tr.Steps[0].Links), []string{"scheduler.go:6 @given", "scheduler_test.go:5 @given"}; !reflect.DeepEqual(got, want) {
 		t.Errorf("given: got %v, want %v", got, want)
 	}
 	if m := tr.Missing(); len(m) != 0 {
@@ -62,7 +62,7 @@ func TestTraceSkipsStepsScopedToOtherScenarios(t *testing.T) {
 func TestTraceOrdersLinksByLayer(t *testing.T) {
 	tr := traceFixture(t, "default-lead-time")
 
-	want := []string{"reminders.sql:2 @then", "scheduler.go:10 @then", "scheduler_test.go:10 @then"}
+	want := []string{"reminders.sql:2 @then", "scheduler.go:9 @then", "scheduler_test.go:9 @then"}
 	if got := locations(tr.Steps[2].Links); !reflect.DeepEqual(got, want) {
 		t.Errorf("got %v, want %v", got, want)
 	}

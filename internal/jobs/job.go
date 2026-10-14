@@ -75,7 +75,7 @@ func (j Job) Details() Details {
 
 // AddJob adds a job to the top of the status column, or of Saved when status is "", and starts its
 // status history with that status today.
-// @scenario [features/job-status-history.feature#history-starts-when-added] A new job's history starts with the status it was added to
+// @scenario [#history-starts-when-added]
 func (s *Service) AddJob(ctx context.Context, d Details, status Status) (Job, error) {
 	if status == "" {
 		status = StatusSaved
@@ -128,7 +128,7 @@ func (s *Service) AddJob(ctx context.Context, d Details, status Status) (Job, er
 
 // Job returns a job with all its details, next action, documents, contacts, interviews, and
 // status history.
-// @scenario [features/job-status-history.feature#history-persists] The status history is the same after reopening the app
+// @scenario [#history-persists]
 func (s *Service) Job(ctx context.Context, id int64) (Job, error) {
 	row, err := s.store.GetJob(ctx, id)
 	if err != nil {
@@ -191,7 +191,7 @@ func (s *Service) Job(ctx context.Context, id int64) (Job, error) {
 
 // UpdateJob replaces a job's details. Nothing is saved if any detail is invalid. The status
 // history isn't touched, so changing the date applied doesn't change it.
-// @scenario [features/job-status-history.feature#history-ignores-date-applied] Changing the date applied doesn't change the history
+// @scenario [#history-ignores-date-applied]
 func (s *Service) UpdateJob(ctx context.Context, id int64, d Details) (Job, error) {
 	d, err := s.validateDetails(d)
 	if err != nil {

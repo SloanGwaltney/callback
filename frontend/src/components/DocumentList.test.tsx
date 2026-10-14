@@ -68,7 +68,7 @@ function kindOf(scope: HTMLElement, file: string) {
 }
 
 describe("DocumentList", () => {
-	// @scenario [features/job-documents.feature#attach-document] Attach a document of a given kind
+	// @scenario [#attach-document]
 	it.each([
 		["resume-2026.pdf", "Resume"],
 		["acme-cover.docx", "Cover letter"],
@@ -84,7 +84,7 @@ describe("DocumentList", () => {
 		expect(kindOf(list, file)).toBe(kind);
 	});
 
-	// @scenario [features/job-documents.feature#attach-multiple-documents] Attach several documents to one job
+	// @scenario [#attach-multiple-documents]
 	it("attaches several documents to one job", async () => {
 		// @given [features/job-documents.feature] I have a job for "Software Engineer" at "Acme"
 		const list = renderList();
@@ -102,7 +102,7 @@ describe("DocumentList", () => {
 		expect(kindOf(list, "take-home-notes.md")).toBe("Other");
 	});
 
-	// @scenario [features/job-documents.feature#allowed-file-types] Text-like document types can be attached
+	// @scenario [#allowed-file-types]
 	it.each([
 		"notes.txt",
 		"resume.pdf",
@@ -120,7 +120,7 @@ describe("DocumentList", () => {
 		expect(kindOf(list, file)).toBe("Other");
 	});
 
-	// @scenario [features/job-documents.feature#file-type-any-case] A document's type is recognized whatever the letter case of its extension
+	// @scenario [#file-type-any-case]
 	it("attaches a file with an upper-case extension", async () => {
 		// @given [features/job-documents.feature] I have a job for "Software Engineer" at "Acme"
 		const list = renderList();
@@ -130,7 +130,7 @@ describe("DocumentList", () => {
 		expect(kindOf(list, "RESUME.PDF")).toBe("Other");
 	});
 
-	// @scenario [features/job-documents.feature#file-size-at-limit] A file of exactly 10 MB can be attached
+	// @scenario [#file-size-at-limit]
 	it("attaches a 10 MB file", async () => {
 		// @given [features/job-documents.feature] I have a job for "Software Engineer" at "Acme"
 		const list = renderList();
@@ -140,7 +140,7 @@ describe("DocumentList", () => {
 		expect(kindOf(list, "portfolio.pdf")).toBe("Other");
 	});
 
-	// @scenario [features/job-documents.feature#disallowed-file-types] Other file types can't be attached
+	// @scenario [#disallowed-file-types]
 	it.each(["headshot.png", "take-home.zip", "setup.exe", "salaries.xlsx"])(
 		"doesn't attach %s",
 		async (file) => {
@@ -162,7 +162,7 @@ describe("DocumentList", () => {
 		},
 	);
 
-	// @scenario [features/job-documents.feature#file-size-limit] A file larger than 10 MB can't be attached
+	// @scenario [#file-size-limit]
 	it("doesn't attach a file over 10 MB", async () => {
 		// @given [features/job-documents.feature] I have a job for "Software Engineer" at "Acme"
 		const list = renderList();
@@ -185,7 +185,7 @@ describe("DocumentList", () => {
 		expect(within(list).queryByRole("alert")).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/job-documents.feature#open-document] Open an attached document
+	// @scenario [#open-document]
 	it("opens an attached document", async () => {
 		// @given [features/job-documents.feature] I have attached "resume-2026.pdf" to a job for "Software Engineer" at "Acme"
 		const list = renderList();
@@ -207,7 +207,7 @@ describe("DocumentList", () => {
 		);
 	});
 
-	// @scenario [features/job-documents.feature#document-kept-if-original-moved] An attached document still opens after the original file is moved
+	// @scenario [#document-kept-if-original-moved]
 	it("opens the attachment by its ID, not the original file's path", async () => {
 		// @given [features/job-documents.feature] I have attached "resume-2026.pdf" to a job for "Software Engineer" at "Acme"
 		const list = renderList();
@@ -230,7 +230,7 @@ describe("DocumentList", () => {
 		expect(within(list).getByRole("alert")).toHaveTextContent("document not found");
 	});
 
-	// @scenario [features/job-documents.feature#open-missing-document] Told when an attached document's file is missing
+	// @scenario [#open-missing-document]
 	it("says when an attached document's file is missing", async () => {
 		// @given [features/job-documents.feature] I have attached "resume-2026.pdf" to a job for "Software Engineer" at "Acme"
 		const list = renderList();
@@ -249,7 +249,7 @@ describe("DocumentList", () => {
 		expect(kindOf(list, "resume-2026.pdf")).toBe("Resume");
 	});
 
-	// @scenario [features/job-documents.feature#remove-missing-document] Remove an attached document whose file is missing
+	// @scenario [#remove-missing-document]
 	it("removes an attached document whose file is missing", async () => {
 		// @given [features/job-documents.feature] I have attached "resume-2026.pdf" to a job for "Software Engineer" at "Acme"
 		const list = renderList();
@@ -266,7 +266,7 @@ describe("DocumentList", () => {
 		expect(within(list).queryByRole("alert")).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/job-documents.feature#change-document-kind] Change what kind of document an attachment is
+	// @scenario [#change-document-kind]
 	it("changes what kind of document an attachment is", async () => {
 		// @given [features/job-documents.feature] I have attached "acme-cover.docx" as other to a job for "Software Engineer" at "Acme"
 		const list = renderList();
@@ -283,7 +283,7 @@ describe("DocumentList", () => {
 		expect(kindOf(list, "acme-cover.docx")).toBe("Cover letter");
 	});
 
-	// @scenario [features/job-documents.feature#remove-document] Remove an attached document
+	// @scenario [#remove-document]
 	it("removes an attached document", async () => {
 		// @given [features/job-documents.feature] I have attached "resume-2026.pdf" to a job for "Software Engineer" at "Acme"
 		const list = renderList();
@@ -298,7 +298,7 @@ describe("DocumentList", () => {
 		expect(docs.remove).toHaveBeenCalledWith(1);
 	});
 
-	// @scenario [features/job-documents.feature#same-document-many-jobs] The same file can be attached to more than one job
+	// @scenario [#same-document-many-jobs]
 	it("attaches the same file to two jobs", async () => {
 		// @given [features/job-documents.feature] I have a job for "Software Engineer" at "Acme" and a job for "Developer" at "Globex"
 		render(

@@ -15,17 +15,7 @@ import { useBoard } from "./hooks/useBoard";
 // column's page are kept only while the app is open
 // (docs/adr/0020-search-and-paginate-the-board-in-the-frontend.md), and they're still there on
 // coming back from the library or after the board reloads.
-// @scenario [features/board-search.feature#search-not-kept] Search is cleared after reopening the app
-// @scenario [features/board-search.feature#add-job-clears-search] Adding a job clears the search
-// @scenario [features/board-pagination.feature#new-card-shows-first-page] Adding a job shows the first page of its column
-// @scenario [features/board-pagination.feature#search-resets-pages] Changing the search returns every column to its first page
-// @scenario [features/board-pagination.feature#pages-reset-on-reopen] Every column starts on its first page after reopening the app
-// @scenario [features/job-next-action.feature#filter-resets-pages] Changing the filter returns every column to its first page
-// @scenario [features/job-next-action.feature#add-job-clears-filter] Adding a job shows every job again
-// @scenario [features/job-next-action.feature#filter-not-kept] The filter is cleared after reopening the app
-// @scenario [features/document-library.feature#open-library] Go from the board to the document library
-// @scenario [features/document-library.feature#back-to-board] Go back to the board from the document library
-// @scenario [features/job-board.feature#refresh-keeps-search-and-pages] Refreshing the board keeps my search and the page I'm on
+// @scenario [#search-not-kept] [#add-job-clears-search] [#new-card-shows-first-page] [#search-resets-pages] [#pages-reset-on-reopen] [#filter-resets-pages] [#add-job-clears-filter] [#filter-not-kept] [#open-library] [#back-to-board] [#refresh-keeps-search-and-pages]
 export default function App() {
 	const { board, error, reload, addJob, moveJob, deleteJob } = useBoard();
 	// adding is the column a new job is being added to, "" for Saved, or null when not adding.

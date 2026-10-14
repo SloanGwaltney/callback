@@ -21,26 +21,7 @@ export function fileNameOf(path: string): string {
 // newest first, each with an optional description. It adds, opens, describes, and removes them,
 // asking before a removal. Library documents are the app's own copies and are never attached to a
 // job.
-// @scenario [features/document-library.feature#open-library] Go from the board to the document library
-// @scenario [features/document-library.feature#back-to-board] Go back to the board from the document library
-// @scenario [features/document-library.feature#empty-library] An empty library prompts me to add my first document
-// @scenario [features/document-library.feature#add-library-document] Add a document with a description
-// @scenario [features/document-library.feature#add-library-document-no-description] Add a document without a description
-// @scenario [features/document-library.feature#library-newest-first] The newest documents are listed first
-// @scenario [features/document-library.feature#library-same-file-twice] The same file can be added more than once
-// @scenario [features/document-library.feature#library-document-kept-if-original-moved] A library document still opens after the original file is moved
-// @scenario [features/document-library.feature#library-allowed-file-types] Text-like document types can be added
-// @scenario [features/document-library.feature#library-file-type-any-case] A document's type is recognized whatever the letter case of its extension
-// @scenario [features/document-library.feature#library-disallowed-file-types] Other file types can't be added
-// @scenario [features/document-library.feature#library-file-size-limit] A file larger than 10 MB can't be added
-// @scenario [features/document-library.feature#library-file-size-at-limit] A file of exactly 10 MB can be added
-// @scenario [features/document-library.feature#open-library-document] Open a library document
-// @scenario [features/document-library.feature#open-missing-library-document] Told when a library document's file is missing
-// @scenario [features/document-library.feature#edit-library-description] Change a document's description
-// @scenario [features/document-library.feature#clear-library-description] Clear a document's description
-// @scenario [features/document-library.feature#remove-library-document] Remove a library document after confirming
-// @scenario [features/document-library.feature#cancel-remove-library-document] Cancel removing a library document
-// @scenario [features/document-library.feature#library-persists] The library is the same after reopening the app
+// @scenario [#open-library] [#back-to-board] [#empty-library] [#add-library-document] [#add-library-document-no-description] [#library-newest-first] [#library-same-file-twice] [#library-document-kept-if-original-moved] [#library-allowed-file-types] [#library-file-type-any-case] [#library-disallowed-file-types] [#library-file-size-limit] [#library-file-size-at-limit] [#open-library-document] [#open-missing-library-document] [#edit-library-description] [#clear-library-description] [#remove-library-document] [#cancel-remove-library-document] [#library-persists]
 export function DocumentLibrary({ onBack }: Props) {
 	const library = useLibrary();
 	// adding is the path of the file being added, chosen in the native dialog, or null.

@@ -7,12 +7,7 @@ type Props = {
 
 // SearchBar searches the board by role and company. The search is the app's state, not saved, so
 // it starts empty each time the app opens.
-// @scenario [features/board-search.feature#search-by-role] Search by role
-// @scenario [features/board-search.feature#search-by-company] Search by company
-// @scenario [features/board-search.feature#search-partial-any-case] Search matches part of a word in any letter case
-// @scenario [features/board-search.feature#search-ignores-other-details] Search doesn't match a job's other details
-// @scenario [features/board-search.feature#search-blank-shows-all] Searching for only spaces shows every job
-// @scenario [features/board-search.feature#clear-search] Clearing the search shows every job again
+// @scenario [#search-by-role] [#search-by-company] [#search-partial-any-case] [#search-ignores-other-details] [#search-blank-shows-all] [#clear-search]
 export function SearchBar({ value, onChange }: Props) {
 	return (
 		<search className={styles.search}>

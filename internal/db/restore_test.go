@@ -98,7 +98,7 @@ func TestRestoreFromAMissingBackupChangesNothing(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-backups.feature#restore-older-backup] A backup from an older version is brought up to date when it's restored
+// @scenario [#restore-older-backup]
 func TestRestoreBringsAnOlderBackupUpToDate(t *testing.T) {
 	ctx := context.Background()
 	// @given [features/agent-backups.feature] my agent made a backup named "before-cleanup" while I had a job at "Acme" in "Applied"
@@ -134,7 +134,7 @@ func TestRestoreBringsAnOlderBackupUpToDate(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-backups.feature#restore-newer-backup] A backup from a newer version can't be restored
+// @scenario [#restore-newer-backup]
 func TestRestoreRefusesANewerBackup(t *testing.T) {
 	// @given [features/agent-backups.feature] a backup named "from-newer" was made by a newer version of Callback than the command line
 	backupDir := t.TempDir()
@@ -162,7 +162,7 @@ func TestRestoreRefusesANewerBackup(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-backups.feature#restore-app-open-safe] Restoring while the app is open doesn't need the app closed
+// @scenario [#restore-app-open-safe]
 func TestRestoreWhileTheAppIsOpen(t *testing.T) {
 	ctx := context.Background()
 	dataDir := t.TempDir()

@@ -27,22 +27,7 @@ const emptyContact: ContactDetails = {
 
 // ContactList shows the people on a job, and adds, edits, and removes them, asking before a
 // removal. Each job keeps its own contacts, so a change here never reaches another job's.
-// @scenario [features/job-contacts.feature#add-contact] Add a contact with all their details
-// @scenario [features/job-contacts.feature#add-contact-minimum] Add a contact with only a name and a relationship
-// @scenario [features/job-contacts.feature#contact-relationships] Choose how a contact relates to the job
-// @scenario [features/job-contacts.feature#contact-missing-required] A contact can't be saved without a name or a relationship
-// @scenario [features/job-contacts.feature#contact-invalid-email] A contact's email must be an email address
-// @scenario [features/job-contacts.feature#contact-invalid-profile-link] A contact's profile link must be a web address
-// @scenario [features/job-contacts.feature#contact-phone-free-text] A phone number is written however I have it
-// @scenario [features/job-contacts.feature#contact-any-status] Contacts can be added to a job in any status
-// @scenario [features/job-contacts.feature#view-contacts] See a job's contacts when opening its card
-// @scenario [features/job-contacts.feature#no-contacts] A job with no contacts says so
-// @scenario [features/job-contacts.feature#open-contact-profile-link] Open a contact's profile link
-// @scenario [features/job-contacts.feature#edit-contact] Edit a contact
-// @scenario [features/job-contacts.feature#remove-contact] Remove a contact after confirming
-// @scenario [features/job-contacts.feature#cancel-remove-contact] Cancel removing a contact
-// @scenario [features/job-contacts.feature#same-person-many-jobs] The same person can be a contact on more than one job
-// @scenario [features/job-contacts.feature#contacts-edited-separately] Editing a contact on one job doesn't change it on another
+// @scenario [#add-contact] [#add-contact-minimum] [#contact-relationships] [#contact-missing-required] [#contact-invalid-email] [#contact-invalid-profile-link] [#contact-phone-free-text] [#contact-any-status] [#view-contacts] [#no-contacts] [#open-contact-profile-link] [#edit-contact] [#remove-contact] [#cancel-remove-contact] [#same-person-many-jobs] [#contacts-edited-separately]
 export function ContactList({ jobId, contacts, onChanged }: Props) {
 	const { add, update, remove, openLink } = useContacts();
 	// editing is the contact being edited, "new" while adding one, or null.

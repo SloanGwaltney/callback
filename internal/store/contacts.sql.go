@@ -87,7 +87,7 @@ ORDER BY id
 `
 
 // A job's contacts in the order they were added.
-// @scenario [features/job-contacts.feature#view-contacts] See a job's contacts when opening its card
+// @scenario [#view-contacts]
 func (q *Queries) ListContactsForJob(ctx context.Context, jobID int64) ([]Contact, error) {
 	rows, err := q.db.QueryContext(ctx, listContactsForJob, jobID)
 	if err != nil {

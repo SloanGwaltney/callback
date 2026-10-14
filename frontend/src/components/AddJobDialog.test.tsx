@@ -22,7 +22,7 @@ function renderDialog(initialStatus = "") {
 const field = (label: RegExp) => screen.getByLabelText(label);
 
 describe("AddJobDialog", () => {
-	// @scenario [features/job-cards.feature#add-job-not-closed] A job can't be added straight to Closed
+	// @scenario [#add-job-not-closed]
 	it("tells the user to add a job elsewhere and move it to Closed", async () => {
 		// @given [features/job-cards.feature] I open the job search board
 		const { onAdd } = renderDialog();
@@ -45,7 +45,7 @@ describe("AddJobDialog", () => {
 		);
 	});
 
-	// @scenario [features/job-cards.feature#add-job-missing-required] A job can't be saved without a company or a role
+	// @scenario [#add-job-missing-required]
 	it.each([
 		["", "Software Engineer", "company"],
 		["Acme", "", "role"],
@@ -70,7 +70,7 @@ describe("AddJobDialog", () => {
 		expect(screen.getByRole("alert")).toHaveTextContent(`${missing} is required`);
 	});
 
-	// @scenario [features/job-interest.feature#rate-interest-when-adding] Rate my interest while adding a job
+	// @scenario [#rate-interest-when-adding]
 	it("adds a job with an interest rating", async () => {
 		// @given [features/job-interest.feature] I open the job search board
 		const { onAdd } = renderDialog();
@@ -89,7 +89,7 @@ describe("AddJobDialog", () => {
 		);
 	});
 
-	// @scenario [features/job-interest.feature#unrated-by-default] A job has no interest rating until I give it one
+	// @scenario [#unrated-by-default]
 	it("adds a job with no interest rating when none is chosen", async () => {
 		// @given [features/job-interest.feature] I open the job search board
 		const { onAdd } = renderDialog();

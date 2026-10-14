@@ -27,7 +27,7 @@ func assertPositions(t *testing.T, h *harness, status Status) {
 	}
 }
 
-// @scenario [features/job-board.feature#move-card-forward] Move a card to the next status
+// @scenario [#move-card-forward]
 func TestMoveCardForward(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-board.feature] I have a job for "Software Engineer" at "Acme" in "Saved"
@@ -48,7 +48,7 @@ func TestMoveCardForward(t *testing.T) {
 	assertPositions(t, h, StatusSaved)
 }
 
-// @scenario [features/job-board.feature#move-card-any-status] Move a card to any other status
+// @scenario [#move-card-any-status]
 func TestMoveCardToAnyStatus(t *testing.T) {
 	tests := []struct{ from, to string }{
 		{"Saved", "Interviewing"},
@@ -74,7 +74,7 @@ func TestMoveCardToAnyStatus(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-board.feature#move-keeps-details] Moving a card keeps its details and documents
+// @scenario [#move-keeps-details]
 func TestMoveKeepsDetails(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-board.feature] I have a job for "Software Engineer" at "Acme" in "Applied"
@@ -99,7 +99,7 @@ func TestMoveKeepsDetails(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-board.feature#move-to-applied-sets-date] Moving a card to Applied fills in today's date when no date is set
+// @scenario [#move-to-applied-sets-date]
 func TestMoveToAppliedSetsDate(t *testing.T) {
 	// @given [features/job-board.feature] today is 2026-10-09
 	h := newHarness(t)
@@ -115,7 +115,7 @@ func TestMoveToAppliedSetsDate(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-board.feature#move-to-applied-keeps-date] Moving a card to Applied keeps a date applied that is already set
+// @scenario [#move-to-applied-keeps-date]
 func TestMoveToAppliedKeepsDate(t *testing.T) {
 	// @given [features/job-board.feature] today is 2026-10-09
 	h := newHarness(t)
@@ -131,7 +131,7 @@ func TestMoveToAppliedKeepsDate(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-board.feature#move-to-saved-clears-date] Moving a card back to Saved clears the date applied
+// @scenario [#move-to-saved-clears-date]
 func TestMoveToSavedClearsDate(t *testing.T) {
 	for _, from := range []string{"Applied", "Interviewing", "Offer", "Closed"} {
 		t.Run(from, func(t *testing.T) {
@@ -150,7 +150,7 @@ func TestMoveToSavedClearsDate(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-board.feature#reorder-saved-keeps-date] Reordering a card within Saved keeps its date applied
+// @scenario [#reorder-saved-keeps-date]
 func TestReorderWithinSavedKeepsDate(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-board.feature] the "Saved" column holds the jobs at "Globex" and "Acme" in that order
@@ -170,7 +170,7 @@ func TestReorderWithinSavedKeepsDate(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-board.feature#reorder-applied-no-date] Reordering a card within Applied doesn't fill in a date applied
+// @scenario [#reorder-applied-no-date]
 func TestReorderWithinAppliedDoesNotFillDate(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-board.feature] the "Applied" column holds the jobs at "Globex" and "Acme" in that order
@@ -187,7 +187,7 @@ func TestReorderWithinAppliedDoesNotFillDate(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-board.feature#close-asks-reason] Moving a card to Closed asks for a reason
+// @scenario [#close-asks-reason]
 func TestCloseWithReason(t *testing.T) {
 	reasons := map[string]ClosingReason{
 		"Rejected":        ReasonRejected,
@@ -219,7 +219,7 @@ func TestCloseWithReason(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-board.feature#close-other-reason] Write my own reason when closing with Other
+// @scenario [#close-other-reason]
 func TestCloseWithOtherReason(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-board.feature] I have a job for "Software Engineer" at "Acme" in "Interviewing"
@@ -267,7 +267,7 @@ func TestClosingNeedsAValidReason(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-board.feature#close-other-needs-text] Closing with Other needs a written reason
+// @scenario [#close-other-needs-text]
 func TestCloseWithOtherNeedsText(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-board.feature] I have a job for "Software Engineer" at "Acme" in "Interviewing"
@@ -294,7 +294,7 @@ func TestOtherTextIsDroppedForANamedReason(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-board.feature#reorder-closed-keeps-reason] Reordering a card within Closed keeps its closing reason
+// @scenario [#reorder-closed-keeps-reason]
 func TestReorderWithinClosedKeepsReason(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-board.feature] the "Closed" column holds the jobs at "Globex" and "Acme" in that order
@@ -326,7 +326,7 @@ func TestReorderWithinClosedKeepsOtherText(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-board.feature#change-closing-reason] Change the closing reason of a closed job
+// @scenario [#change-closing-reason]
 func TestChangeClosingReason(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-board.feature] I have a job for "Software Engineer" at "Acme" in "Closed" with the closing reason "No response"
@@ -354,7 +354,7 @@ func TestSetClosingReasonOnlyForClosedJobs(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-board.feature#reopen-clears-reason] Moving a card out of Closed clears the closing reason
+// @scenario [#reopen-clears-reason]
 func TestReopenClearsReason(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-board.feature] I have a job for "Software Engineer" at "Acme" in "Closed" with the closing reason "No response"
@@ -373,7 +373,7 @@ func TestReopenClearsReason(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-board.feature#reorder-card] Reorder a card within its column
+// @scenario [#reorder-card]
 func TestReorderCard(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-board.feature] the "Saved" column holds the jobs at "Acme", "Globex", and "Initech" in that order
@@ -405,7 +405,7 @@ func TestReorderDownward(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-board.feature#move-card-to-position] Place a moved card at a chosen position in another column
+// @scenario [#move-card-to-position]
 func TestMoveCardToPosition(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-board.feature] the "Applied" column holds the jobs at "Globex" and "Initech" in that order
@@ -478,7 +478,7 @@ func TestClosingReasonsListsEveryReason(t *testing.T) {
 
 // The command line's `job move` calls MoveJob; its test in internal/cli
 // (TestAgentMoveFollowsTheAppsRules) checks the move it asks for.
-// @scenario [features/agent-cli-jobs.feature#cli-move-follows-rules] Moving a job follows the app's rules
+// @scenario [#cli-move-follows-rules]
 func TestAgentMoveFollowsTheAppsRules(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/agent-cli-jobs.feature] I have a job at "Acme" in "Saved" with no date applied

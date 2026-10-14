@@ -141,7 +141,7 @@ func exists(t *testing.T, path string) bool {
 	return err == nil
 }
 
-// @scenario [features/agent-backups.feature#agent-backup] My agent backs up my data under a name, kept for a number of days
+// @scenario [#agent-backup]
 func TestAgentBackupHoldsTheDataAsItIsNow(t *testing.T) {
 	l := newLive(t)
 	// @given [features/agent-backups.feature] today is 2026-10-14
@@ -169,7 +169,7 @@ func TestAgentBackupHoldsTheDataAsItIsNow(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-backups.feature#agent-list-backups] My agent lists the backups agents have made
+// @scenario [#agent-list-backups]
 func TestListingLeavesOutTheDailyBackups(t *testing.T) {
 	l := newLive(t)
 	// @given [features/agent-backups.feature] an agent made a backup named "old-backup" last week that is still kept
@@ -194,7 +194,7 @@ func TestListingLeavesOutTheDailyBackups(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-backups.feature#agent-backup-expiry-keeps-daily] Removing expired backups never removes a daily backup
+// @scenario [#agent-backup-expiry-keeps-daily]
 func TestRemovingExpiredBackupsKeepsTheDailyBackups(t *testing.T) {
 	l := newLive(t)
 	// @given [features/agent-backups.feature] there is a daily backup from 60 days ago
@@ -217,7 +217,7 @@ func TestRemovingExpiredBackupsKeepsTheDailyBackups(t *testing.T) {
 	}
 }
 
-// @scenario [features/daily-backups.feature#backup-rotation-keeps-agent-backups] Removing old daily backups never removes a backup my agent made
+// @scenario [#backup-rotation-keeps-agent-backups]
 func TestRotatingDailyBackupsKeepsAgentBackups(t *testing.T) {
 	l := newLive(t)
 	// @given [features/daily-backups.feature] there are 15 daily backups
@@ -245,7 +245,7 @@ func TestRotatingDailyBackupsKeepsAgentBackups(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-backups.feature#agent-restore] My agent restores a backup
+// @scenario [#agent-restore]
 func TestRestoreBringsBackTheData(t *testing.T) {
 	l := newLive(t)
 	// @given [features/agent-backups.feature] my agent made a backup named "before-cleanup" while I had a job at "Acme" in "Applied"
@@ -263,7 +263,7 @@ func TestRestoreBringsBackTheData(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-backups.feature#agent-restore-earlier-backup] My agent restores a backup another agent made earlier
+// @scenario [#agent-restore-earlier-backup]
 func TestRestoreABackupAnotherAgentMadeEarlier(t *testing.T) {
 	l := newLive(t)
 	// @given [features/agent-backups.feature] an agent made a backup named "last-week" last week, while I had a job at "Acme" in "Applied"
@@ -283,7 +283,7 @@ func TestRestoreABackupAnotherAgentMadeEarlier(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-backups.feature#restore-keeps-backups] Restoring doesn't change which backups are kept
+// @scenario [#restore-keeps-backups]
 func TestRestoringKeepsTheSameBackups(t *testing.T) {
 	l := newLive(t)
 	// @given [features/agent-backups.feature] my agent made a backup named "first" and then a backup named "second"
@@ -301,7 +301,7 @@ func TestRestoringKeepsTheSameBackups(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-backups.feature#undo-restore] My agent undoes a restore
+// @scenario [#undo-restore]
 func TestUndoARestore(t *testing.T) {
 	l := newLive(t)
 	// @given [features/agent-backups.feature] my agent made a backup named "before-cleanup" while I had a job at "Acme" in "Applied"
@@ -323,7 +323,7 @@ func TestUndoARestore(t *testing.T) {
 
 // Opening a document whose stored copy is gone is TestOpenADocumentRestoredWithoutItsFile in
 // internal/jobs.
-// @scenario [features/agent-backups.feature#restore-missing-document-file] A document removed after the backup is listed again but its file is gone
+// @scenario [#restore-missing-document-file]
 func TestRestoreListsARemovedDocumentWithoutItsFile(t *testing.T) {
 	l := newLive(t)
 	// @given [features/agent-backups.feature] my agent made a backup named "before-cleanup" while "resume-2026.pdf" was attached to a job at "Acme"
@@ -354,7 +354,7 @@ func TestRestoreListsARemovedDocumentWithoutItsFile(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-backups.feature#restore-keeps-document-files] Restoring never deletes a document's file
+// @scenario [#restore-keeps-document-files]
 func TestRestoreNeverDeletesADocumentsFile(t *testing.T) {
 	l := newLive(t)
 	id := l.addJob(t, "Acme", "applied")

@@ -29,16 +29,20 @@ it from the tests that prove it
 
 Grepping a step's text finds its test, and the test leads to the code it calls.
 
-Each annotation is a comment directly above the line or block it links, in this format:
+Each annotation is a comment directly above the line or block it links. A `@scenario` annotation
+names scenarios by ID, as many as the code under it implements, all on one line
+([docs/adr/0026-link-scenarios-by-id-on-one-line.md](adr/0026-link-scenarios-by-id-on-one-line.md)).
+A step annotation names its feature file and copies the step's text:
 
 ```
-@<keyword> [<path to .feature file>#<scenario id>] <exact text from the file>
+@scenario [#<scenario id>] [#<another scenario id>] ...
+@<step keyword> [<path to .feature file>] <exact step text from the file>
 ```
 
 | Spec line           | Annotation                                           |
 |---------------------|------------------------------------------------------|
-| `Scenario:`         | `@scenario [features/x.feature#<id>] <title>`        |
-| `Scenario Outline:` | `@scenario [features/x.feature#<id>] <title>`        |
+| `Scenario:`         | `@scenario [#<id>]`                                  |
+| `Scenario Outline:` | `@scenario [#<id>]`                                  |
 | `Given`             | `@given [features/x.feature] <step text>`            |
 | `When`              | `@when [features/x.feature] <step text>`             |
 | `Then`              | `@then [features/x.feature] <step text>`             |
@@ -47,15 +51,18 @@ Each annotation is a comment directly above the line or block it links, in this 
 
 Rules:
 
-- **Copy the text exactly** from the `.feature` file, keyword removed. That includes outline
+- **One `@scenario` line per function, test, or block.** List every scenario the code under it
+  implements on that line, separated by spaces: `@scenario [#move-card-forward] [#move-card-back]`.
+  Don't add the feature file path or the scenario's title. Scenario IDs are unique across all
+  feature files, so the ID alone finds the scenario.
+- **Copy step text exactly** from the `.feature` file, keyword removed. That includes outline
   placeholders like `<sound>`. The text is the search key, so don't paraphrase it.
 - **`And` and `But` take their own keyword or the one they continue.** "And I clear the search"
   after a `When` is linked by `@and` or `@when`, so one `@when` annotation covers the step in a
   scenario that writes it with `When` and in one that writes it with `And`. An `And` or `But` that
   starts a scenario takes only its own keyword.
-- **Use the repo-relative path** with forward slashes, e.g. `[features/call-reminders.feature]`.
-- **`@scenario` always carries the scenario's ID**, taken from its `@id:` tag:
-  `[features/call-reminders.feature#cancelled-no-reminder]`.
+- **Step annotations use the repo-relative path** with forward slashes, e.g.
+  `[features/call-reminders.feature]`.
 - **Step annotations leave the ID off by default.** A step is identified by its file and text,
   so a step shared by several scenarios is annotated once and covers all of them.
 - **Add the ID to a step annotation when its text is ambiguous**, meaning the same step text
@@ -72,7 +79,8 @@ Rules:
   query sets, link it from that layer's test, not from a comment with no code under it. A test
   that relies on another layer can say so in a plain comment that names the test proving it.
 - **One piece of code can carry more than one annotation** when it fulfills several steps or
-  scenarios. Stack the comments.
+  scenarios. Stack step annotations, one per line, but name every scenario on the one
+  `@scenario` line.
 - **A `Then` checks an observable outcome.** Annotate the assertion on that outcome, such as the
   emitted event, the returned value, or the UI state.
 - Use the language's line comment: `//` in Go and TypeScript, `{/* */}` inside JSX, `--` in SQL.
@@ -85,7 +93,7 @@ Rules:
   longer runs. Annotate the storage tests that check the schema's behavior instead, since they run
   against the current schema.
 - **Keep annotations in sync with the spec.** When a step is reworded, update its annotations in
-  the same change. When a scenario is deprecated or withdrawn, remove its `@scenario` tags and
+  the same change. When a scenario is deprecated or withdrawn, remove its ID from `@scenario` lines and
   any step tags no other active scenario still uses. Don't remove a shared step's tag while
   another active scenario depends on it.
 
@@ -105,7 +113,7 @@ Spec (`features/call-reminders.feature`):
 Code, with only the entry point linked:
 
 ```go
-// @scenario [features/call-reminders.feature#cancelled-no-reminder] No reminder for a cancelled call
+// @scenario [#cancelled-no-reminder]
 func (s *Scheduler) onTick(now time.Time) {
 	for _, call := range s.callsDueForReminder(now) {
 		if call.Cancelled {
@@ -125,11 +133,11 @@ entry points, and a grep for a step finds the test that proves it.
   covers several scenarios.
 - Put each step annotation directly above the test code for that step: `@given` on the setup,
   `@when` on the action, `@then` / `@and` / `@but` on the assertion.
-- Same rules as production code: exact text, repo-relative path, scenario ID on `@scenario` and
-  on ambiguous steps, and update the tags in the same change when the spec changes.
+- Same rules as production code: one `@scenario` line naming scenarios by ID, and on steps the
+  exact text, the repo-relative path, and the scenario ID when the step is ambiguous, and update the tags in the same change when the spec changes.
 
 ```go
-// @scenario [features/call-reminders.feature#cancelled-no-reminder] No reminder for a cancelled call
+// @scenario [#cancelled-no-reminder]
 func TestNoReminderForCancelledCall(t *testing.T) {
 	s, notifier := newTestScheduler(t)
 
@@ -150,16 +158,18 @@ func TestNoReminderForCancelledCall(t *testing.T) {
 
 ## Finding a spec in the code
 
-Every annotation for a feature file, in code, tests, and ADRs:
+Entry points, tests, and ADRs for one scenario. The closing bracket keeps the search from also
+matching longer IDs that start with this one, like `cancelled-no-reminder-sms`:
+
+```sh
+grep -rn "#cancelled-no-reminder\]" --include=*.go --include=*.ts --include=*.tsx --include=*.sql --include=*.md .
+```
+
+Every step annotation and ADR for a feature file. `@scenario` lines name IDs without the file, so
+use `spectrace` (below) to find a whole feature's entry points:
 
 ```sh
 grep -rn "\[features/call-reminders.feature" --include=*.go --include=*.ts --include=*.tsx --include=*.md .
-```
-
-Entry points, tests, and ADRs for one scenario:
-
-```sh
-grep -rn "#cancelled-no-reminder\]" --include=*.go --include=*.ts --include=*.tsx --include=*.md .
 ```
 
 Everything linked to one scenario, layer by layer, from the SQL query up to the frontend:
@@ -194,11 +204,13 @@ It prints `file:line: problem` for each finding and exits 1 if there are any. It
 - **Missing links.** Every `@status:implemented` scenario needs a `@scenario` annotation in both
   code and tests, and each of its steps a step annotation in tests. A test file is `*_test.go`,
   `*.test.*`, `*.spec.*`, or anything under `__tests__/`.
-- **Broken links.** Annotations, in code or tests, that point at a missing file or ID, copy a title or step text
-  inexactly, use the wrong keyword (`@given` for an `And` step), or leave the ID off `@scenario`.
+- **Broken links.** Annotations, in code or tests, that point at a missing file or ID, copy step
+  text inexactly, or use the wrong keyword (`@given` for an `And` step). A `@scenario` line that
+  isn't a list of `[#id]`, names an ID twice, or follows another `@scenario` line in the same
+  comment block.
 - **Stale links.** Annotations on withdrawn scenarios, or on steps only withdrawn scenarios use.
 - **Malformed specs.** Scenarios without exactly one valid `@status:` and one kebab-case `@id:`,
-  duplicate IDs, status or ID tags on `Feature`/`Rule`/`Examples`, and `Background`.
+  IDs used twice, in one feature file or across them, status or ID tags on `Feature`/`Rule`/`Examples`, and `Background`.
 - **ADR Related sections** that are missing, empty, mix `universal` with feature references, or
   reference a file, ID, or title that doesn't match.
 

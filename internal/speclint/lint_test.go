@@ -1,6 +1,7 @@
 package speclint
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -54,7 +55,8 @@ func TestParseAnnotationsOnlyReadsComments(t *testing.T) {
 	}, "\n")
 
 	var got []string
-	for _, a := range parseAnnotations("f.go", src, false) {
+	annotations, _ := parseAnnotations("f.go", src, false)
+	for _, a := range annotations {
 		got = append(got, a.Text)
 	}
 	want := []string{"line comment", "block comment", "jsx comment", "block continuation"}
@@ -73,7 +75,8 @@ func TestParseAnnotationsInSQL(t *testing.T) {
 	}, "\n")
 
 	var got []string
-	for _, a := range parseAnnotations("queries/jobs.sql", src, false) {
+	annotations, _ := parseAnnotations("queries/jobs.sql", src, false)
+	for _, a := range annotations {
 		got = append(got, a.Text)
 	}
 	want := []string{"sql comment", "indented sql comment"}
@@ -82,7 +85,7 @@ func TestParseAnnotationsInSQL(t *testing.T) {
 	}
 
 	// -- isn't a comment in Go, so it doesn't count there.
-	if got := parseAnnotations("f.go", "-- @then [features/a.feature] x", false); len(got) != 0 {
+	if got, _ := parseAnnotations("f.go", "-- @then [features/a.feature] x", false); len(got) != 0 {
 		t.Errorf("parsed %d annotations from -- in a .go file, want 0", len(got))
 	}
 }
@@ -133,5 +136,41 @@ func TestIsTestFile(t *testing.T) {
 		if got := isTestFile(path); got != want {
 			t.Errorf("isTestFile(%q) = %v, want %v", path, got, want)
 		}
+	}
+}
+
+func TestParseScenarioAnnotations(t *testing.T) {
+	src := strings.Join([]string{
+		"// @scenario [#a] [#b]\t[#c]",
+		"func f() {}",
+		"{/* @scenario [#d] */}",
+		"// @scenario [#e]",
+		"// a plain comment between them",
+		"// @scenario [#f]",
+		"x()",
+		"// @scenario [#g],[#h]",
+		"// @scenario names prose that wraps onto a new line",
+		"// @scenario [features/a.feature#i] Title",
+		"// @scenario [#j] [#j]",
+	}, "\n")
+
+	annotations, problems := parseAnnotations("f.tsx", src, false)
+	var got []string
+	for _, a := range annotations {
+		got = append(got, fmt.Sprintf("%d:%s", a.Line, a.ID))
+	}
+	want := []string{"1:a", "1:b", "1:c", "3:d", "4:e", "6:f", "11:j"}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("annotations: got %v, want %v", got, want)
+	}
+
+	var lines []int
+	for _, p := range problems {
+		lines = append(lines, p.Line)
+	}
+	// 3, 4, and 6 are one block of comment lines, whatever their comment style.
+	// 8 and 10 aren't lists of [#id], 9 is prose, and 11 names one ID twice.
+	if want := []int{4, 6, 8, 10, 11}; !reflect.DeepEqual(lines, want) {
+		t.Errorf("problems on lines %v, want %v: %v", lines, want, problems)
 	}
 }

@@ -114,7 +114,7 @@ const arrow = (label: string, which: "Previous" | "Next") =>
 const acmeIn = (label: string) => cardsIn(label).includes("Software Engineer at Acme");
 
 describe("Board", () => {
-	// @scenario [features/job-board.feature#board-status-columns] Board shows the status columns in order
+	// @scenario [#board-status-columns]
 	it("shows the status columns in order", () => {
 		// @given [features/job-board.feature] I open the job search board
 		renderBoard(board());
@@ -129,7 +129,7 @@ describe("Board", () => {
 		]);
 	});
 
-	// @scenario [features/job-board.feature#empty-board] Empty board when no jobs have been added
+	// @scenario [#empty-board]
 	it("shows empty columns and a prompt when there are no jobs", async () => {
 		// @given [features/job-board.feature] I have not added any jobs
 		// @when [features/job-board.feature] I open the job search board
@@ -150,7 +150,7 @@ describe("Board", () => {
 		expect(screen.queryByRole("button", { name: "Add your first job" })).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/job-board.feature#column-card-count] Each column shows how many cards it holds
+	// @scenario [#column-card-count]
 	it("shows how many cards each column holds", () => {
 		// @given [features/job-board.feature] I have 3 jobs in "Saved" and 1 job in "Applied"
 		// @when [features/job-board.feature] I open the job search board
@@ -204,7 +204,7 @@ describe("Board", () => {
 		expect(overlay).toBeEmptyDOMElement();
 	});
 
-	// @scenario [features/job-board.feature#move-card-forward] Move a card to the next status
+	// @scenario [#move-card-forward]
 	it("moves a card to the next status", () => {
 		// @given [features/job-board.feature] I have a job for "Software Engineer" at "Acme" in "Saved"
 		const { onMove } = renderBoard(board({ saved: [acme] }));
@@ -219,7 +219,7 @@ describe("Board", () => {
 		expect(acmeIn("Saved")).toBe(false);
 	});
 
-	// @scenario [features/job-board.feature#move-card-any-status] Move a card to any other status
+	// @scenario [#move-card-any-status]
 	it.each([
 		["saved", "Saved", "interviewing", "Interviewing"],
 		["applied", "Applied", "interviewing", "Interviewing"],
@@ -239,7 +239,7 @@ describe("Board", () => {
 		expect(acmeIn(fromLabel)).toBe(false);
 	});
 
-	// @scenario [features/job-board.feature#move-keeps-details] Moving a card keeps its details and documents
+	// @scenario [#move-keeps-details]
 	it("keeps a moved card's details", () => {
 		// @given [features/job-board.feature] I have a job for "Software Engineer" at "Acme" in "Applied"
 		// @and [features/job-board.feature] the job has a job description, a link, and an attached resume
@@ -266,7 +266,7 @@ describe("Board", () => {
 
 	// The backend decides the date applied; the board shows what it returns after the move.
 	describe("date applied after a move", () => {
-		// @scenario [features/job-board.feature#move-to-applied-sets-date] Moving a card to Applied fills in today's date when no date is set
+		// @scenario [#move-to-applied-sets-date]
 		it("shows the date filled in when moved to Applied", () => {
 			// @and [features/job-board.feature] I have a job for "Software Engineer" at "Acme" in "Saved" with no date applied
 			renderBoard(board({ saved: [acme] }), () =>
@@ -280,7 +280,7 @@ describe("Board", () => {
 			expect(within(column("Applied")).getByText("Applied 2026-10-09")).toBeInTheDocument();
 		});
 
-		// @scenario [features/job-board.feature#move-to-applied-keeps-date] Moving a card to Applied keeps a date applied that is already set
+		// @scenario [#move-to-applied-keeps-date]
 		it("shows the date kept when moved to Applied", () => {
 			// @and [features/job-board.feature] I have a job for "Software Engineer" at "Acme" in "Interviewing" with a date applied of 2026-10-01
 			const dated = card(1, "Acme", { dateApplied: "2026-10-01" });
@@ -293,7 +293,7 @@ describe("Board", () => {
 			expect(within(column("Applied")).getByText("Applied 2026-10-01")).toBeInTheDocument();
 		});
 
-		// @scenario [features/job-board.feature#move-to-saved-clears-date] Moving a card back to Saved clears the date applied
+		// @scenario [#move-to-saved-clears-date]
 		it.each([["applied"], ["interviewing"], ["offer"], ["closed"]])(
 			"shows no date when moved from %s back to Saved",
 			(from) => {
@@ -309,7 +309,7 @@ describe("Board", () => {
 			},
 		);
 
-		// @scenario [features/job-board.feature#reorder-saved-keeps-date] Reordering a card within Saved keeps its date applied
+		// @scenario [#reorder-saved-keeps-date]
 		it("keeps the date when reordering within Saved", () => {
 			// @given [features/job-board.feature] the "Saved" column holds the jobs at "Globex" and "Acme" in that order
 			// @and [features/job-board.feature] the job at "Acme" has a date applied of 2026-10-01
@@ -325,7 +325,7 @@ describe("Board", () => {
 			expect(within(column("Saved")).getByText("Applied 2026-10-01")).toBeInTheDocument();
 		});
 
-		// @scenario [features/job-board.feature#reorder-applied-no-date] Reordering a card within Applied doesn't fill in a date applied
+		// @scenario [#reorder-applied-no-date]
 		it("leaves the date empty when reordering within Applied", () => {
 			// @given [features/job-board.feature] the "Applied" column holds the jobs at "Globex" and "Acme" in that order
 			// @and [features/job-board.feature] the job at "Acme" has no date applied
@@ -350,7 +350,7 @@ describe("Board", () => {
 		const closedWith = (closingReasonText: string) => () =>
 			board({ closed: [card(1, "Acme", { closingReason: "x", closingReasonText })] });
 
-		// @scenario [features/job-board.feature#close-asks-reason] Moving a card to Closed asks for a reason
+		// @scenario [#close-asks-reason]
 		it.each([
 			["rejected", "Rejected"],
 			["withdrew", "Withdrew"],
@@ -383,7 +383,7 @@ describe("Board", () => {
 			expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 		});
 
-		// @scenario [features/job-board.feature#close-other-reason] Write my own reason when closing with Other
+		// @scenario [#close-other-reason]
 		it("closes with a reason written for Other", async () => {
 			// @given [features/job-board.feature] I have a job for "Software Engineer" at "Acme" in "Interviewing"
 			const { onMove } = renderBoard(interviewing(), closedWith("Company went through layoffs"));
@@ -409,7 +409,7 @@ describe("Board", () => {
 			).toBeInTheDocument();
 		});
 
-		// @scenario [features/job-board.feature#close-other-needs-text] Closing with Other needs a written reason
+		// @scenario [#close-other-needs-text]
 		it("doesn't close with Other and nothing written", async () => {
 			// @given [features/job-board.feature] I have a job for "Software Engineer" at "Acme" in "Interviewing"
 			const { onMove } = renderBoard(interviewing());
@@ -427,7 +427,7 @@ describe("Board", () => {
 			expect(screen.getByRole("alert")).toHaveTextContent("Write why the job was closed.");
 		});
 
-		// @scenario [features/job-board.feature#close-cancel] Cancelling the closing reason leaves the card where it was
+		// @scenario [#close-cancel]
 		it("leaves the card where it was when the reason is cancelled", async () => {
 			// @given [features/job-board.feature] I have a job for "Software Engineer" at "Acme" in "Interviewing"
 			const { onMove } = renderBoard(interviewing());
@@ -444,7 +444,7 @@ describe("Board", () => {
 			expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 		});
 
-		// @scenario [features/job-status-history.feature#history-ignores-cancelled-close] Cancelling a move to Closed doesn't change the history
+		// @scenario [#history-ignores-cancelled-close]
 		it("leaves the history alone when the close is cancelled", async () => {
 			// @given [features/job-status-history.feature] I have a job for "Software Engineer" at "Acme" whose history ends with "Interviewing"
 			const { onMove } = renderBoard(interviewing());
@@ -471,7 +471,7 @@ describe("Board", () => {
 			expect(screen.getByRole("dialog")).toBeInTheDocument();
 		});
 
-		// @scenario [features/job-board.feature#reopen-clears-reason] Moving a card out of Closed clears the closing reason
+		// @scenario [#reopen-clears-reason]
 		it("moves a card out of Closed without asking", () => {
 			// @given [features/job-board.feature#reopen-clears-reason] I have a job for "Software Engineer" at "Acme" in "Closed" with the closing reason "No response"
 			const closed = card(1, "Acme", {
@@ -493,7 +493,7 @@ describe("Board", () => {
 			expect(screen.queryByText(/^Closed:/)).not.toBeInTheDocument();
 		});
 
-		// @scenario [features/job-board.feature#reorder-closed-keeps-reason] Reordering a card within Closed keeps its closing reason
+		// @scenario [#reorder-closed-keeps-reason]
 		it("reorders within Closed without asking for a reason", () => {
 			// @given [features/job-board.feature] the "Closed" column holds the jobs at "Globex" and "Acme" in that order
 			// @and [features/job-board.feature] the job at "Acme" has the closing reason "Rejected"
@@ -516,7 +516,7 @@ describe("Board", () => {
 	});
 
 	describe("ordering cards", () => {
-		// @scenario [features/job-board.feature#reorder-card] Reorder a card within its column
+		// @scenario [#reorder-card]
 		it("reorders a card within its column", () => {
 			// @given [features/job-board.feature] the "Saved" column holds the jobs at "Acme", "Globex", and "Initech" in that order
 			const initech = card(3, "Initech");
@@ -536,7 +536,7 @@ describe("Board", () => {
 			]);
 		});
 
-		// @scenario [features/job-board.feature#move-card-to-position] Place a moved card at a chosen position in another column
+		// @scenario [#move-card-to-position]
 		it("places a moved card at a chosen position in another column", () => {
 			// @given [features/job-board.feature] the "Applied" column holds the jobs at "Globex" and "Initech" in that order
 			// @and [features/job-board.feature] I have a job at "Acme" in "Saved"
@@ -558,7 +558,7 @@ describe("Board", () => {
 			]);
 		});
 
-		// @scenario [features/job-board.feature#new-card-at-top] A newly added job goes to the top of its column
+		// @scenario [#new-card-at-top]
 		it("shows cards in the order the backend gives them", () => {
 			// @then [features/job-board.feature] the "Saved" column shows "Acme", "Globex", and "Initech" in that order
 			renderBoard(board({ saved: [acme, card(2, "Globex"), card(3, "Initech")] }));
@@ -569,7 +569,7 @@ describe("Board", () => {
 			]);
 		});
 
-		// @scenario [features/job-board.feature#card-order-persists] Card order is the same after reopening the app
+		// @scenario [#card-order-persists]
 		it("shows the saved order when the app reopens", () => {
 			// @given [features/job-board.feature] the "Saved" column holds the jobs at "Initech", "Acme", and "Globex" in that order
 			// @when [features/job-board.feature] I close and reopen the app
@@ -582,7 +582,7 @@ describe("Board", () => {
 			]);
 		});
 
-		// @scenario [features/job-board.feature#board-persists] Board is the same after reopening the app
+		// @scenario [#board-persists]
 		it("shows each card in its saved column when the app reopens", () => {
 			// @given [features/job-board.feature] I have a job for "Software Engineer" at "Acme" in "Interviewing"
 			// @when [features/job-board.feature] I close and reopen the app
@@ -606,7 +606,7 @@ describe("Board", () => {
 	});
 
 	describe("searching", () => {
-		// @scenario [features/board-search.feature#search-move-card] Move a matching card to another status while searching
+		// @scenario [#search-move-card]
 		it("moves a matching card to another status while searching", () => {
 			// @given [features/board-search.feature] I have a job for "Software Engineer" at "Acme" in "Saved"
 			// @and [features/board-search.feature] I have searched the board for "Acme"
@@ -624,7 +624,7 @@ describe("Board", () => {
 			expect(cardsIn("Saved")).toEqual([]);
 		});
 
-		// @scenario [features/board-search.feature#search-move-to-top] A card moved to another status while searching goes to the top of that column
+		// @scenario [#search-move-to-top]
 		it("puts a card moved while searching at the top of its new column", () => {
 			// @given [features/board-search.feature] the "Applied" column holds the jobs at "Globex" and "Initech" in that order
 			// @and [features/board-search.feature] I have a job at "Acme" in "Saved"
@@ -651,7 +651,7 @@ describe("Board", () => {
 			]);
 		});
 
-		// @scenario [features/board-search.feature#search-no-reorder] Cards can't be reordered within a column while searching
+		// @scenario [#search-no-reorder]
 		it("doesn't reorder a card within its column while searching", () => {
 			// @given [features/board-search.feature] the "Saved" column holds the jobs at "Acme", "Globex", and "Acme Robotics" in that order
 			// @and [features/board-search.feature] I have searched the board for "Acme"
@@ -695,7 +695,7 @@ describe("Board", () => {
 	});
 
 	describe("pages", () => {
-		// @scenario [features/board-pagination.feature#column-first-page] A column with more than 10 cards shows its first page
+		// @scenario [#column-first-page]
 		it("shows the first page of a column with more than 10 cards", () => {
 			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
 			// @when [features/board-pagination.feature] I open the job search board
@@ -707,7 +707,7 @@ describe("Board", () => {
 			expect(within(column("Saved")).getByText("Page 1 of 3")).toBeInTheDocument();
 		});
 
-		// @scenario [features/board-pagination.feature#column-fits-one-page] A column with 10 cards or fewer has no pages to move between
+		// @scenario [#column-fits-one-page]
 		it("has no pages to move between in a column of 10 cards", () => {
 			// @given [features/board-pagination.feature] the "Applied" column holds 10 jobs
 			// @when [features/board-pagination.feature] I open the job search board
@@ -721,7 +721,7 @@ describe("Board", () => {
 			).not.toBeInTheDocument();
 		});
 
-		// @scenario [features/board-pagination.feature#count-shows-column-total] The column count shows every card in the column, not just the page
+		// @scenario [#count-shows-column-total]
 		it("counts every card in the column on a later page", () => {
 			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
 			// @and [features/board-pagination.feature] the "Saved" column is on page 2
@@ -732,7 +732,7 @@ describe("Board", () => {
 			expect(cardsIn("Saved")).toHaveLength(10);
 		});
 
-		// @scenario [features/board-pagination.feature#next-page] Go to a column's next page
+		// @scenario [#next-page]
 		it("goes to a column's next page", async () => {
 			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
 			// @and [features/board-pagination.feature] the "Saved" column is on page 1
@@ -747,7 +747,7 @@ describe("Board", () => {
 			expect(within(column("Saved")).getByText("Page 2 of 3")).toBeInTheDocument();
 		});
 
-		// @scenario [features/board-pagination.feature#previous-page] Go to a column's previous page
+		// @scenario [#previous-page]
 		it("goes to a column's previous page", async () => {
 			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
 			// @and [features/board-pagination.feature] the "Saved" column is on page 3
@@ -763,7 +763,7 @@ describe("Board", () => {
 			expect(within(column("Saved")).getByText("Page 2 of 3")).toBeInTheDocument();
 		});
 
-		// @scenario [features/board-pagination.feature#page-bounds] A column can't page past its first or last page
+		// @scenario [#page-bounds]
 		it.each([
 			[1, "Previous" as const],
 			[3, "Next" as const],
@@ -778,7 +778,7 @@ describe("Board", () => {
 			expect(within(column("Saved")).getByText(`Page ${page} of 3`)).toBeInTheDocument();
 		});
 
-		// @scenario [features/board-pagination.feature#columns-page-independently] Paging one column leaves the other columns where they are
+		// @scenario [#columns-page-independently]
 		it("pages one column without moving the others", async () => {
 			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
 			// @and [features/board-pagination.feature] the "Applied" column holds 15 jobs
@@ -796,7 +796,7 @@ describe("Board", () => {
 			);
 		});
 
-		// @scenario [features/board-pagination.feature#one-page-per-column] A column shows only one page of cards at a time
+		// @scenario [#one-page-per-column]
 		it("shows only the current page of a column", () => {
 			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
 			// @when [features/board-pagination.feature] I open the job search board
@@ -812,7 +812,7 @@ describe("Board", () => {
 	});
 
 	describe("page arrows", () => {
-		// @scenario [features/board-pagination.feature#page-arrows] A column with more than one page shows previous and next arrows
+		// @scenario [#page-arrows]
 		it("shows previous and next arrows on a column with more than one page", () => {
 			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
 			// @when [features/board-pagination.feature] I open the job search board
@@ -824,7 +824,7 @@ describe("Board", () => {
 			expect(arrow("Saved", "Previous")).toHaveAttribute("aria-disabled", "true");
 		});
 
-		// @scenario [features/board-pagination.feature#page-transition] Changing page slides the cards in the direction of the arrow
+		// @scenario [#page-transition]
 		it.each([
 			["next" as const, "Next" as const, "left", 3, "right", names(21, 25)],
 			["previous" as const, "Previous" as const, "right", 1, "left", names(1, 10)],
@@ -871,7 +871,7 @@ describe("Board", () => {
 			expect(cardsIn("Saved")).toEqual(names(11, 20));
 		});
 
-		// @scenario [features/board-pagination.feature#page-transition-reduced-motion] Changing page doesn't animate when my system asks for reduced motion
+		// @scenario [#page-transition-reduced-motion]
 		it("changes page without sliding when the system asks for reduced motion", async () => {
 			// @given [features/board-pagination.feature] my system is set to reduce motion
 			vi.spyOn(window, "matchMedia").mockReturnValue({ matches: true } as MediaQueryList);
@@ -888,7 +888,7 @@ describe("Board", () => {
 	});
 
 	describe("moving cards between pages", () => {
-		// @scenario [features/board-pagination.feature#move-card-onto-page] Place a moved card at a chosen position on a later page
+		// @scenario [#move-card-onto-page]
 		it("places a moved card at a chosen position on a later page", () => {
 			// @given [features/board-pagination.feature] the "Applied" column holds 25 jobs
 			// @and [features/board-pagination.feature] the "Applied" column is on page 2, showing the jobs at "Globex" and "Initech" next to each other
@@ -929,7 +929,7 @@ describe("Board", () => {
 			]);
 		});
 
-		// @scenario [features/board-pagination.feature#last-card-leaves-page] Moving the only card off the last page shows the page before it
+		// @scenario [#last-card-leaves-page]
 		it("shows the page before when the only card on the last page moves away", () => {
 			// @given [features/board-pagination.feature] the "Saved" column holds 21 jobs
 			// @and [features/board-pagination.feature] the "Saved" column is on page 3, showing 1 card
@@ -944,7 +944,7 @@ describe("Board", () => {
 			expect(cardsIn("Saved")).toEqual(names(11, 20));
 		});
 
-		// @scenario [features/board-pagination.feature#page-filled-after-move] A page fills back up after a card moves out of it
+		// @scenario [#page-filled-after-move]
 		it("fills a page back up after a card moves out of it", () => {
 			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
 			// @and [features/board-pagination.feature] the "Saved" column is on page 1
@@ -959,7 +959,7 @@ describe("Board", () => {
 			expect(cardsIn("Saved").at(-1)).toBe("Software Engineer at Company 11");
 		});
 
-		// @scenario [features/board-pagination.feature#search-results-paged] Matching cards are shown a page at a time
+		// @scenario [#search-results-paged]
 		it("shows matching cards a page at a time", () => {
 			// @given [features/board-pagination.feature] the "Saved" column holds 15 jobs at "Acme" and 10 jobs at "Globex"
 			const acmes = Array.from({ length: 15 }, (_, i) => card(i + 1, `Acme ${i + 1}`));

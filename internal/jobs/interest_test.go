@@ -43,7 +43,7 @@ func interestOf(interest *int) string {
 	return fmt.Sprintf("%d stars", *interest)
 }
 
-// @scenario [features/job-interest.feature#rate-interest] Rate how interested I am in a job
+// @scenario [#rate-interest]
 func TestRateInterest(t *testing.T) {
 	for n := MinInterest; n <= MaxInterest; n++ {
 		t.Run(fmt.Sprint(n), func(t *testing.T) {
@@ -62,7 +62,7 @@ func TestRateInterest(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interest.feature#rate-interest-when-adding] Rate my interest while adding a job
+// @scenario [#rate-interest-when-adding]
 func TestRateInterestWhenAdding(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-interest.feature] I open the job search board
@@ -84,7 +84,7 @@ func TestRateInterestWhenAdding(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interest.feature#unrated-by-default] A job has no interest rating until I give it one
+// @scenario [#unrated-by-default]
 func TestUnratedByDefault(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-interest.feature] I open the job search board
@@ -102,7 +102,7 @@ func TestUnratedByDefault(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interest.feature#interest-rating-range] An interest rating must be from one to five stars
+// @scenario [#interest-rating-range]
 func TestInterestRatingRange(t *testing.T) {
 	for _, n := range []int{0, 6} {
 		t.Run(fmt.Sprint(n), func(t *testing.T) {
@@ -136,7 +136,7 @@ func TestAddJobRejectsAnInterestOutOfRange(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interest.feature#interest-any-status] A job in any status can be rated
+// @scenario [#interest-any-status]
 func TestInterestInAnyStatus(t *testing.T) {
 	for _, status := range Statuses {
 		t.Run(status.Label(), func(t *testing.T) {
@@ -155,7 +155,7 @@ func TestInterestInAnyStatus(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interest.feature#change-interest] Change my interest rating
+// @scenario [#change-interest]
 func TestChangeInterest(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-interest.feature] I have a job for "Software Engineer" at "Acme" with an interest rating of 2 stars
@@ -170,7 +170,7 @@ func TestChangeInterest(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interest.feature#clear-interest] Clear my interest rating
+// @scenario [#clear-interest]
 func TestClearInterest(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-interest.feature] I have a job for "Software Engineer" at "Acme" with an interest rating of 3 stars
@@ -185,7 +185,7 @@ func TestClearInterest(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interest.feature#card-shows-interest] The card shows the interest rating as stars
+// @scenario [#card-shows-interest]
 func TestCardShowsInterest(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-interest.feature] I have a job for "Software Engineer" at "Acme" with an interest rating of 4 stars
@@ -200,7 +200,7 @@ func TestCardShowsInterest(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interest.feature#card-unrated] An unrated card shows no stars
+// @scenario [#card-unrated]
 func TestCardUnrated(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-interest.feature] I have a job for "Software Engineer" at "Acme" with no interest rating
@@ -215,7 +215,7 @@ func TestCardUnrated(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interest.feature#view-interest] See the interest rating when opening the card
+// @scenario [#view-interest]
 func TestViewInterest(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-interest.feature] I have a job for "Software Engineer" at "Acme" with an interest rating of 4 stars
@@ -230,7 +230,7 @@ func TestViewInterest(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interest.feature#rating-doesnt-reorder] Rating a job doesn't change the order of its column
+// @scenario [#rating-doesnt-reorder]
 func TestRatingDoesntReorder(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-interest.feature] the "Saved" column holds the jobs at "Acme" and "Globex" in that order
@@ -246,7 +246,7 @@ func TestRatingDoesntReorder(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interest.feature#move-keeps-interest] Moving a card keeps its interest rating
+// @scenario [#move-keeps-interest]
 func TestMoveKeepsInterest(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-interest.feature] I have a job for "Software Engineer" at "Acme" in "Applied" with an interest rating of 4 stars

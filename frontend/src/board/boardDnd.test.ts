@@ -24,7 +24,7 @@ const globex = card(2, "Globex");
 const initech = card(3, "Initech");
 
 describe("dropping a card", () => {
-	// @scenario [features/job-board.feature#reorder-card] Reorder a card within its column
+	// @scenario [#reorder-card]
 	it("reorders a card within its column", () => {
 		// @given [features/job-board.feature] the "Saved" column holds the jobs at "Acme", "Globex", and "Initech" in that order
 		const before = board({ saved: [acme, globex, initech] });
@@ -41,7 +41,7 @@ describe("dropping a card", () => {
 		});
 	});
 
-	// @scenario [features/job-board.feature#move-card-to-position] Place a moved card at a chosen position in another column
+	// @scenario [#move-card-to-position]
 	it("places a card at a chosen position in another column", () => {
 		// @given [features/job-board.feature] the "Applied" column holds the jobs at "Globex" and "Initech" in that order
 		// @and [features/job-board.feature] I have a job at "Acme" in "Saved"

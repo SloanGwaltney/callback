@@ -13,7 +13,7 @@ import (
 
 // commands is every command, in the order the help lists them. None opens anything on the user's
 // screen; `job show` gives the links and stored copies to read instead.
-// @scenario [features/agent-cli-jobs.feature#cli-no-opening] My agent can't open anything on my screen
+// @scenario [#cli-no-opening]
 var commands = slices.Concat(jobCommands, recordCommands, libraryCommands, backupCommands)
 
 // jobCommands are the commands for jobs themselves.
@@ -149,23 +149,7 @@ func jobErr(id int64, err error) error {
 	return missingErr("job", id, err, jobs.ErrJobNotFound)
 }
 
-// @scenario [features/agent-cli.feature#cli-text-output] Output is plain text by default
-// @scenario [features/agent-cli.feature#cli-json-output] My agent can ask for any command's output as JSON
-// @scenario [features/agent-cli-jobs.feature#cli-list-jobs] List my jobs
-// @scenario [features/agent-cli-jobs.feature#cli-list-board-order] Jobs are listed column by column, in each column's order
-// @scenario [features/agent-cli-jobs.feature#cli-list-leaves-out-long-text] The list leaves out each job's description and notes
-// @scenario [features/agent-cli-jobs.feature#cli-list-overdue-marked] The list marks a next action that's due or overdue
-// @scenario [features/agent-cli-jobs.feature#cli-list-empty] My agent is told when no jobs are listed
-// @scenario [features/agent-cli-jobs.feature#cli-list-leaves-out-closed] The list leaves out closed jobs
-// @scenario [features/agent-cli-jobs.feature#cli-list-all] My agent asks for every job, closed ones too
-// @scenario [features/agent-cli-jobs.feature#cli-filter-status] List only the jobs in some statuses
-// @scenario [features/agent-cli-jobs.feature#cli-filter-closed-status] Asking for Closed lists closed jobs
-// @scenario [features/agent-cli-jobs.feature#cli-filter-search] Search the list the way the board's search does
-// @scenario [features/agent-cli-jobs.feature#cli-filter-overdue] List only the jobs whose next action is overdue
-// @scenario [features/agent-cli-jobs.feature#cli-filter-stale] List only the jobs that have been in their status for some days
-// @scenario [features/agent-cli-jobs.feature#cli-filter-interest] List only the jobs rated at least some stars
-// @scenario [features/agent-cli-jobs.feature#cli-filter-combined] Every filter my agent gives applies
-// @scenario [features/agent-cli-jobs.feature#cli-filter-no-match] My agent is told when no jobs match
+// @scenario [#cli-text-output] [#cli-json-output] [#cli-list-jobs] [#cli-list-board-order] [#cli-list-leaves-out-long-text] [#cli-list-overdue-marked] [#cli-list-empty] [#cli-list-leaves-out-closed] [#cli-list-all] [#cli-filter-status] [#cli-filter-closed-status] [#cli-filter-search] [#cli-filter-overdue] [#cli-filter-stale] [#cli-filter-interest] [#cli-filter-combined] [#cli-filter-no-match]
 func listJobs(c *call) error {
 	f, err := listFilterFrom(c)
 	if err != nil {
@@ -290,12 +274,7 @@ func (f listFilter) keeps(card jobs.Card) bool {
 	return true
 }
 
-// @scenario [features/agent-cli.feature#cli-output-ids] Everything listed comes with its ID
-// @scenario [features/agent-cli.feature#cli-dates] Dates are written as year, month, and day
-// @scenario [features/agent-cli.feature#cli-unknown-job] My agent is told when there's no job with an ID
-// @scenario [features/agent-cli-jobs.feature#cli-show-job] Show a job's full details
-// @scenario [features/agent-cli-jobs.feature#cli-show-missing-document] Showing a job marks a document whose file is missing
-// @scenario [features/agent-cli-jobs.feature#cli-no-opening] My agent can't open anything on my screen
+// @scenario [#cli-output-ids] [#cli-dates] [#cli-unknown-job] [#cli-show-job] [#cli-show-missing-document] [#cli-no-opening]
 func showJob(c *call) error {
 	return c.printJob(c.id)
 }
@@ -314,9 +293,7 @@ func (c *call) printJob(id int64) error {
 	return c.output(out, func(w io.Writer) { writeJob(w, out) })
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-add-job] Add a job with its details
-// @scenario [features/agent-cli-jobs.feature#cli-add-job-status] Add a job straight to a status
-// @scenario [features/agent-cli-jobs.feature#cli-add-job-rules] Adding a job follows the app's rules
+// @scenario [#cli-add-job] [#cli-add-job-status] [#cli-add-job-rules]
 func addJob(c *call) error {
 	var status jobs.Status
 	if given, ok := c.value("status"); ok {
@@ -336,10 +313,7 @@ func addJob(c *call) error {
 	return c.printJob(job.ID)
 }
 
-// @scenario [features/agent-cli.feature#cli-text-from-file] My agent gives long text from a file
-// @scenario [features/agent-cli.feature#cli-text-piped] My agent pipes long text in
-// @scenario [features/agent-cli-jobs.feature#cli-update-job] Change one detail and keep the rest
-// @scenario [features/agent-cli-jobs.feature#cli-clear-job-detail] Clear a detail
+// @scenario [#cli-text-from-file] [#cli-text-piped] [#cli-update-job] [#cli-clear-job-detail]
 func updateJob(c *call) error {
 	id := c.id
 	job, err := c.jobs.Job(c.ctx, id)
@@ -393,13 +367,7 @@ func (c *call) applyDetails(d *jobs.Details) error {
 	return nil
 }
 
-// @scenario [features/agent-cli.feature#cli-change-prints-result] A change prints what it changed
-// @scenario [features/agent-cli.feature#cli-error-lists-choices] A value that isn't one of the choices is answered with the choices
-// @scenario [features/agent-cli-jobs.feature#cli-move-top] A moved job goes to the top of its new column
-// @scenario [features/agent-cli-jobs.feature#cli-move-bottom] Move a job to the bottom of a column
-// @scenario [features/agent-cli-jobs.feature#cli-move-position] Move a job to a chosen place in a column
-// @scenario [features/agent-cli-jobs.feature#cli-move-follows-rules] Moving a job follows the app's rules
-// @scenario [features/agent-cli-jobs.feature#cli-move-to-closed-needs-close] Moving a job to Closed points my agent to closing it
+// @scenario [#cli-change-prints-result] [#cli-error-lists-choices] [#cli-move-top] [#cli-move-bottom] [#cli-move-position] [#cli-move-follows-rules] [#cli-move-to-closed-needs-close]
 func moveJob(c *call) error {
 	id := c.id
 	given, ok := c.value("status")
@@ -446,10 +414,7 @@ func moveIndex(c *call) (int, error) {
 	return *place - 1, nil
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-close-job] Close a job with a reason
-// @scenario [features/agent-cli-jobs.feature#cli-close-other] Close a job with my own reason
-// @scenario [features/agent-cli-jobs.feature#cli-close-needs-reason] Closing a job needs a reason
-// @scenario [features/agent-cli-jobs.feature#cli-change-closing-reason] Change a closed job's reason
+// @scenario [#cli-close-job] [#cli-close-other] [#cli-close-needs-reason] [#cli-change-closing-reason]
 func closeJob(c *call) error {
 	id := c.id
 	given, ok := c.value("reason")
@@ -486,8 +451,7 @@ type deletedJSON struct {
 }
 
 // deleteJob deletes the job at once. Nothing asks to confirm, since an agent can't answer.
-// @scenario [features/agent-cli.feature#cli-no-questions] Commands finish without waiting for an answer
-// @scenario [features/agent-cli-jobs.feature#cli-delete-job] Delete a job
+// @scenario [#cli-no-questions] [#cli-delete-job]
 func deleteJob(c *call) error {
 	id := c.id
 	job, err := c.jobs.Job(c.ctx, id)
@@ -504,9 +468,7 @@ func deleteJob(c *call) error {
 	})
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-set-next-action] Set a next action with an expected date
-// @scenario [features/agent-cli-jobs.feature#cli-set-next-action-no-date] Set a next action without an expected date
-// @scenario [features/agent-cli-jobs.feature#cli-next-action-needs-text] A next action needs to say what it is
+// @scenario [#cli-set-next-action] [#cli-set-next-action-no-date] [#cli-next-action-needs-text]
 func setNextAction(c *call) error {
 	id := c.id
 	text, _ := c.value("text")
@@ -517,8 +479,7 @@ func setNextAction(c *call) error {
 	return c.printJob(id)
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-clear-next-action-date] Clear only the expected date
-// @scenario [features/agent-cli-jobs.feature#cli-clear-next-action] Clear the next action
+// @scenario [#cli-clear-next-action-date] [#cli-clear-next-action]
 func clearNextAction(c *call) error {
 	id := c.id
 	if c.flag("only-date") {

@@ -31,7 +31,7 @@ func mustAddToLibrary(t *testing.T, h *harness, src, description string) Library
 	return doc
 }
 
-// @scenario [features/document-library.feature#add-library-document] Add a document with a description
+// @scenario [#add-library-document]
 func TestAddLibraryDocument(t *testing.T) {
 	h := newHarness(t)
 
@@ -51,7 +51,7 @@ func TestAddLibraryDocument(t *testing.T) {
 	}
 }
 
-// @scenario [features/document-library.feature#add-library-document-no-description] Add a document without a description
+// @scenario [#add-library-document-no-description]
 func TestAddLibraryDocumentWithoutDescription(t *testing.T) {
 	h := newHarness(t)
 
@@ -74,7 +74,7 @@ func TestAddLibraryDocumentTrimsTheDescription(t *testing.T) {
 	}
 }
 
-// @scenario [features/document-library.feature#library-newest-first] The newest documents are listed first
+// @scenario [#library-newest-first]
 func TestLibraryIsNewestFirst(t *testing.T) {
 	h := newHarness(t)
 	mustAddToLibrary(t, h, "resume-base-2026.docx", "")
@@ -89,7 +89,7 @@ func TestLibraryIsNewestFirst(t *testing.T) {
 	}
 }
 
-// @scenario [features/document-library.feature#library-same-file-twice] The same file can be added more than once
+// @scenario [#library-same-file-twice]
 func TestAddSameFileToLibraryTwice(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/document-library.feature] the library lists "resume-base-2026.docx" with the description "Before the rewrite"
@@ -108,7 +108,7 @@ func TestAddSameFileToLibraryTwice(t *testing.T) {
 	}
 }
 
-// @scenario [features/document-library.feature#library-document-kept-if-original-moved] A library document still opens after the original file is moved
+// @scenario [#library-document-kept-if-original-moved]
 func TestLibraryDocumentOpensItsOwnCopy(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/document-library.feature] I added "resume-base-2026.docx" to the library
@@ -129,7 +129,7 @@ func TestLibraryDocumentOpensItsOwnCopy(t *testing.T) {
 	}
 }
 
-// @scenario [features/document-library.feature#library-allowed-file-types] Text-like document types can be added
+// @scenario [#library-allowed-file-types]
 func TestLibraryAllowedFileTypes(t *testing.T) {
 	for _, file := range []string{"notes.txt", "resume.pdf", "prep.md", "cover.docx", "cover.doc", "resume.rtf", "resume.odt"} {
 		t.Run(file, func(t *testing.T) {
@@ -146,7 +146,7 @@ func TestLibraryAllowedFileTypes(t *testing.T) {
 	}
 }
 
-// @scenario [features/document-library.feature#library-file-type-any-case] A document's type is recognized whatever the letter case of its extension
+// @scenario [#library-file-type-any-case]
 func TestLibraryFileTypeAnyCase(t *testing.T) {
 	h := newHarness(t)
 
@@ -159,7 +159,7 @@ func TestLibraryFileTypeAnyCase(t *testing.T) {
 	}
 }
 
-// @scenario [features/document-library.feature#library-disallowed-file-types] Other file types can't be added
+// @scenario [#library-disallowed-file-types]
 func TestLibraryDisallowedFileTypes(t *testing.T) {
 	for _, file := range []string{"headshot.png", "take-home.zip", "setup.exe", "salaries.xlsx", "no-extension"} {
 		t.Run(file, func(t *testing.T) {
@@ -178,7 +178,7 @@ func TestLibraryDisallowedFileTypes(t *testing.T) {
 	}
 }
 
-// @scenario [features/document-library.feature#library-file-size-limit] A file larger than 10 MB can't be added
+// @scenario [#library-file-size-limit]
 func TestLibraryFileSizeLimit(t *testing.T) {
 	h := newHarness(t)
 
@@ -194,7 +194,7 @@ func TestLibraryFileSizeLimit(t *testing.T) {
 	wantValidation(t, err, "files can be at most 10 MB")
 }
 
-// @scenario [features/document-library.feature#library-file-size-at-limit] A file of exactly 10 MB can be added
+// @scenario [#library-file-size-at-limit]
 func TestLibraryFileSizeAtLimit(t *testing.T) {
 	h := newHarness(t)
 
@@ -228,7 +228,7 @@ func TestAddLibraryDocumentRemovesTheCopyIfTheRowFails(t *testing.T) {
 	}
 }
 
-// @scenario [features/document-library.feature#open-library-document] Open a library document
+// @scenario [#open-library-document]
 func TestOpenLibraryDocument(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/document-library.feature] the library lists "resume-base-2026.docx"
@@ -245,7 +245,7 @@ func TestOpenLibraryDocument(t *testing.T) {
 	}
 }
 
-// @scenario [features/document-library.feature#open-missing-library-document] Told when a library document's file is missing
+// @scenario [#open-missing-library-document]
 func TestOpenMissingLibraryDocument(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/document-library.feature] the library lists "resume-base-2026.docx"
@@ -269,7 +269,7 @@ func TestOpenMissingLibraryDocument(t *testing.T) {
 	}
 }
 
-// @scenario [features/document-library.feature#edit-library-description] Change a document's description
+// @scenario [#edit-library-description]
 func TestEditLibraryDescription(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/document-library.feature] the library lists "resume-base-2026.docx" with the description "Base resume"
@@ -291,7 +291,7 @@ func TestEditLibraryDescription(t *testing.T) {
 	}
 }
 
-// @scenario [features/document-library.feature#clear-library-description] Clear a document's description
+// @scenario [#clear-library-description]
 func TestClearLibraryDescription(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/document-library.feature] the library lists "resume-base-2026.docx" with the description "Base resume"
@@ -321,7 +321,7 @@ func TestLibraryDocumentNotFound(t *testing.T) {
 	}
 }
 
-// @scenario [features/document-library.feature#remove-library-document] Remove a library document after confirming
+// @scenario [#remove-library-document]
 func TestRemoveLibraryDocument(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/document-library.feature] the library lists "resume-base-2026.docx"
@@ -357,7 +357,7 @@ func TestRemoveLibraryDocumentReportsAFileThatCouldNotBeDeleted(t *testing.T) {
 	}
 }
 
-// @scenario [features/document-library.feature#library-not-on-jobs] Library documents aren't attached to any job
+// @scenario [#library-not-on-jobs]
 func TestLibraryDocumentsAreNotOnJobs(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/document-library.feature] the library lists "resume-base-2026.docx"
@@ -377,7 +377,7 @@ func TestLibraryDocumentsAreNotOnJobs(t *testing.T) {
 	}
 }
 
-// @scenario [features/document-library.feature#delete-job-keeps-library] Deleting a job doesn't touch the library
+// @scenario [#delete-job-keeps-library]
 func TestDeleteJobKeepsTheLibrary(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/document-library.feature] the library lists "resume-base-2026.docx"
@@ -401,7 +401,7 @@ func TestDeleteJobKeepsTheLibrary(t *testing.T) {
 	}
 }
 
-// @scenario [features/document-library.feature#remove-library-keeps-attachments] Removing a library document doesn't remove it from jobs
+// @scenario [#remove-library-keeps-attachments]
 func TestRemoveLibraryDocumentKeepsAttachments(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/document-library.feature] the library lists "resume-base-2026.docx"
@@ -461,7 +461,7 @@ func TestLibraryFiles(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-library.feature#cli-list-library-missing] The list marks a library document whose file is missing
+// @scenario [#cli-list-library-missing]
 func TestLibraryFilesMarksAMissingCopy(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/agent-cli-library.feature] my library holds "resume-2026.pdf"
@@ -484,7 +484,7 @@ func TestLibraryFilesMarksAMissingCopy(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-library.feature#cli-add-library-rules] Adding a library document follows the app's rules
+// @scenario [#cli-add-library-rules]
 func TestAddingToTheLibraryFollowsTheRules(t *testing.T) {
 	for _, tc := range []struct {
 		file   string

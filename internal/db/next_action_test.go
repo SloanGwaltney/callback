@@ -117,7 +117,7 @@ func TestJobUpdatesKeepTheNextAction(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-next-action.feature#next-action-persists] The next action is the same after reopening the app
+// @scenario [#next-action-persists]
 func TestNextActionPersistsAcrossReopen(t *testing.T) {
 	dataDir := t.TempDir()
 	s, conn := openStore(t, dataDir)

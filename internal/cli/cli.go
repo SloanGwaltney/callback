@@ -185,19 +185,7 @@ func kindOf(code int) string {
 // file, or what's piped in. Help, the overview, and usage errors don't open the data; every other
 // command opens it, takes the day's backup if none has been taken yet, removes the agent backups
 // that have expired, then runs.
-// @scenario [features/agent-cli.feature#cli-error] A command that can't be done says why and changes nothing
-// @scenario [features/agent-cli.feature#cli-unknown-command] An unknown command points my agent to the help
-// @scenario [features/agent-cli.feature#cli-exit-codes] A failed command ends with the exit code for its kind of failure
-// @scenario [features/agent-cli.feature#cli-validation-one-code] Every validation error shares one exit code, with a message saying what's wrong
-// @scenario [features/agent-cli.feature#cli-success-code] A command that works ends with exit code 0
-// @scenario [features/agent-cli.feature#cli-json-errors] An error is JSON when my agent asked for JSON output
-// @scenario [features/agent-cli.feature#cli-text-errors] An error is plain text otherwise
-// @scenario [features/agent-cli.feature#cli-newer-data] The command line refuses data a newer Callback has updated
-// @scenario [features/agent-cli.feature#cli-older-data] The command line brings older data up to date, as the app does
-// @scenario [features/agent-cli.feature#cli-no-questions] Commands finish without waiting for an answer
-// @scenario [features/daily-backups.feature#backup-on-first-start] The first start of the day takes a backup
-// @scenario [features/agent-backups.feature#agent-backup-expires] An expired backup is removed when Callback runs
-// @scenario [features/agent-backups.feature#agent-backup-expiry-keeps-daily] Removing expired backups never removes a daily backup
+// @scenario [#cli-error] [#cli-unknown-command] [#cli-exit-codes] [#cli-validation-one-code] [#cli-success-code] [#cli-json-errors] [#cli-text-errors] [#cli-newer-data] [#cli-older-data] [#cli-no-questions] [#backup-on-first-start] [#agent-backup-expires] [#agent-backup-expiry-keeps-daily]
 func Run(ctx context.Context, args []string, env Env) int {
 	asJSON := slices.Contains(args, "--json") || slices.Contains(args, "-json")
 	if err := run(ctx, args, env); err != nil {

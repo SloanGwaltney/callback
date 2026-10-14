@@ -18,25 +18,7 @@ type Props = {
 };
 
 // JobCard is a job as shown on the board.
-// @scenario [features/job-documents.feature#card-shows-document-count] The card shows that documents are attached
-// @scenario [features/job-interest.feature#card-shows-interest] The card shows the interest rating as stars
-// @scenario [features/job-interest.feature#card-unrated] An unrated card shows no stars
-// @scenario [features/job-interest.feature#interest-persists] The interest rating is the same after reopening the app
-// @scenario [features/job-interviews.feature#card-shows-next-interview] The card shows the date of the next upcoming interview
-// @scenario [features/job-interviews.feature#card-interview-today] An interview today counts as upcoming
-// @scenario [features/job-interviews.feature#card-no-upcoming-interview] The card shows no interview when every interview has passed
-// @scenario [features/job-next-action.feature#card-shows-next-action] The card shows the next action and its expected date
-// @scenario [features/job-next-action.feature#card-next-action-no-date] The card shows a next action with no expected date
-// @scenario [features/job-next-action.feature#card-next-action-due-today] A next action expected today is marked as due
-// @scenario [features/job-next-action.feature#card-next-action-overdue] A next action whose expected date has passed is marked as overdue
-// @scenario [features/job-next-action.feature#card-next-action-upcoming] A next action expected later isn't marked
-// @scenario [features/job-next-action.feature#closed-card-no-due-marks] A closed job's next action is never marked as due or overdue
-// @scenario [features/job-next-action.feature#card-no-next-action] A job with no next action shows none on its card
-// @scenario [features/job-next-action.feature#clear-next-action] Clear the next action once it's done
-// @scenario [features/job-status-history.feature#card-shows-days-in-status] The card shows how many days the job has been in its current status
-// @scenario [features/job-status-history.feature#days-in-status-from-added] A job that hasn't moved counts from when it was added
-// @scenario [features/job-status-history.feature#days-in-status-resets-on-move] Moving a card to another status starts the count again
-// @scenario [features/job-status-history.feature#days-in-status-any-column] Every column's cards show their days in status
+// @scenario [#card-shows-document-count] [#card-shows-interest] [#card-unrated] [#interest-persists] [#card-shows-next-interview] [#card-interview-today] [#card-no-upcoming-interview] [#card-shows-next-action] [#card-next-action-no-date] [#card-next-action-due-today] [#card-next-action-overdue] [#card-next-action-upcoming] [#closed-card-no-due-marks] [#card-no-next-action] [#clear-next-action] [#card-shows-days-in-status] [#days-in-status-from-added] [#days-in-status-resets-on-move] [#days-in-status-any-column]
 export function JobCard({ card, onOpen, handle }: Props) {
 	const documents = card.documentCount === 1 ? "1 document" : `${card.documentCount} documents`;
 	return (

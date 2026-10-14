@@ -28,9 +28,7 @@ var ErrNewerData = errors.New("db: the data is from a newer version of callback"
 // exist, and applies any pending migrations from migrations. If the database is newer than
 // migrations, it returns ErrNewerData without changing anything. See
 // docs/adr/0025-restore-backups-with-sqlites-online-backup-api-and-check-data-versions-first.md.
-// @scenario [features/data-version.feature#app-newer-data] The app refuses data a newer Callback has updated
-// @scenario [features/data-version.feature#app-older-data] The app brings older data up to date
-// @scenario [features/data-version.feature#app-same-version-data] The app opens data from the same version as usual
+// @scenario [#app-newer-data] [#app-older-data] [#app-same-version-data]
 func Open(ctx context.Context, dataDir string, migrations fs.FS) (*sql.DB, error) {
 	if err := os.MkdirAll(dataDir, 0o700); err != nil {
 		return nil, fmt.Errorf("db: create data directory: %w", err)

@@ -11,7 +11,7 @@ import (
 type Querier interface {
 	// Records a job moving to a status on a date, with the closing reason when the status is Closed.
 	AddStatusChange(ctx context.Context, arg AddStatusChangeParams) error
-	// @scenario [features/job-next-action.feature#clear-next-action] Clear the next action once it's done
+	// @scenario [#clear-next-action]
 	ClearNextAction(ctx context.Context, id int64) error
 	CreateContact(ctx context.Context, arg CreateContactParams) (Contact, error)
 	CreateDocument(ctx context.Context, arg CreateDocumentParams) (Document, error)
@@ -23,9 +23,7 @@ type Querier interface {
 	DeleteInterview(ctx context.Context, id int64) error
 	// Deletes the job and, through ON DELETE CASCADE, its document, contact, interview, and status
 	// change rows. The document files are the caller's to delete.
-	// @scenario [features/job-contacts.feature#contacts-deleted-with-job] Deleting a job deletes its contacts
-	// @scenario [features/job-interviews.feature#interviews-deleted-with-job] Deleting a job deletes its interviews
-	// @scenario [features/job-status-history.feature#history-deleted-with-job] Deleting a job deletes its status history
+	// @scenario [#contacts-deleted-with-job] [#interviews-deleted-with-job] [#history-deleted-with-job]
 	DeleteJob(ctx context.Context, id int64) error
 	DeleteLibraryDocument(ctx context.Context, id int64) error
 	GetContact(ctx context.Context, id int64) (Contact, error)
@@ -34,7 +32,7 @@ type Querier interface {
 	GetJob(ctx context.Context, id int64) (Job, error)
 	GetLibraryDocument(ctx context.Context, id int64) (LibraryDocument, error)
 	// A job's contacts in the order they were added.
-	// @scenario [features/job-contacts.feature#view-contacts] See a job's contacts when opening its card
+	// @scenario [#view-contacts]
 	ListContactsForJob(ctx context.Context, jobID int64) ([]Contact, error)
 	// The date each job moved to the status it's in now: the date of its latest status change.
 	ListCurrentStatusDates(ctx context.Context) ([]ListCurrentStatusDatesRow, error)
@@ -42,8 +40,7 @@ type Querier interface {
 	ListDocumentsForJob(ctx context.Context, jobID int64) ([]Document, error)
 	// A job's interviews from earliest to latest. Interviews on the same day are in time order, with
 	// the ones that have no time last, then in the order they were added.
-	// @scenario [features/job-interviews.feature#interviews-in-date-order] Interviews are listed from earliest to latest
-	// @scenario [features/job-interviews.feature#interviews-same-day-by-time] Interviews on the same day are listed by time, with untimed ones last
+	// @scenario [#interviews-in-date-order] [#interviews-same-day-by-time]
 	ListInterviewsForJob(ctx context.Context, jobID int64) ([]Interview, error)
 	// The jobs in one status column, top to bottom.
 	ListJobIDsInStatus(ctx context.Context, status string) ([]int64, error)
@@ -51,16 +48,15 @@ type Querier interface {
 	// status.
 	ListJobs(ctx context.Context) ([]ListJobsRow, error)
 	// The library, newest first. IDs only grow, so the highest is the latest added.
-	// @scenario [features/document-library.feature#library-newest-first] The newest documents are listed first
+	// @scenario [#library-newest-first]
 	ListLibraryDocuments(ctx context.Context) ([]LibraryDocument, error)
 	// A job's status history from oldest to newest. Rows are only ever added, so ID order is the order
 	// the changes happened in, even on the same day.
-	// @scenario [features/job-status-history.feature#history-oldest-first] The history lists every change from oldest to newest
-	// @scenario [features/job-status-history.feature#history-same-day-order] Several changes on the same day keep the order they happened in
+	// @scenario [#history-oldest-first] [#history-same-day-order]
 	ListStatusChangesForJob(ctx context.Context, jobID int64) ([]StatusChange, error)
 	// Every interview on or after a date, for every job, in the same order as ListInterviewsForJob
 	// within each job. The board takes each job's first as its next interview.
-	// @scenario [features/job-interviews.feature#card-shows-next-interview] The card shows the date of the next upcoming interview
+	// @scenario [#card-shows-next-interview]
 	ListUpcomingInterviews(ctx context.Context, date string) ([]Interview, error)
 	SetClosingReason(ctx context.Context, arg SetClosingReasonParams) error
 	SetDocumentKind(ctx context.Context, arg SetDocumentKindParams) error
@@ -68,10 +64,7 @@ type Querier interface {
 	SetLibraryDocumentDescription(ctx context.Context, arg SetLibraryDocumentDescriptionParams) error
 	// Sets what's next on a job and when it's expected, or NULL for no expected date. Nothing else on
 	// the job changes, so its column and place in it stay the same.
-	// @scenario [features/job-next-action.feature#set-next-action] Set a next action with an expected date
-	// @scenario [features/job-next-action.feature#set-next-action-no-date] Set a next action without an expected date
-	// @scenario [features/job-next-action.feature#edit-next-action] Change the next action and its expected date
-	// @scenario [features/job-next-action.feature#clear-next-action-date] Clear only the expected date
+	// @scenario [#set-next-action] [#set-next-action-no-date] [#edit-next-action] [#clear-next-action-date]
 	SetNextAction(ctx context.Context, arg SetNextActionParams) error
 	UpdateContact(ctx context.Context, arg UpdateContactParams) error
 	UpdateInterview(ctx context.Context, arg UpdateInterviewParams) error

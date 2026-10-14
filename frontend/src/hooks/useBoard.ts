@@ -8,10 +8,7 @@ import type { Board, Details, Job, Move } from "./types";
 // reloads the board, since the backend decides details like positions and dates applied.
 // Changes reject with the backend's message, for the caller to show. It also reloads when the
 // window gets focus again, to show what the user's agent changed while they were away.
-// @scenario [features/job-board.feature#board-persists] Board is the same after reopening the app
-// @scenario [features/job-board.feature#card-order-persists] Card order is the same after reopening the app
-// @scenario [features/job-board.feature#refresh-on-focus] The board shows my agent's changes when I come back to the app
-// @scenario [features/agent-backups.feature#restore-app-open] The app shows the restored data when I come back to it
+// @scenario [#board-persists] [#card-order-persists] [#refresh-on-focus] [#restore-app-open]
 export function useBoard() {
 	const [board, setBoard] = useState<Board | null>(null);
 	const [error, setError] = useState("");

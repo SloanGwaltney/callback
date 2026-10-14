@@ -135,7 +135,7 @@ func TestSchemaDocuments(t *testing.T) {
 	})
 }
 
-// @scenario [features/job-board.feature#card-order-persists] Card order is the same after reopening the app
+// @scenario [#card-order-persists]
 func TestListJobsOrdersByPositionWithinStatus(t *testing.T) {
 	conn := openSchema(t)
 

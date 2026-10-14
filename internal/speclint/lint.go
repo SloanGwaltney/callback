@@ -69,9 +69,12 @@ func Lint(root string) ([]Problem, error) {
 }
 
 type linter struct {
-	features    map[string]*Feature // keyed by repo-relative path
-	annotations []Annotation
-	problems    []Problem
+	features map[string]*Feature // keyed by repo-relative path
+	// scenarioFeature maps each scenario ID to the feature file that has it. IDs are unique across
+	// every feature file, so a @scenario annotation needs only the ID.
+	scenarioFeature map[string]string
+	annotations     []Annotation
+	problems        []Problem
 }
 
 func (l *linter) report(file string, line int, format string, args ...any) {
@@ -93,11 +96,30 @@ func (l *linter) loadFeatures(root string) error {
 		l.features[rel] = f
 		l.problems = append(l.problems, problems...)
 	}
+
+	// Glob returns paths sorted, so the first file to use an ID keeps it and later ones are
+	// reported.
+	l.scenarioFeature = map[string]string{}
+	for _, p := range paths {
+		rel := "features/" + filepath.Base(p)
+		for _, s := range l.features[rel].Scenarios {
+			if s.ID == "" {
+				continue
+			}
+			if first, dup := l.scenarioFeature[s.ID]; dup {
+				l.report(rel, s.Line, "scenario ID %q is already used in %s:%d; IDs are unique across feature files", s.ID, first, l.features[first].scenario(s.ID).Line)
+				continue
+			}
+			l.scenarioFeature[s.ID] = rel
+		}
+	}
 	return nil
 }
 
+// loadAnnotations reads the annotations in every source file. It needs the features loaded first,
+// to find the feature file of each scenario a @scenario annotation names.
 func (l *linter) loadAnnotations(root string) error {
-	return filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
+	err := filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -119,14 +141,35 @@ func (l *linter) loadAnnotations(root string) error {
 		if err != nil {
 			return err
 		}
-		l.annotations = append(l.annotations, parseAnnotations(rel, string(src), isTestFile(rel))...)
+		annotations, problems := parseAnnotations(rel, string(src), isTestFile(rel))
+		l.annotations = append(l.annotations, annotations...)
+		l.problems = append(l.problems, problems...)
 		return nil
 	})
+	if err != nil {
+		return err
+	}
+	for i, a := range l.annotations {
+		if a.Keyword == "scenario" {
+			l.annotations[i].Feature = l.scenarioFeature[a.ID]
+		}
+	}
+	return nil
 }
 
 // checkAnnotation reports an annotation that doesn't resolve to a live scenario or step in the
 // spec it names.
 func (l *linter) checkAnnotation(a Annotation) {
+	if a.Keyword == "scenario" {
+		switch {
+		case a.Feature == "":
+			l.report(a.File, a.Line, "@scenario [#%s]: no feature file has a scenario with @id:%s", a.ID, a.ID)
+		case l.features[a.Feature].scenario(a.ID).Status == StatusWithdrawn:
+			l.report(a.File, a.Line, "@scenario [#%s]: scenario is withdrawn; remove it from this line", a.ID)
+		}
+		return
+	}
+
 	ref := a.Feature
 	if a.ID != "" {
 		ref += "#" + a.ID
@@ -152,16 +195,6 @@ func (l *linter) checkAnnotation(a Annotation) {
 			l.report(a.File, a.Line, "@%s [%s]: scenario is withdrawn; remove this annotation", a.Keyword, ref)
 			return
 		}
-	}
-
-	if a.Keyword == "scenario" {
-		switch {
-		case scoped == nil:
-			l.report(a.File, a.Line, "@scenario [%s]: needs a scenario ID, like [%s#<id>]", ref, a.Feature)
-		case a.Text != scoped.Title:
-			l.report(a.File, a.Line, "@scenario [%s]: title %q doesn't match the spec's %q", ref, a.Text, scoped.Title)
-		}
-		return
 	}
 
 	candidates := f.Scenarios
@@ -212,9 +245,6 @@ func (l *linter) checkCoverage() {
 	index := map[key]*found{}
 	for _, a := range l.annotations {
 		k := key{a.Feature, a.Keyword, a.ID, a.Text}
-		if a.Keyword == "scenario" {
-			k.text = "" // titles are checked in checkAnnotation
-		}
 		if index[k] == nil {
 			index[k] = &found{}
 		}
@@ -243,7 +273,7 @@ func (l *linter) checkCoverage() {
 				continue
 			}
 			got := has(key{p, "scenario", s.ID, ""})
-			l.reportMissing(p, s.Line, got, fmt.Sprintf("implemented scenario %s has no @scenario [%s#%s] annotation", s.ID, p, s.ID))
+			l.reportMissing(p, s.Line, got, fmt.Sprintf("implemented scenario %s has no @scenario [#%s] annotation", s.ID, s.ID))
 
 			for _, st := range s.Steps {
 				kw := strings.ToLower(st.Keyword)

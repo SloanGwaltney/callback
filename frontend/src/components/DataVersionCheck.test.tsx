@@ -13,7 +13,7 @@ beforeEach(() => {
 });
 
 describe("DataVersionCheck", () => {
-	// @scenario [features/data-version.feature#app-newer-data] The app refuses data a newer Callback has updated
+	// @scenario [#app-newer-data]
 	it("tells me to update Callback when my data is from a newer version", () => {
 		// @given [features/data-version.feature] my data was last updated by a newer version of Callback than the app
 		vi.mocked(useDataVersion).mockReturnValue({ newerData: true });
@@ -31,8 +31,7 @@ describe("DataVersionCheck", () => {
 		expect(screen.queryByText("The board")).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/data-version.feature#app-older-data] The app brings older data up to date
-	// @scenario [features/data-version.feature#app-same-version-data] The app opens data from the same version as usual
+	// @scenario [#app-older-data] [#app-same-version-data]
 	it("shows the board when my data isn't from a newer version", () => {
 		// Older data is brought up to date before the window opens (TestOpenBringsOlderDataUpToDate in
 		// internal/db), so the backend reports it as not newer, as it does data from the same version.

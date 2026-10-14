@@ -120,7 +120,7 @@ describe("DocumentLibrary", () => {
 		expect(onBack).toHaveBeenCalled();
 	});
 
-	// @scenario [features/document-library.feature#empty-library] An empty library prompts me to add my first document
+	// @scenario [#empty-library]
 	it("prompts me to add my first document when the library is empty", async () => {
 		// @given [features/document-library.feature] I have not added any documents to the library
 		backend.documents = [];
@@ -143,7 +143,7 @@ describe("DocumentLibrary", () => {
 		expect(screen.queryByText("Your library is empty.")).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/document-library.feature#add-library-document] Add a document with a description
+	// @scenario [#add-library-document]
 	it("adds a document with a description", async () => {
 		// @given [features/document-library.feature] I am in the document library
 		renderLibrary();
@@ -160,7 +160,7 @@ describe("DocumentLibrary", () => {
 		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/document-library.feature#add-library-document-no-description] Add a document without a description
+	// @scenario [#add-library-document-no-description]
 	it("adds a document without a description", async () => {
 		// @given [features/document-library.feature] I am in the document library
 		renderLibrary();
@@ -202,7 +202,7 @@ describe("DocumentLibrary", () => {
 		]);
 	});
 
-	// @scenario [features/document-library.feature#library-same-file-twice] The same file can be added more than once
+	// @scenario [#library-same-file-twice]
 	it("adds the same file twice", async () => {
 		// @given [features/document-library.feature] the library lists "resume-base-2026.docx" with the description "Before the rewrite"
 		seed("resume-base-2026.docx", "Before the rewrite");
@@ -218,7 +218,7 @@ describe("DocumentLibrary", () => {
 		]);
 	});
 
-	// @scenario [features/document-library.feature#library-allowed-file-types] Text-like document types can be added
+	// @scenario [#library-allowed-file-types]
 	it.each([
 		"notes.txt",
 		"resume.pdf",
@@ -237,7 +237,7 @@ describe("DocumentLibrary", () => {
 		expect(listed()).toEqual([`${file}: `]);
 	});
 
-	// @scenario [features/document-library.feature#library-disallowed-file-types] Other file types can't be added
+	// @scenario [#library-disallowed-file-types]
 	it.each(["headshot.png", "take-home.zip", "setup.exe", "salaries.xlsx"])(
 		"says which types are allowed when adding %s",
 		async (file) => {
@@ -257,7 +257,7 @@ describe("DocumentLibrary", () => {
 		},
 	);
 
-	// @scenario [features/document-library.feature#library-file-size-limit] A file larger than 10 MB can't be added
+	// @scenario [#library-file-size-limit]
 	it("says files can be at most 10 MB", async () => {
 		api.add.mockRejectedValue("files can be at most 10 MB");
 		renderLibrary();
@@ -271,7 +271,7 @@ describe("DocumentLibrary", () => {
 		expect(screen.getByRole("alert")).toHaveTextContent("files can be at most 10 MB");
 	});
 
-	// @scenario [features/document-library.feature#open-library-document] Open a library document
+	// @scenario [#open-library-document]
 	it("opens a library document", async () => {
 		// @given [features/document-library.feature] the library lists "resume-base-2026.docx"
 		const doc = seed("resume-base-2026.docx");
@@ -285,7 +285,7 @@ describe("DocumentLibrary", () => {
 		expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/document-library.feature#open-missing-library-document] Told when a library document's file is missing
+	// @scenario [#open-missing-library-document]
 	it("says when a library document's file is missing", async () => {
 		// @given [features/document-library.feature] the library lists "resume-base-2026.docx"
 		seed("resume-base-2026.docx");
@@ -304,7 +304,7 @@ describe("DocumentLibrary", () => {
 		expect(listed()).toEqual(["resume-base-2026.docx: "]);
 	});
 
-	// @scenario [features/document-library.feature#edit-library-description] Change a document's description
+	// @scenario [#edit-library-description]
 	it("changes a document's description", async () => {
 		// @given [features/document-library.feature] the library lists "resume-base-2026.docx" with the description "Base resume"
 		const doc = seed("resume-base-2026.docx", "Base resume");
@@ -318,7 +318,7 @@ describe("DocumentLibrary", () => {
 		expect(api.setDescription).toHaveBeenCalledWith(doc.id, "Base resume, backend roles");
 	});
 
-	// @scenario [features/document-library.feature#clear-library-description] Clear a document's description
+	// @scenario [#clear-library-description]
 	it("clears a document's description", async () => {
 		// @given [features/document-library.feature] the library lists "resume-base-2026.docx" with the description "Base resume"
 		seed("resume-base-2026.docx", "Base resume");
@@ -340,8 +340,7 @@ describe("DocumentLibrary", () => {
 		expect(screen.getByLabelText(/Description/)).toHaveValue("Base resume");
 	});
 
-	// @scenario [features/document-library.feature#remove-library-document] Remove a library document after confirming
-	// @scenario [features/document-library.feature#remove-library-keeps-attachments] Removing a library document doesn't remove it from jobs
+	// @scenario [#remove-library-document] [#remove-library-keeps-attachments]
 	it("removes a library document after confirming", async () => {
 		// @given [features/document-library.feature] the library lists "resume-base-2026.docx"
 		const doc = seed("resume-base-2026.docx");
@@ -360,7 +359,7 @@ describe("DocumentLibrary", () => {
 		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/document-library.feature#cancel-remove-library-document] Cancel removing a library document
+	// @scenario [#cancel-remove-library-document]
 	it("keeps a library document when removing is cancelled", async () => {
 		// @given [features/document-library.feature] the library lists "resume-base-2026.docx"
 		seed("resume-base-2026.docx");

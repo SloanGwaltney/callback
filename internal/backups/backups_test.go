@@ -138,7 +138,7 @@ func (h *harness) takeDaily(t *testing.T) bool {
 	return taken
 }
 
-// @scenario [features/daily-backups.feature#backup-on-first-start] The first start of the day takes a backup
+// @scenario [#backup-on-first-start]
 func TestFirstStartOfTheDayTakesABackup(t *testing.T) {
 	h := newHarness()
 	// @given [features/daily-backups.feature] today is 2026-10-14
@@ -159,7 +159,7 @@ func TestFirstStartOfTheDayTakesABackup(t *testing.T) {
 	}
 }
 
-// @scenario [features/daily-backups.feature#backup-once-per-day] Starting Callback again the same day doesn't take another backup
+// @scenario [#backup-once-per-day]
 func TestStartingAgainTheSameDayTakesNoBackup(t *testing.T) {
 	h := newHarness()
 	// @given [features/daily-backups.feature] today is 2026-10-14
@@ -188,7 +188,7 @@ func TestABackupIsTakenAgainTheNextDay(t *testing.T) {
 	}
 }
 
-// @scenario [features/daily-backups.feature#backup-no-catch-up] Days when Callback didn't run get no backup
+// @scenario [#backup-no-catch-up]
 func TestDaysWhenCallbackDidNotRunGetNoBackup(t *testing.T) {
 	h := newHarness()
 	// @given [features/daily-backups.feature] the last backup was taken on 2026-10-01
@@ -206,7 +206,7 @@ func TestDaysWhenCallbackDidNotRunGetNoBackup(t *testing.T) {
 	}
 }
 
-// @scenario [features/daily-backups.feature#backup-keeps-last-15] Taking a 16th daily backup removes the oldest
+// @scenario [#backup-keeps-last-15]
 func TestASixteenthBackupRemovesTheOldest(t *testing.T) {
 	h := newHarness()
 	h.setToday(2026, time.October, 14)
@@ -227,7 +227,7 @@ func TestASixteenthBackupRemovesTheOldest(t *testing.T) {
 	}
 }
 
-// @scenario [features/daily-backups.feature#backup-count-not-days] Backups are kept by count, not by age
+// @scenario [#backup-count-not-days]
 func TestBackupsAreKeptByCountNotAge(t *testing.T) {
 	h := newHarness()
 	h.setToday(2026, time.October, 14)

@@ -114,7 +114,7 @@ const filledIn = job({
 });
 
 describe("JobDetails", () => {
-	// @scenario [features/job-cards.feature#view-job-details] View a job's full details
+	// @scenario [#view-job-details]
 	it("shows a job's full details", () => {
 		// @given [features/job-cards.feature] I have a job for "Software Engineer" at "Acme" with every detail filled in
 		// @when [features/job-cards.feature] I open the card
@@ -133,7 +133,7 @@ describe("JobDetails", () => {
 		expect(screen.getByRole("button", { name: "resume-2026.pdf" })).toBeInTheDocument();
 	});
 
-	// @scenario [features/job-cards.feature#edit-job-details] Edit a job's details
+	// @scenario [#edit-job-details]
 	it("edits a job's details", async () => {
 		// @given [features/job-cards.feature] I have a job for "Software Engineer" at "Acme"
 		const { onChanged } = renderDetails(job());
@@ -156,7 +156,7 @@ describe("JobDetails", () => {
 		expect(screen.getByRole("status")).toHaveTextContent("Saved.");
 	});
 
-	// @scenario [features/job-cards.feature#salary-free-text] Salary is written however the posting gives it
+	// @scenario [#salary-free-text]
 	it.each(["$120,000", "$120k - $140k", "$65/hr", "Not listed"])(
 		"keeps the salary %s as written",
 		async (salary) => {
@@ -173,7 +173,7 @@ describe("JobDetails", () => {
 		},
 	);
 
-	// @scenario [features/job-cards.feature#add-notes] Keep notes on a job
+	// @scenario [#add-notes]
 	it("keeps notes on a job", async () => {
 		// @given [features/job-cards.feature] I have a job for "Software Engineer" at "Acme"
 		renderDetails(job());
@@ -187,7 +187,7 @@ describe("JobDetails", () => {
 		expect(field(/^Notes/)).toHaveValue("Recruiter call went well, follow up Friday.");
 	});
 
-	// @scenario [features/job-cards.feature#edit-notes] Add to existing notes
+	// @scenario [#edit-notes]
 	it("adds a line to existing notes", async () => {
 		// @given [features/job-cards.feature] I have a job for "Software Engineer" at "Acme" with the notes "Referred by Dana."
 		renderDetails(job({ notes: "Referred by Dana." }));
@@ -200,7 +200,7 @@ describe("JobDetails", () => {
 		expect(savedDetails()?.notes).toBe("Referred by Dana.\nPhone screen booked for 10/14.");
 	});
 
-	// @scenario [features/job-cards.feature#open-job-link] Open a job's posting link
+	// @scenario [#open-job-link]
 	it("opens the job's posting link", async () => {
 		// @given [features/job-cards.feature] I have a job for "Software Engineer" at "Acme" with the link "https://acme.example.com/jobs/123"
 		renderDetails(job({ link: "https://acme.example.com/jobs/123" }));
@@ -224,7 +224,7 @@ describe("JobDetails", () => {
 		expect(screen.getByRole("alert")).toHaveTextContent("the link must be a web address");
 	});
 
-	// @scenario [features/job-cards.feature#invalid-job-link] A job link must be a web address
+	// @scenario [#invalid-job-link]
 	it("doesn't save a link that isn't a web address", async () => {
 		// @given [features/job-cards.feature] I have a job for "Software Engineer" at "Acme"
 		const { onChanged } = renderDetails(job());
@@ -243,7 +243,7 @@ describe("JobDetails", () => {
 		expect(screen.getByRole("alert")).toHaveTextContent("the link must be a web address");
 	});
 
-	// @scenario [features/job-cards.feature#set-date-applied] Set the date applied
+	// @scenario [#set-date-applied]
 	it("sets the date applied", async () => {
 		// @given [features/job-cards.feature] I have a job for "Software Engineer" at "Acme" in "Applied"
 		const { onChanged } = renderDetails(job({ status: "applied" }));
@@ -258,7 +258,7 @@ describe("JobDetails", () => {
 		expect(onChanged).toHaveBeenCalled();
 	});
 
-	// @scenario [features/job-cards.feature#date-applied-any-status] The date applied can be set in any status
+	// @scenario [#date-applied-any-status]
 	it.each(["saved", "interviewing", "offer", "closed"])(
 		"sets the date applied in %s",
 		async (status) => {
@@ -274,7 +274,7 @@ describe("JobDetails", () => {
 		},
 	);
 
-	// @scenario [features/job-cards.feature#clear-date-applied] Clear the date applied
+	// @scenario [#clear-date-applied]
 	it("clears the date applied", async () => {
 		// @given [features/job-cards.feature] I have a job for "Software Engineer" at "Acme" with a date applied of 2026-10-01
 		renderDetails(job({ dateApplied: "2026-10-01" }));
@@ -289,7 +289,7 @@ describe("JobDetails", () => {
 		expect(screen.queryByRole("button", { name: "Clear" })).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/job-cards.feature#future-date-applied] The date applied can't be in the future
+	// @scenario [#future-date-applied]
 	it("doesn't save a date applied in the future", async () => {
 		// @given [features/job-cards.feature] today is 2026-10-09
 		// @and [features/job-cards.feature] I have a job for "Software Engineer" at "Acme"
@@ -306,7 +306,7 @@ describe("JobDetails", () => {
 		expect(screen.getByRole("alert")).toHaveTextContent("the date applied can't be in the future");
 	});
 
-	// @scenario [features/job-cards.feature#delete-job] Delete a job after confirming
+	// @scenario [#delete-job]
 	it("deletes a job after confirming", async () => {
 		// @given [features/job-cards.feature#delete-job] I have a job for "Software Engineer" at "Acme"
 		const { onDelete } = renderDetails(job({ id: 4 }));
@@ -324,7 +324,7 @@ describe("JobDetails", () => {
 		expect(onDelete).toHaveBeenCalledWith(4);
 	});
 
-	// @scenario [features/job-contacts.feature#contacts-deleted-with-job] Deleting a job deletes its contacts
+	// @scenario [#contacts-deleted-with-job]
 	it("warns that deleting a job deletes its contacts", async () => {
 		// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme" with the contact "Dana Smith"
 		const dana = {
@@ -353,7 +353,7 @@ describe("JobDetails", () => {
 		expect(onDelete).toHaveBeenCalledWith(4);
 	});
 
-	// @scenario [features/job-interviews.feature#interviews-deleted-with-job] Deleting a job deletes its interviews
+	// @scenario [#interviews-deleted-with-job]
 	it("warns that deleting a job deletes its interviews", async () => {
 		// @given [features/job-interviews.feature] I have a job for "Software Engineer" at "Acme" with a "Technical" interview on 2026-10-14
 		const technical = {
@@ -383,7 +383,7 @@ describe("JobDetails", () => {
 		expect(onDelete).toHaveBeenCalledWith(4);
 	});
 
-	// @scenario [features/job-interviews.feature#interview-any-status] Interviews can be added to a job in any status
+	// @scenario [#interview-any-status]
 	it.each(["saved", "applied", "interviewing", "offer", "closed"])(
 		"offers to add an interview to a job in %s",
 		(status) => {
@@ -395,7 +395,7 @@ describe("JobDetails", () => {
 		},
 	);
 
-	// @scenario [features/document-library.feature#library-not-on-jobs] Library documents aren't attached to any job
+	// @scenario [#library-not-on-jobs]
 	it("shows no attached documents on a job, whatever the library holds", () => {
 		// @given [features/document-library.feature] I have a job for "Software Engineer" at "Acme" with no attached documents
 		// The library's documents are never on a job (TestLibraryDocumentsAreNotOnJobs), so the job
@@ -411,7 +411,7 @@ describe("JobDetails", () => {
 		expect(within(documents).queryByRole("listitem")).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/document-library.feature#delete-job-keeps-library] Deleting a job doesn't touch the library
+	// @scenario [#delete-job-keeps-library]
 	it("deletes a job without asking about the document library", async () => {
 		const { onDelete } = renderDetails(job({ id: 4 }));
 
@@ -433,7 +433,7 @@ describe("JobDetails", () => {
 		expect(screen.getByRole("alert")).toHaveTextContent("job not found");
 	});
 
-	// @scenario [features/job-cards.feature#cancel-delete-job] Cancel deleting a job
+	// @scenario [#cancel-delete-job]
 	it("keeps the job when deleting is cancelled", async () => {
 		// @given [features/job-cards.feature] I have a job for "Software Engineer" at "Acme"
 		const { onDelete } = renderDetails(job());
@@ -452,7 +452,7 @@ describe("JobDetails", () => {
 		expect(screen.queryByRole("dialog", { name: /^Delete/ })).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/job-board.feature#change-closing-reason] Change the closing reason of a closed job
+	// @scenario [#change-closing-reason]
 	it("changes the closing reason of a closed job", async () => {
 		// @given [features/job-board.feature#change-closing-reason] I have a job for "Software Engineer" at "Acme" in "Closed" with the closing reason "No response"
 		const closed = job({
@@ -486,7 +486,7 @@ describe("JobDetails", () => {
 		expect(screen.queryByRole("button", { name: "Change reason" })).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/job-interest.feature#rate-interest] Rate how interested I am in a job
+	// @scenario [#rate-interest]
 	it.each([1, 2, 3, 4, 5])("rates the job %i stars", async (stars) => {
 		// @given [features/job-interest.feature] I have a job for "Software Engineer" at "Acme" with no interest rating
 		const { onChanged } = renderDetails(job());
@@ -501,7 +501,7 @@ describe("JobDetails", () => {
 		expect(onChanged).toHaveBeenCalled();
 	});
 
-	// @scenario [features/job-interest.feature#interest-any-status] A job in any status can be rated
+	// @scenario [#interest-any-status]
 	it.each(["saved", "applied", "interviewing", "offer", "closed"])(
 		"rates a job in %s",
 		async (status) => {
@@ -517,7 +517,7 @@ describe("JobDetails", () => {
 		},
 	);
 
-	// @scenario [features/job-interest.feature#change-interest] Change my interest rating
+	// @scenario [#change-interest]
 	it("changes the interest rating", async () => {
 		// @given [features/job-interest.feature] I have a job for "Software Engineer" at "Acme" with an interest rating of 2 stars
 		renderDetails(job({ interest: 2 }));
@@ -531,7 +531,7 @@ describe("JobDetails", () => {
 		expect(screen.getByRole("radio", { name: "5 stars" })).toBeChecked();
 	});
 
-	// @scenario [features/job-interest.feature#clear-interest] Clear my interest rating
+	// @scenario [#clear-interest]
 	it("clears the interest rating", async () => {
 		// @given [features/job-interest.feature] I have a job for "Software Engineer" at "Acme" with an interest rating of 3 stars
 		renderDetails(job({ interest: 3 }));
@@ -545,7 +545,7 @@ describe("JobDetails", () => {
 		expect(screen.queryByRole("radio", { checked: true })).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/job-interest.feature#view-interest] See the interest rating when opening the card
+	// @scenario [#view-interest]
 	it("shows the interest rating", () => {
 		// @given [features/job-interest.feature] I have a job for "Software Engineer" at "Acme" with an interest rating of 4 stars
 		// @when [features/job-interest.feature] I open the card
@@ -598,7 +598,7 @@ describe("JobDetails", () => {
 			await userEvent.click(inPanel().getByRole("button", { name: "Save next action" }));
 		};
 
-		// @scenario [features/job-next-action.feature#set-next-action] Set a next action with an expected date
+		// @scenario [#set-next-action]
 		it("sets a next action with an expected date", async () => {
 			// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with no next action
 			const { onChanged } = renderDetails(job({ status: "applied" }));
@@ -618,7 +618,7 @@ describe("JobDetails", () => {
 			expect(onChanged).toHaveBeenCalled();
 		});
 
-		// @scenario [features/job-next-action.feature#set-next-action-no-date] Set a next action without an expected date
+		// @scenario [#set-next-action-no-date]
 		it("sets a next action without an expected date", async () => {
 			// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with no next action
 			renderDetails(job({ status: "applied" }));
@@ -633,7 +633,7 @@ describe("JobDetails", () => {
 			expect(inPanel().getByText("No expected date")).toBeInTheDocument();
 		});
 
-		// @scenario [features/job-next-action.feature#next-action-needs-text] A next action can't be saved without saying what it is
+		// @scenario [#next-action-needs-text]
 		it("says why a next action with nothing written isn't saved", async () => {
 			// The backend refuses it (TestNextActionNeedsText); the form shows its message.
 			backend.setNextAction.mockRejectedValueOnce("write what the next action is");
@@ -650,7 +650,7 @@ describe("JobDetails", () => {
 			expect(inPanel().getByRole("alert")).toHaveTextContent("write what the next action is");
 		});
 
-		// @scenario [features/job-next-action.feature#next-action-past-date] The expected date can be in the past
+		// @scenario [#next-action-past-date]
 		it("sets an expected date in the past", async () => {
 			renderDetails(job({ status: "applied" }));
 
@@ -664,7 +664,7 @@ describe("JobDetails", () => {
 			expect(inPanel().getByText("Expected 2026-10-05")).toBeInTheDocument();
 		});
 
-		// @scenario [features/job-next-action.feature#next-action-any-status] A next action can be set on a job in any status
+		// @scenario [#next-action-any-status]
 		it.each(["saved", "applied", "interviewing", "offer", "closed"])(
 			"sets a next action on a job in %s",
 			async (status) => {
@@ -679,7 +679,7 @@ describe("JobDetails", () => {
 			},
 		);
 
-		// @scenario [features/job-next-action.feature#edit-next-action] Change the next action and its expected date
+		// @scenario [#edit-next-action]
 		it("changes the next action and its expected date", async () => {
 			// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with the next action "Waiting for a call back" expected on 2026-10-14
 			renderDetails(job({ status: "offer", nextAction: waiting }));
@@ -697,7 +697,7 @@ describe("JobDetails", () => {
 			expect(inPanel().getByText("Expected 2026-10-16")).toBeInTheDocument();
 		});
 
-		// @scenario [features/job-next-action.feature#clear-next-action-date] Clear only the expected date
+		// @scenario [#clear-next-action-date]
 		it("clears only the expected date", async () => {
 			// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with the next action "Waiting for a call back" expected on 2026-10-14
 			renderDetails(job({ status: "applied", nextAction: waiting }));
@@ -713,7 +713,7 @@ describe("JobDetails", () => {
 			expect(inPanel().queryByRole("button", { name: "Clear date" })).not.toBeInTheDocument();
 		});
 
-		// @scenario [features/job-next-action.feature#clear-next-action] Clear the next action once it's done
+		// @scenario [#clear-next-action]
 		it("clears the next action once it's done", async () => {
 			// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with the next action "Waiting for a call back" expected on 2026-10-14
 			const { onChanged } = renderDetails(job({ status: "applied", nextAction: waiting }));
@@ -736,7 +736,7 @@ describe("JobDetails", () => {
 			expect(inPanel().getByText("Waiting for a call back")).toBeInTheDocument();
 		});
 
-		// @scenario [features/job-next-action.feature#view-next-action] See the next action when opening the card
+		// @scenario [#view-next-action]
 		it("shows the next action when the card is opened", () => {
 			// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with the next action "Waiting for a call back" expected on 2026-10-14
 			// @when [features/job-next-action.feature] I open the card
@@ -759,7 +759,7 @@ describe("JobDetails", () => {
 			{ status: "applied", date: "2026-10-09", closingReason: "", closingReasonText: "" },
 		];
 
-		// @scenario [features/job-status-history.feature#history-read-only] The status history can't be edited
+		// @scenario [#history-read-only]
 		it("shows the status history with nothing to edit", () => {
 			// @given [features/job-status-history.feature#history-read-only] I have a job for "Software Engineer" at "Acme" with a status history
 			// @when [features/job-status-history.feature] I open the card
@@ -774,7 +774,7 @@ describe("JobDetails", () => {
 			expect(within(region).queryAllByRole("combobox")).toHaveLength(0);
 		});
 
-		// @scenario [features/job-status-history.feature#history-deleted-with-job] Deleting a job deletes its status history
+		// @scenario [#history-deleted-with-job]
 		it("warns that deleting a job deletes its status history", async () => {
 			const { onDelete } = renderDetails(job({ id: 4, statusHistory: history }));
 

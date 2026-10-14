@@ -90,7 +90,7 @@ const acmeIn = (label: string) =>
 	within(column(label)).queryByRole("article", { name: "Software Engineer at Acme" });
 
 describe("App", () => {
-	// @scenario [features/job-cards.feature#add-job] Add a job with all its details
+	// @scenario [#add-job]
 	it("adds a job with all its details", async () => {
 		// @given [features/job-cards.feature] I open the job search board
 		const { added } = mockBoard(board());
@@ -132,7 +132,7 @@ describe("App", () => {
 		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/job-cards.feature#add-job-minimum] Add a job with only a company and a role
+	// @scenario [#add-job-minimum]
 	it("adds a job with only a company and a role", async () => {
 		// @given [features/job-cards.feature] I open the job search board
 		const { added } = mockBoard(board());
@@ -154,7 +154,7 @@ describe("App", () => {
 		expect(acmeIn("Saved")).toBeInTheDocument();
 	});
 
-	// @scenario [features/job-cards.feature#add-job-in-column] Add a job directly to a status column
+	// @scenario [#add-job-in-column]
 	it("adds a job directly to a status column", async () => {
 		// @given [features/job-cards.feature] I open the job search board
 		mockBoard(board());
@@ -174,7 +174,7 @@ describe("App", () => {
 		expect(acmeIn("Saved")).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/job-board.feature#new-card-at-top] A newly added job goes to the top of its column
+	// @scenario [#new-card-at-top]
 	it("puts a newly added job at the top of its column", async () => {
 		// @given [features/job-board.feature] the "Saved" column holds the jobs at "Globex" and "Initech" in that order
 		mockBoard(board({ saved: [card(2, "Globex"), card(3, "Initech")] }));
@@ -200,7 +200,7 @@ describe("App", () => {
 		]);
 	});
 
-	// @scenario [features/job-cards.feature#delete-job] Delete a job after confirming
+	// @scenario [#delete-job]
 	it("removes a deleted job from the board", async () => {
 		// @given [features/job-cards.feature#delete-job] I have a job for "Software Engineer" at "Acme"
 		const { deleted } = mockBoard(board({ offer: [card(1, "Acme")] }));
@@ -221,7 +221,7 @@ describe("App", () => {
 		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/job-cards.feature#cancel-delete-job] Cancel deleting a job
+	// @scenario [#cancel-delete-job]
 	it("keeps the job on the board when deleting is cancelled", async () => {
 		// @given [features/job-cards.feature] I have a job for "Software Engineer" at "Acme"
 		const { deleted } = mockBoard(board({ offer: [card(1, "Acme")] }));
@@ -262,7 +262,7 @@ describe("App", () => {
 				applied: [card(2, "Globex", { role: "Product Designer" })],
 			});
 
-		// @scenario [features/board-search.feature#search-by-role] Search by role
+		// @scenario [#search-by-role]
 		it("searches by role", async () => {
 			// @given [features/board-search.feature] I have a job for "Software Engineer" at "Acme" in "Saved"
 			// @and [features/board-search.feature] I have a job for "Product Designer" at "Globex" in "Applied"
@@ -278,7 +278,7 @@ describe("App", () => {
 			expect(shown("Product Designer at Globex")).not.toBeInTheDocument();
 		});
 
-		// @scenario [features/board-search.feature#search-by-company] Search by company
+		// @scenario [#search-by-company]
 		it("searches by company", async () => {
 			// @given [features/board-search.feature] I have a job for "Software Engineer" at "Acme" in "Saved"
 			// @and [features/board-search.feature] I have a job for "Product Designer" at "Globex" in "Applied"
@@ -294,7 +294,7 @@ describe("App", () => {
 			expect(shown("Software Engineer at Acme")).not.toBeInTheDocument();
 		});
 
-		// @scenario [features/board-search.feature#search-partial-any-case] Search matches part of a word in any letter case
+		// @scenario [#search-partial-any-case]
 		it.each([["acme"], ["ACM"], ["soft"], ["ENGINEER"]])("matches %s", async (text) => {
 			// @given [features/board-search.feature] I have a job for "Software Engineer" at "Acme" in "Saved"
 			mockBoard(
@@ -312,7 +312,7 @@ describe("App", () => {
 
 		// Cards don't carry a job's notes or other details, so nothing but the role and the
 		// company can match.
-		// @scenario [features/board-search.feature#search-ignores-other-details] Search doesn't match a job's other details
+		// @scenario [#search-ignores-other-details]
 		it("doesn't match a job's other details", async () => {
 			// @given [features/board-search.feature] I have a job for "Software Engineer" at "Globex" with the notes "Heard about it from someone at Acme."
 			mockBoard(board({ saved: [card(2, "Globex", { location: "Acme Tower" })] }));
@@ -325,7 +325,7 @@ describe("App", () => {
 			expect(shown("Software Engineer at Globex")).not.toBeInTheDocument();
 		});
 
-		// @scenario [features/board-search.feature#search-blank-shows-all] Searching for only spaces shows every job
+		// @scenario [#search-blank-shows-all]
 		it("shows every job for a search of only spaces", async () => {
 			// @given [features/board-search.feature] I have a job for "Software Engineer" at "Acme" in "Saved"
 			// @and [features/board-search.feature] I have a job for "Product Designer" at "Globex" in "Applied"
@@ -341,7 +341,7 @@ describe("App", () => {
 			expect(shown("Product Designer at Globex")).toBeInTheDocument();
 		});
 
-		// @scenario [features/board-search.feature#search-keeps-columns] Matching cards stay in their own columns
+		// @scenario [#search-keeps-columns]
 		it("keeps matching cards in their own columns", async () => {
 			// @given [features/board-search.feature] I have a job for "Software Engineer" at "Acme" in "Saved"
 			// @and [features/board-search.feature] I have a job for "Data Engineer" at "Globex" in "Interviewing"
@@ -372,7 +372,7 @@ describe("App", () => {
 			]);
 		});
 
-		// @scenario [features/board-search.feature#search-counts-matches] Column counts show how many cards match
+		// @scenario [#search-counts-matches]
 		it("counts the matching cards in each column", async () => {
 			// @given [features/board-search.feature] I have 3 jobs in "Saved", 2 of them at "Acme"
 			// @and [features/board-search.feature] I have 1 job in "Applied" at "Globex"
@@ -393,7 +393,7 @@ describe("App", () => {
 			expect(within(column("Applied")).getByText("0 jobs")).toBeInTheDocument();
 		});
 
-		// @scenario [features/board-search.feature#search-no-matches] Told when nothing matches
+		// @scenario [#search-no-matches]
 		it("says when nothing matches", async () => {
 			// @given [features/board-search.feature] I have a job for "Software Engineer" at "Acme" in "Saved"
 			mockBoard(board({ saved: [card(1, "Acme")] }));
@@ -411,7 +411,7 @@ describe("App", () => {
 			expect(screen.queryByRole("button", { name: "Add your first job" })).not.toBeInTheDocument();
 		});
 
-		// @scenario [features/board-search.feature#clear-search] Clearing the search shows every job again
+		// @scenario [#clear-search]
 		it("shows every job again when the search is cleared", async () => {
 			// @given [features/board-search.feature] I have a job for "Software Engineer" at "Acme" in "Saved"
 			// @and [features/board-search.feature] I have a job for "Product Designer" at "Globex" in "Applied"
@@ -439,7 +439,7 @@ describe("App", () => {
 			expect(shown("Product Designer at Globex")).toBeInTheDocument();
 		});
 
-		// @scenario [features/board-search.feature#search-not-kept] Search is cleared after reopening the app
+		// @scenario [#search-not-kept]
 		it("starts with an empty search when the app reopens", async () => {
 			// @given [features/board-search.feature] I have a job for "Software Engineer" at "Acme" in "Saved"
 			// @and [features/board-search.feature] I have a job for "Product Designer" at "Globex" in "Applied"
@@ -458,7 +458,7 @@ describe("App", () => {
 			expect(shown("Product Designer at Globex")).toBeInTheDocument();
 		});
 
-		// @scenario [features/board-search.feature#add-job-clears-search] Adding a job clears the search
+		// @scenario [#add-job-clears-search]
 		it("clears the search when a job is added", async () => {
 			// @given [features/board-search.feature] I have a job for "Software Engineer" at "Acme" in "Saved"
 			mockBoard(board({ saved: [card(1, "Acme")] }));
@@ -489,7 +489,7 @@ describe("App", () => {
 		const next = () => userEvent.click(screen.getByRole("button", { name: "Next page of Saved" }));
 		const pageOf = (text: string) => within(column("Saved")).getByText(text);
 
-		// @scenario [features/board-pagination.feature#new-card-shows-first-page] Adding a job shows the first page of its column
+		// @scenario [#new-card-shows-first-page]
 		it("shows the first page of a column a job is added to", async () => {
 			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
 			mockBoard(board({ saved: many(25) }));
@@ -514,7 +514,7 @@ describe("App", () => {
 			);
 		});
 
-		// @scenario [features/board-pagination.feature#search-resets-pages] Changing the search returns every column to its first page
+		// @scenario [#search-resets-pages]
 		it("returns to the first page when the search changes", async () => {
 			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
 			mockBoard(board({ saved: many(25, "Acme") }));
@@ -531,7 +531,7 @@ describe("App", () => {
 			expect(pageOf("Page 1 of 3")).toBeInTheDocument();
 		});
 
-		// @scenario [features/board-pagination.feature#pages-reset-on-reopen] Every column starts on its first page after reopening the app
+		// @scenario [#pages-reset-on-reopen]
 		it("starts every column on its first page when the app reopens", async () => {
 			// @given [features/board-pagination.feature] the "Saved" column holds 25 jobs
 			mockBoard(board({ saved: many(25) }));
@@ -553,7 +553,7 @@ describe("App", () => {
 		const many = (n: number) =>
 			Array.from({ length: n }, (_, i) => card(i + 1, `Company ${i + 1}`));
 
-		// @scenario [features/job-board.feature#refresh-keeps-search-and-pages] Refreshing the board keeps my search and the page I'm on
+		// @scenario [#refresh-keeps-search-and-pages]
 		it("keeps the search and each column's page when the board reloads", async () => {
 			const applied = many(25);
 			// The agent added a job to Saved while the app was in the background.
@@ -605,7 +605,7 @@ describe("App", () => {
 				],
 			});
 
-		// @scenario [features/job-next-action.feature#filter-overdue] Show only overdue jobs
+		// @scenario [#filter-overdue]
 		it("shows only overdue jobs", async () => {
 			// @given [features/job-next-action.feature] I have a job at "Acme" with a next action expected on 2026-10-10
 			// @and [features/job-next-action.feature] a job at "Globex" with a next action expected on 2026-10-20
@@ -621,7 +621,7 @@ describe("App", () => {
 			expect(shown("Acme")).toBeInTheDocument();
 		});
 
-		// @scenario [features/job-next-action.feature#filter-not-overdue] Show only jobs that aren't overdue
+		// @scenario [#filter-not-overdue]
 		it("shows only jobs that aren't overdue", async () => {
 			// @given [features/job-next-action.feature] I have a job at "Acme" with a next action expected on 2026-10-10
 			// @and [features/job-next-action.feature] a job at "Globex" with a next action expected on 2026-10-20
@@ -639,7 +639,7 @@ describe("App", () => {
 			expect(shown("Acme")).not.toBeInTheDocument();
 		});
 
-		// @scenario [features/job-next-action.feature#filter-due-today-not-overdue] A job due today isn't overdue yet
+		// @scenario [#filter-due-today-not-overdue]
 		it("doesn't count a job due today as overdue", async () => {
 			// @given [features/job-next-action.feature] I have a job at "Acme" with a next action expected on 2026-10-14
 			mockBoard(
@@ -660,7 +660,7 @@ describe("App", () => {
 			expect(shown("Globex")).toBeInTheDocument();
 		});
 
-		// @scenario [features/job-next-action.feature#filter-closed-never-overdue] A closed job is never overdue
+		// @scenario [#filter-closed-never-overdue]
 		it("doesn't count a closed job as overdue", async () => {
 			// @given [features/job-next-action.feature] I have a job at "Acme" in "Closed" with a next action expected on 2026-10-10
 			mockBoard(
@@ -678,7 +678,7 @@ describe("App", () => {
 			expect(shown("Acme")).not.toBeInTheDocument();
 		});
 
-		// @scenario [features/job-next-action.feature#filter-show-all] Show every job again
+		// @scenario [#filter-show-all]
 		it("shows every job again", async () => {
 			// @given [features/job-next-action.feature] I have a job at "Acme" with a next action expected on 2026-10-10
 			// @and [features/job-next-action.feature] a job at "Globex" with no next action
@@ -696,7 +696,7 @@ describe("App", () => {
 			expect(shown("Globex")).toBeInTheDocument();
 		});
 
-		// @scenario [features/job-next-action.feature#filter-keeps-columns] Filtered cards stay in their own columns and the counts show how many are shown
+		// @scenario [#filter-keeps-columns]
 		it("keeps filtered cards in their columns and counts them", async () => {
 			// @given [features/job-next-action.feature] I have 2 overdue jobs in "Applied" and 1 overdue job in "Interviewing"
 			// @and [features/job-next-action.feature] 3 jobs in "Applied" that aren't overdue
@@ -725,7 +725,7 @@ describe("App", () => {
 			expect(within(column("Interviewing")).getByText("1 job")).toBeInTheDocument();
 		});
 
-		// @scenario [features/job-next-action.feature#filter-with-search] The filter and the search both apply
+		// @scenario [#filter-with-search]
 		it("applies both the filter and the search", async () => {
 			// @given [features/job-next-action.feature] I have an overdue job for "Software Engineer" at "Acme"
 			// @and [features/job-next-action.feature] an overdue job for "Designer" at "Globex"
@@ -751,7 +751,7 @@ describe("App", () => {
 			expect(shown("Acme")).toBeInTheDocument();
 		});
 
-		// @scenario [features/job-next-action.feature#filter-no-matches] Told when no jobs match the filter
+		// @scenario [#filter-no-matches]
 		it("says when no jobs match the filter", async () => {
 			// @given [features/job-next-action.feature] none of my jobs are overdue
 			mockBoard(board({ applied: [due("Acme", "2026-10-20", "", 1), card(2, "Globex")] }));
@@ -779,7 +779,7 @@ describe("App", () => {
 			).toBeInTheDocument();
 		});
 
-		// @scenario [features/job-next-action.feature#filter-resets-pages] Changing the filter returns every column to its first page
+		// @scenario [#filter-resets-pages]
 		it("returns to the first page when the filter changes", async () => {
 			// @given [features/job-next-action.feature] the "Applied" column has 3 pages of cards
 			mockBoard(
@@ -798,7 +798,7 @@ describe("App", () => {
 			expect(shown("Company 1")).toBeInTheDocument();
 		});
 
-		// @scenario [features/job-next-action.feature#add-job-clears-filter] Adding a job shows every job again
+		// @scenario [#add-job-clears-filter]
 		it("shows every job again when a job is added", async () => {
 			mockBoard(
 				board({ applied: [due("Globex", "2026-10-10", "overdue", 1), card(2, "Initech")] }),
@@ -823,7 +823,7 @@ describe("App", () => {
 			expect(acmeIn("Saved")).toBeInTheDocument();
 		});
 
-		// @scenario [features/job-next-action.feature#filter-not-kept] The filter is cleared after reopening the app
+		// @scenario [#filter-not-kept]
 		it("starts with every job shown when the app reopens", async () => {
 			mockBoard(
 				board({ applied: [due("Globex", "2026-10-10", "overdue", 1), card(2, "Initech")] }),
@@ -847,7 +847,7 @@ describe("App", () => {
 		const boardShown = () => screen.queryByRole("heading", { name: "Job search" });
 		const libraryShown = () => screen.queryByRole("heading", { name: "Document library" });
 
-		// @scenario [features/document-library.feature#open-library] Go from the board to the document library
+		// @scenario [#open-library]
 		it("goes from the board to the document library", async () => {
 			// @given [features/document-library.feature] I open the job search board
 			mockBoard(board({ saved: [card(1, "Acme")] }));
@@ -864,7 +864,7 @@ describe("App", () => {
 			expect(screen.queryByRole("region", { name: "Saved" })).not.toBeInTheDocument();
 		});
 
-		// @scenario [features/document-library.feature#back-to-board] Go back to the board from the document library
+		// @scenario [#back-to-board]
 		it("goes back to the board from the document library", async () => {
 			mockBoard(board({ saved: [card(1, "Acme")] }));
 			render(<App />);

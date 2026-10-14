@@ -27,7 +27,7 @@ const details = {
 };
 
 describe("useBoard", () => {
-	// @scenario [features/job-board.feature#board-persists] Board is the same after reopening the app
+	// @scenario [#board-persists]
 	it("loads the saved board when the app opens", async () => {
 		// @given [features/job-board.feature] I have a job for "Software Engineer" at "Acme" in "Interviewing"
 		vi.mocked(GetBoard).mockResolvedValue(asBoard(board({ interviewing: [card(1, "Acme")] })));
@@ -40,7 +40,7 @@ describe("useBoard", () => {
 		expect(result.current.board?.columns[2].status).toBe("interviewing");
 	});
 
-	// @scenario [features/job-board.feature#card-order-persists] Card order is the same after reopening the app
+	// @scenario [#card-order-persists]
 	it("loads cards in their saved order", async () => {
 		// @given [features/job-board.feature] the "Saved" column holds the jobs at "Initech", "Acme", and "Globex" in that order
 		const saved = [card(3, "Initech"), card(1, "Acme"), card(2, "Globex")];
@@ -59,7 +59,7 @@ describe("useBoard", () => {
 		);
 	});
 
-	// @scenario [features/job-board.feature#refresh-on-focus] The board shows my agent's changes when I come back to the app
+	// @scenario [#refresh-on-focus]
 	it("reloads the board when the window gets focus again", async () => {
 		// @given [features/job-board.feature] the app is open with a job for "Software Engineer" at "Acme" in "Applied"
 		vi.mocked(GetBoard).mockResolvedValue(asBoard(board({ applied: [card(1, "Acme")] })));
@@ -85,7 +85,7 @@ describe("useBoard", () => {
 
 	// The restore itself, into the database the app has open, is TestRestoreWhileTheAppIsOpen in
 	// internal/db.
-	// @scenario [features/agent-backups.feature#restore-app-open] The app shows the restored data when I come back to it
+	// @scenario [#restore-app-open]
 	it("shows the restored data when the window gets focus again", async () => {
 		// @given [features/agent-backups.feature] the app is open and I have switched to another window
 		vi.mocked(GetBoard).mockResolvedValue(asBoard(board({ closed: [card(1, "Acme")] })));
@@ -146,7 +146,7 @@ describe("useBoard", () => {
 		await waitFor(() => expect(result.current.error).toBe("database is locked"));
 	});
 
-	// @scenario [features/job-board.feature#new-card-at-top] A newly added job goes to the top of its column
+	// @scenario [#new-card-at-top]
 	it("adds a job, then reloads the board", async () => {
 		// @given [features/job-board.feature] the "Saved" column holds the jobs at "Globex" and "Initech" in that order
 		const before = board({ saved: [card(2, "Globex"), card(3, "Initech")] });

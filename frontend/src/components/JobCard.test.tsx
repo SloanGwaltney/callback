@@ -27,7 +27,7 @@ describe("JobCard", () => {
 		expect(screen.getByText("Closed: Rejected")).toBeInTheDocument();
 	});
 
-	// @scenario [features/job-documents.feature#card-shows-document-count] The card shows that documents are attached
+	// @scenario [#card-shows-document-count]
 	it("shows how many documents are attached", () => {
 		// @given [features/job-documents.feature] I have a job for "Software Engineer" at "Acme" with 2 attached documents
 		// @when [features/job-documents.feature] I look at the card on the board
@@ -46,8 +46,7 @@ describe("JobCard", () => {
 		expect(screen.queryByText(/document/)).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/job-interest.feature#card-shows-interest] The card shows the interest rating as stars
-	// @scenario [features/job-interest.feature#interest-persists] The interest rating is the same after reopening the app
+	// @scenario [#card-shows-interest] [#interest-persists]
 	it("shows the interest rating as stars", () => {
 		// @given [features/job-interest.feature] I have a job for "Software Engineer" at "Acme" with an interest rating of 4 stars
 		// @when [features/job-interest.feature] I open the job search board
@@ -57,7 +56,7 @@ describe("JobCard", () => {
 		expect(screen.getByRole("img", { name: "4 of 5 stars" })).toHaveTextContent("★★★★☆");
 	});
 
-	// @scenario [features/job-interest.feature#card-unrated] An unrated card shows no stars
+	// @scenario [#card-unrated]
 	it.each([undefined, null])("shows no stars when the interest rating is %s", (interest) => {
 		// @given [features/job-interest.feature] I have a job for "Software Engineer" at "Acme" with no interest rating
 		// @when [features/job-interest.feature] I open the job search board
@@ -68,7 +67,7 @@ describe("JobCard", () => {
 		expect(screen.queryByText(/[★☆]/)).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/job-interviews.feature#card-shows-next-interview] The card shows the date of the next upcoming interview
+	// @scenario [#card-shows-next-interview]
 	it("shows the next upcoming interview", () => {
 		// The backend decides today and picks the next interview (TestCardShowsNextInterview), and
 		// sends only it.
@@ -81,7 +80,7 @@ describe("JobCard", () => {
 		expect(screen.getByRole("article")).toHaveTextContent("Technical interview on 2026-10-14");
 	});
 
-	// @scenario [features/job-interviews.feature#card-interview-today] An interview today counts as upcoming
+	// @scenario [#card-interview-today]
 	it("shows an interview today as today", () => {
 		// The backend decides the interview is today (TestCardShowsInterviewToday).
 		// @given [features/job-interviews.feature] I have a job for "Software Engineer" at "Acme" with a "Technical" interview on 2026-10-14
@@ -104,7 +103,7 @@ describe("JobCard", () => {
 		);
 	});
 
-	// @scenario [features/job-interviews.feature#card-no-upcoming-interview] The card shows no interview when every interview has passed
+	// @scenario [#card-no-upcoming-interview]
 	it.each([undefined, null])(
 		"shows no interview when the next interview is %s",
 		(nextInterview) => {
@@ -132,7 +131,7 @@ describe("JobCard", () => {
 		});
 		const shown = () => screen.getByRole("article");
 
-		// @scenario [features/job-next-action.feature#card-shows-next-action] The card shows the next action and its expected date
+		// @scenario [#card-shows-next-action]
 		it("shows the next action and its expected date", () => {
 			// The backend decides today and sends no due mark for a date still to come
 			// (TestCardShowsNextAction).
@@ -146,7 +145,7 @@ describe("JobCard", () => {
 			expect(shown()).toHaveTextContent("Expected 2026-10-14");
 		});
 
-		// @scenario [features/job-next-action.feature#card-next-action-no-date] The card shows a next action with no expected date
+		// @scenario [#card-next-action-no-date]
 		it("shows a next action with no expected date", () => {
 			// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with the next action "Send a thank-you email" and no expected date
 			const nextAction = next("", "", "Send a thank-you email");
@@ -160,7 +159,7 @@ describe("JobCard", () => {
 			expect(shown()).not.toHaveTextContent(/Due today|Overdue/);
 		});
 
-		// @scenario [features/job-next-action.feature#card-next-action-due-today] A next action expected today is marked as due
+		// @scenario [#card-next-action-due-today]
 		it("marks a next action expected today as due", () => {
 			// The backend marks it due today (TestCardMarksNextActionDue).
 			// @when [features/job-next-action.feature] I open the job search board
@@ -176,7 +175,7 @@ describe("JobCard", () => {
 			expect(shown()).not.toHaveTextContent("Overdue");
 		});
 
-		// @scenario [features/job-next-action.feature#card-next-action-overdue] A next action whose expected date has passed is marked as overdue
+		// @scenario [#card-next-action-overdue]
 		it("marks a next action whose expected date has passed as overdue", () => {
 			// The backend marks it overdue (TestCardMarksNextActionDue).
 			// @when [features/job-next-action.feature] I open the job search board
@@ -192,8 +191,7 @@ describe("JobCard", () => {
 			expect(shown()).not.toHaveTextContent("Due today");
 		});
 
-		// @scenario [features/job-next-action.feature#card-next-action-upcoming] A next action expected later isn't marked
-		// @scenario [features/job-next-action.feature#closed-card-no-due-marks] A closed job's next action is never marked as due or overdue
+		// @scenario [#card-next-action-upcoming] [#closed-card-no-due-marks]
 		it("doesn't mark a next action the backend didn't mark", () => {
 			// A date still to come, and a closed job's next action, come with no due mark
 			// (TestCardMarksNextActionDue, TestClosedCardNoDueMarks).
@@ -211,8 +209,7 @@ describe("JobCard", () => {
 			expect(shown()).not.toHaveTextContent(/Due today|Overdue/);
 		});
 
-		// @scenario [features/job-next-action.feature#card-no-next-action] A job with no next action shows none on its card
-		// @scenario [features/job-next-action.feature#clear-next-action] Clear the next action once it's done
+		// @scenario [#card-no-next-action] [#clear-next-action]
 		it.each([undefined, null])("shows no next action when it's %s", (nextAction) => {
 			// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with no next action
 			// @when [features/job-next-action.feature] I open the job search board
@@ -225,7 +222,7 @@ describe("JobCard", () => {
 		});
 	});
 
-	// @scenario [features/job-status-history.feature#card-shows-days-in-status] The card shows how many days the job has been in its current status
+	// @scenario [#card-shows-days-in-status]
 	it.each([
 		{ days: 0, shown: "Today" },
 		{ days: 1, shown: "1 day" },

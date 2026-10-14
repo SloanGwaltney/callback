@@ -38,7 +38,7 @@ func (h *harness) daysInStatusOf(t *testing.T, id int64) int {
 	return *card.DaysInStatus
 }
 
-// @scenario [features/job-status-history.feature#history-starts-when-added] A new job's history starts with the status it was added to
+// @scenario [#history-starts-when-added]
 func TestHistoryStartsWhenAdded(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-status-history.feature] today is 2026-10-09
@@ -81,7 +81,7 @@ func TestAddJobRollsBackWhenHistoryFails(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-status-history.feature#history-records-move] Moving a card to another status adds it to the history
+// @scenario [#history-records-move]
 func TestHistoryRecordsMove(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-status-history.feature] I added a job for "Software Engineer" at "Acme" to "Saved" on 2026-10-01
@@ -113,7 +113,7 @@ func TestMoveRollsBackWhenHistoryFails(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-status-history.feature#history-oldest-first] The history lists every change from oldest to newest
+// @scenario [#history-oldest-first]
 func TestHistoryOldestFirst(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-status-history.feature] I added a job for "Software Engineer" at "Acme" to "Saved" on 2026-10-01
@@ -149,7 +149,7 @@ func TestHistoryOldestFirst(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-status-history.feature#history-same-day-order] Several changes on the same day keep the order they happened in
+// @scenario [#history-same-day-order]
 func TestHistorySameDayOrder(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-status-history.feature] I added a job for "Software Engineer" at "Acme" to "Saved" on 2026-10-09
@@ -167,7 +167,7 @@ func TestHistorySameDayOrder(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-status-history.feature#history-records-moving-back] Moving a card back to an earlier status is recorded too
+// @scenario [#history-records-moving-back]
 func TestHistoryRecordsMovingBack(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-status-history.feature] I have a job for "Software Engineer" at "Acme" that moved from "Applied" to "Interviewing"
@@ -186,7 +186,7 @@ func TestHistoryRecordsMovingBack(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-status-history.feature#history-records-closing-reason] Closing a job records its closing reason in the history
+// @scenario [#history-records-closing-reason]
 func TestHistoryRecordsClosingReason(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-status-history.feature] I have a job for "Software Engineer" at "Acme" in "Interviewing"
@@ -215,7 +215,7 @@ func TestHistoryRecordsOtherClosingReasonText(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-status-history.feature#history-keeps-original-closing-reason] Changing the closing reason later doesn't rewrite the history
+// @scenario [#history-keeps-original-closing-reason]
 func TestHistoryKeepsOriginalClosingReason(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-status-history.feature] I closed a job for "Software Engineer" at "Acme" with the closing reason "No response"
@@ -239,7 +239,7 @@ func TestHistoryKeepsOriginalClosingReason(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-status-history.feature#history-ignores-reorder] Reordering a card within its column doesn't change the history
+// @scenario [#history-ignores-reorder]
 func TestHistoryIgnoresReorder(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-status-history.feature] the "Saved" column holds the jobs at "Globex" and "Acme" in that order
@@ -272,7 +272,7 @@ func TestReorderWithinClosedDoesntChangeHistory(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-status-history.feature#history-ignores-cancelled-close] Cancelling a move to Closed doesn't change the history
+// @scenario [#history-ignores-cancelled-close]
 func TestHistoryIgnoresCancelledClose(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-status-history.feature] I have a job for "Software Engineer" at "Acme" whose history ends with "Interviewing"
@@ -294,7 +294,7 @@ func TestHistoryIgnoresCancelledClose(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-status-history.feature#history-ignores-date-applied] Changing the date applied doesn't change the history
+// @scenario [#history-ignores-date-applied]
 func TestHistoryIgnoresDateApplied(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-status-history.feature] I moved a job for "Software Engineer" at "Acme" to "Applied" on 2026-10-09
@@ -315,7 +315,7 @@ func TestHistoryIgnoresDateApplied(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-status-history.feature#card-shows-days-in-status] The card shows how many days the job has been in its current status
+// @scenario [#card-shows-days-in-status]
 func TestCardShowsDaysInStatus(t *testing.T) {
 	tests := []struct {
 		moved string
@@ -346,7 +346,7 @@ func TestCardShowsDaysInStatus(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-status-history.feature#days-in-status-from-added] A job that hasn't moved counts from when it was added
+// @scenario [#days-in-status-from-added]
 func TestDaysInStatusFromAdded(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-status-history.feature] I added a job for "Software Engineer" at "Acme" to "Saved" on 2026-10-06
@@ -363,7 +363,7 @@ func TestDaysInStatusFromAdded(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-status-history.feature#days-in-status-resets-on-move] Moving a card to another status starts the count again
+// @scenario [#days-in-status-resets-on-move]
 func TestDaysInStatusResetsOnMove(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-status-history.feature] I moved a job for "Software Engineer" at "Acme" to "Applied" on 2026-10-01
@@ -383,7 +383,7 @@ func TestDaysInStatusResetsOnMove(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-status-history.feature#days-in-status-ignores-reorder] Reordering a card within its column doesn't reset the count
+// @scenario [#days-in-status-ignores-reorder]
 func TestDaysInStatusIgnoresReorder(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-status-history.feature] today is 2026-10-09
@@ -406,7 +406,7 @@ func TestDaysInStatusIgnoresReorder(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-status-history.feature#days-in-status-any-column] Every column's cards show their days in status
+// @scenario [#days-in-status-any-column]
 func TestDaysInStatusAnyColumn(t *testing.T) {
 	for _, status := range []string{"Saved", "Applied", "Interviewing", "Offer", "Closed"} {
 		t.Run(status, func(t *testing.T) {
@@ -454,7 +454,7 @@ func TestBoardFailsWhenDaysInStatusFail(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-status-history.feature#history-deleted-with-job] Deleting a job deletes its status history
+// @scenario [#history-deleted-with-job]
 func TestDeleteJobDeletesItsStatusHistory(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-status-history.feature#history-deleted-with-job] I have a job for "Software Engineer" at "Acme" with a status history

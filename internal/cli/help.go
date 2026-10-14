@@ -10,8 +10,7 @@ import (
 )
 
 // writeHelp lists every command with a short description, and points to the overview.
-// @scenario [features/agent-cli.feature#cli-help] The help lists every command
-// @scenario [features/agent-cli.feature#cli-help-points-to-overview] The help points my agent to the overview
+// @scenario [#cli-help] [#cli-help-points-to-overview]
 func writeHelp(w io.Writer) error {
 	fmt.Fprintf(w, "%s works with your Callback job search, the same data the Callback app shows.\n\n", Name)
 	fmt.Fprintf(w, "Usage:\n  %s <command> [arguments] [options]\n\n", Name)
@@ -35,9 +34,7 @@ func writeHelp(w io.Writer) error {
 
 // writeCommandHelp shows a command's usage, what it does, and its options with the values they
 // take.
-// @scenario [features/agent-cli.feature#cli-command-help] The help for a command lists its options and the values they take
-// @scenario [features/agent-cli.feature#cli-help-stored-files] The help says how to use a document's stored copy
-// @scenario [features/agent-cli.feature#cli-help-lists-choices] The help lists the values for every option that takes a fixed set
+// @scenario [#cli-command-help] [#cli-help-stored-files] [#cli-help-lists-choices]
 func writeCommandHelp(w io.Writer, cmd *command) error {
 	fmt.Fprintf(w, "Usage:\n  %s %s [options]\n\n%s\n\nOptions:\n", Name, cmd.usage(), wrap(cmd.about, 96))
 	tw := tabwriter.NewWriter(w, 0, 0, 3, ' ', 0)
@@ -82,12 +79,7 @@ var overviewTemplate = template.Must(template.New("overview").Parse(overviewSour
 
 // writeOverview prints the prose overview of Callback and the command line for an agent, like an
 // AGENTS.md about the command line.
-// @scenario [features/agent-cli.feature#cli-overview] My agent can read an overview of Callback and its commands
-// @scenario [features/agent-cli.feature#cli-overview-limits] The overview says what my agent can't do
-// @scenario [features/agent-cli.feature#cli-overview-matches-commands] Every command the overview names is one Callback has
-// @scenario [features/agent-cli.feature#cli-exit-codes-listed] The overview lists every exit code and what it means
-// @scenario [features/agent-cli.feature#cli-overview-read-documents] The overview tells my agent it can read my documents
-// @scenario [features/agent-cli.feature#cli-overview-working-safely] The overview tells my agent how to work safely
+// @scenario [#cli-overview] [#cli-overview-limits] [#cli-overview-matches-commands] [#cli-exit-codes-listed] [#cli-overview-read-documents] [#cli-overview-working-safely]
 func writeOverview(w io.Writer) error {
 	return overviewTemplate.Execute(w, struct {
 		Name      string

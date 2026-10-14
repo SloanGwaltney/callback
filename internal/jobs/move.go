@@ -26,12 +26,7 @@ type Move struct {
 // transaction. See docs/adr/0015-store-card-order-as-an-integer-position.md. A move to another
 // status is added to the job's status history, with its closing reason for Closed; reordering a
 // card within its column isn't.
-// @scenario [features/job-status-history.feature#history-records-move] Moving a card to another status adds it to the history
-// @scenario [features/job-status-history.feature#history-records-moving-back] Moving a card back to an earlier status is recorded too
-// @scenario [features/job-status-history.feature#history-records-closing-reason] Closing a job records its closing reason in the history
-// @scenario [features/job-status-history.feature#history-ignores-reorder] Reordering a card within its column doesn't change the history
-// @scenario [features/job-status-history.feature#days-in-status-resets-on-move] Moving a card to another status starts the count again
-// @scenario [features/job-status-history.feature#days-in-status-ignores-reorder] Reordering a card within its column doesn't reset the count
+// @scenario [#history-records-move] [#history-records-moving-back] [#history-records-closing-reason] [#history-ignores-reorder] [#days-in-status-resets-on-move] [#days-in-status-ignores-reorder]
 func (s *Service) MoveJob(ctx context.Context, m Move) error {
 	if !m.Status.valid() {
 		return invalid("there's no such column")
@@ -137,7 +132,7 @@ func checkClosingReason(reason ClosingReason, other string) (sql.NullString, sql
 
 // SetClosingReason changes the closing reason of a closed job. The status history keeps the
 // reason chosen when the job was closed.
-// @scenario [features/job-status-history.feature#history-keeps-original-closing-reason] Changing the closing reason later doesn't rewrite the history
+// @scenario [#history-keeps-original-closing-reason]
 func (s *Service) SetClosingReason(ctx context.Context, id int64, reason ClosingReason, other string) error {
 	r, o, err := checkClosingReason(reason, other)
 	if err != nil {

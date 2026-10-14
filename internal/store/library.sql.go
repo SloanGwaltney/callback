@@ -66,7 +66,7 @@ ORDER BY id DESC
 `
 
 // The library, newest first. IDs only grow, so the highest is the latest added.
-// @scenario [features/document-library.feature#library-newest-first] The newest documents are listed first
+// @scenario [#library-newest-first]
 func (q *Queries) ListLibraryDocuments(ctx context.Context) ([]LibraryDocument, error) {
 	rows, err := q.db.QueryContext(ctx, listLibraryDocuments)
 	if err != nil {

@@ -20,7 +20,7 @@ var (
 	errNotWebAdress = &jobs.ValidationError{Msg: "the link must be a web address, like https://example.com/jobs/123"}
 )
 
-// @scenario [features/agent-cli.feature#cli-text-output] Output is plain text by default
+// @scenario [#cli-text-output]
 func TestListIsPlainTextByDefault(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli.feature] I have a job for "Software Engineer" at "Acme"
@@ -36,7 +36,7 @@ func TestListIsPlainTextByDefault(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli.feature#cli-json-output] My agent can ask for any command's output as JSON
+// @scenario [#cli-json-output]
 func TestListAsJSON(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli.feature] I have a job for "Software Engineer" at "Acme"
@@ -92,7 +92,7 @@ func TestEveryCommandPrintsJSON(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli.feature#cli-output-ids] Everything listed comes with its ID
+// @scenario [#cli-output-ids]
 func TestShowGivesEveryID(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli.feature] I have a job for "Software Engineer" at "Acme" with a contact, an interview, and a document
@@ -146,7 +146,7 @@ func TestShowMarksAMissingStoredCopy(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli.feature#cli-dates] Dates are written as year, month, and day
+// @scenario [#cli-dates]
 func TestDatesAreYearMonthDay(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli.feature] I have a job for "Software Engineer" at "Acme" that I applied to on October 1, 2026
@@ -162,7 +162,7 @@ func TestDatesAreYearMonthDay(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli.feature#cli-change-prints-result] A change prints what it changed
+// @scenario [#cli-change-prints-result]
 func TestAChangePrintsTheResult(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli.feature] I have a job for "Software Engineer" at "Acme" in "Saved"
@@ -178,7 +178,7 @@ func TestAChangePrintsTheResult(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli.feature#cli-error] A command that can't be done says why and changes nothing
+// @scenario [#cli-error]
 func TestACommandThatCantBeDoneSaysWhy(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli.feature] I have a job for "Software Engineer" at "Acme"
@@ -203,7 +203,7 @@ func TestACommandThatCantBeDoneSaysWhy(t *testing.T) {
 	r.wantCode(t, ExitValidation)
 }
 
-// @scenario [features/agent-cli.feature#cli-error-lists-choices] A value that isn't one of the choices is answered with the choices
+// @scenario [#cli-error-lists-choices]
 func TestAValueThatIsntAChoiceGetsTheChoices(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli.feature] I have a job for "Software Engineer" at "Acme"
@@ -227,7 +227,7 @@ func TestAValueThatIsntAChoiceGetsTheChoices(t *testing.T) {
 	r.wantCode(t, ExitValidation)
 }
 
-// @scenario [features/agent-cli.feature#cli-unknown-command] An unknown command points my agent to the help
+// @scenario [#cli-unknown-command]
 func TestAnUnknownCommandPointsToTheHelp(t *testing.T) {
 	h := newHarness()
 
@@ -257,7 +257,7 @@ func TestAGroupAloneListsItsCommands(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli.feature#cli-unknown-job] My agent is told when there's no job with an ID
+// @scenario [#cli-unknown-job]
 func TestNoJobWithAnID(t *testing.T) {
 	h := newHarness()
 
@@ -288,7 +288,7 @@ func TestEveryJobCommandNamesAMissingJob(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli.feature#cli-exit-codes] A failed command ends with the exit code for its kind of failure
+// @scenario [#cli-exit-codes]
 func TestEachKindOfFailureHasItsOwnExitCode(t *testing.T) {
 	tests := []struct {
 		failure string
@@ -335,7 +335,7 @@ func TestEachKindOfFailureHasItsOwnExitCode(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli.feature#cli-validation-one-code] Every validation error shares one exit code, with a message saying what's wrong
+// @scenario [#cli-validation-one-code]
 func TestEveryValidationErrorSharesOneExitCode(t *testing.T) {
 	tests := []struct {
 		change  string
@@ -367,7 +367,7 @@ func TestEveryValidationErrorSharesOneExitCode(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli.feature#cli-success-code] A command that works ends with exit code 0
+// @scenario [#cli-success-code]
 func TestACommandThatWorksEndsWithZero(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli.feature] I have a job for "Software Engineer" at "Acme"
@@ -383,7 +383,7 @@ func TestACommandThatWorksEndsWithZero(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli.feature#cli-json-errors] An error is JSON when my agent asked for JSON output
+// @scenario [#cli-json-errors]
 func TestAnErrorIsJSONWhenAskedFor(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli.feature] I have a job for "Software Engineer" at "Acme"
@@ -431,7 +431,7 @@ func TestEveryKindOfErrorIsJSONWhenAskedFor(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli.feature#cli-text-errors] An error is plain text otherwise
+// @scenario [#cli-text-errors]
 func TestAnErrorIsPlainTextOtherwise(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli.feature] I have a job for "Software Engineer" at "Acme"
@@ -447,7 +447,7 @@ func TestAnErrorIsPlainTextOtherwise(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli.feature#cli-newer-data] The command line refuses data a newer Callback has updated
+// @scenario [#cli-newer-data]
 func TestRefusesNewerData(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli.feature] my data was last updated by a newer version of Callback than the command line
@@ -472,7 +472,7 @@ func TestRefusesNewerData(t *testing.T) {
 	r.wantCode(t, ExitNewerData)
 }
 
-// @scenario [features/agent-cli.feature#cli-older-data] The command line brings older data up to date, as the app does
+// @scenario [#cli-older-data]
 func TestRunsAsUsualOnceOlderDataIsUpToDate(t *testing.T) {
 	h := newHarness()
 	h.acme()
@@ -488,7 +488,7 @@ func TestRunsAsUsualOnceOlderDataIsUpToDate(t *testing.T) {
 	}
 }
 
-// @scenario [features/daily-backups.feature#backup-on-first-start] The first start of the day takes a backup
+// @scenario [#backup-on-first-start]
 func TestACommandTakesTheDailyBackup(t *testing.T) {
 	h := newHarness()
 
@@ -526,7 +526,7 @@ func TestHelpAndUsageErrorsTakeNoBackup(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli.feature#cli-no-questions] Commands finish without waiting for an answer
+// @scenario [#cli-no-questions]
 func TestDeleteDoesntAskToConfirm(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli.feature] I have a job for "Software Engineer" at "Acme"
@@ -552,7 +552,7 @@ func TestDeleteDoesntAskToConfirm(t *testing.T) {
 // longText has quotes, line breaks, and blank lines.
 const longText = "We're hiring a \"Software Engineer\".\r\n\nYou'll:\n  - build things\n\n\n'Remote' is fine.\n"
 
-// @scenario [features/agent-cli.feature#cli-text-from-file] My agent gives long text from a file
+// @scenario [#cli-text-from-file]
 func TestLongTextFromAFile(t *testing.T) {
 	for _, field := range []string{"description", "notes"} {
 		t.Run(field, func(t *testing.T) {
@@ -575,7 +575,7 @@ func TestLongTextFromAFile(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli.feature#cli-text-piped] My agent pipes long text in
+// @scenario [#cli-text-piped]
 func TestLongTextPipedIn(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli.feature] I have a job for "Software Engineer" at "Acme"

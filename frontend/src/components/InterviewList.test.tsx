@@ -128,7 +128,7 @@ const shown = (scope: HTMLElement) =>
 		.map((item) => item.getAttribute("aria-label"));
 
 describe("InterviewList", () => {
-	// @scenario [features/job-interviews.feature#add-interview] Add an interview with all its details
+	// @scenario [#add-interview]
 	it("adds an interview with all its details", async () => {
 		// @given [features/job-interviews.feature] I have a job for "Software Engineer" at "Acme" in "Interviewing"
 		const list = renderList();
@@ -156,7 +156,7 @@ describe("InterviewList", () => {
 		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/job-interviews.feature#add-interview-minimum] Add an interview with only a date and a kind
+	// @scenario [#add-interview-minimum]
 	it("adds an interview with only a date and a kind", async () => {
 		// @given [features/job-interviews.feature] I have a job for "Software Engineer" at "Acme" in "Interviewing"
 		const list = renderList();
@@ -174,7 +174,7 @@ describe("InterviewList", () => {
 		expect(shown(list)).toEqual(["Phone screen interview on 2026-10-14"]);
 	});
 
-	// @scenario [features/job-interviews.feature#interview-kinds] Choose what kind of interview it is
+	// @scenario [#interview-kinds]
 	it.each(["Phone screen", "Technical", "Behavioral", "Panel", "Onsite", "Other"])(
 		"adds a %s interview",
 		async (kind) => {
@@ -189,7 +189,7 @@ describe("InterviewList", () => {
 		},
 	);
 
-	// @scenario [features/job-interviews.feature#interview-missing-required] An interview can't be saved without a date or a kind
+	// @scenario [#interview-missing-required]
 	it.each([
 		["", "Technical", "date"],
 		["2026-10-14", "", "kind"],
@@ -208,7 +208,7 @@ describe("InterviewList", () => {
 		expect(within(dialog).getByRole("alert")).toHaveTextContent(`${missing} is required`);
 	});
 
-	// @scenario [features/job-interviews.feature#interview-past-date] An interview that already happened can be added
+	// @scenario [#interview-past-date]
 	it("adds an interview that already happened", async () => {
 		// @given [features/job-interviews.feature] I have a job for "Software Engineer" at "Acme" in "Interviewing"
 		const list = renderList();
@@ -220,7 +220,7 @@ describe("InterviewList", () => {
 		expect(shown(list)).toEqual(["Phone screen interview on 2026-10-02"]);
 	});
 
-	// @scenario [features/job-interviews.feature#view-interviews] See a job's interviews when opening its card
+	// @scenario [#view-interviews]
 	it("shows a job's interviews", () => {
 		// @given [features/job-interviews.feature] I have a job for "Software Engineer" at "Acme" with a "Phone screen" interview on 2026-10-02
 		seed("phone_screen", "2026-10-02");
@@ -237,7 +237,7 @@ describe("InterviewList", () => {
 		]);
 	});
 
-	// @scenario [features/job-interviews.feature#interviews-same-day-by-time] Interviews on the same day are listed by time, with untimed ones last
+	// @scenario [#interviews-same-day-by-time]
 	it("shows the times of interviews on the same day in the order the backend lists them", () => {
 		// @and [features/job-interviews.feature] it has a "Panel" interview on 2026-10-14 with no time
 		seed("panel", "2026-10-14");
@@ -259,7 +259,7 @@ describe("InterviewList", () => {
 		]);
 	});
 
-	// @scenario [features/job-interviews.feature#past-interviews-marked] Interviews that have already happened are shown as past
+	// @scenario [#past-interviews-marked]
 	it("marks the interviews that have already happened as past", () => {
 		// The backend decides which interviews have passed (TestPastInterviewsMarked); the mock marks
 		// the ones before TODAY.
@@ -281,7 +281,7 @@ describe("InterviewList", () => {
 		expect(tech).not.toHaveTextContent("Past");
 	});
 
-	// @scenario [features/job-interviews.feature#no-interviews] A job with no interviews says so
+	// @scenario [#no-interviews]
 	it("says when a job has no interviews", () => {
 		// @given [features/job-interviews.feature] I have a job for "Software Engineer" at "Acme" with no interviews
 		// @when [features/job-interviews.feature] I open the card
@@ -292,7 +292,7 @@ describe("InterviewList", () => {
 		expect(within(list).queryByRole("list")).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/job-interviews.feature#edit-interview] Edit an interview
+	// @scenario [#edit-interview]
 	it("edits an interview", async () => {
 		// @given [features/job-interviews.feature] I have a job for "Software Engineer" at "Acme" with a "Technical" interview on 2026-10-14
 		seed("technical", "2026-10-14");
@@ -337,7 +337,7 @@ describe("InterviewList", () => {
 		expect(shown(list)).toEqual(["Technical interview on 2026-10-14"]);
 	});
 
-	// @scenario [features/job-interviews.feature#remove-interview] Remove an interview after confirming
+	// @scenario [#remove-interview]
 	it("removes an interview after confirming", async () => {
 		// @given [features/job-interviews.feature] I have a job for "Software Engineer" at "Acme" with a "Technical" interview on 2026-10-14
 		seed("technical", "2026-10-14");
@@ -359,7 +359,7 @@ describe("InterviewList", () => {
 		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/job-interviews.feature#cancel-remove-interview] Cancel removing an interview
+	// @scenario [#cancel-remove-interview]
 	it("keeps an interview when removing it is cancelled", async () => {
 		// @given [features/job-interviews.feature] I have a job for "Software Engineer" at "Acme" with a "Technical" interview on 2026-10-14
 		seed("technical", "2026-10-14");

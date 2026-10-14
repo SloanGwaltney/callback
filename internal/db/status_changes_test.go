@@ -107,8 +107,7 @@ func TestStatusChangeQueries(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-status-history.feature#history-oldest-first] The history lists every change from oldest to newest
-// @scenario [features/job-status-history.feature#history-same-day-order] Several changes on the same day keep the order they happened in
+// @scenario [#history-oldest-first] [#history-same-day-order]
 func TestListStatusChangesForJobIsInTheOrderTheyHappened(t *testing.T) {
 	s, _ := openStore(t, t.TempDir())
 	acme := createJob(t, s, "Acme", "interviewing", 0)
@@ -150,7 +149,7 @@ func TestListCurrentStatusDatesTakesEachJobsLatestChange(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-status-history.feature#history-persists] The status history is the same after reopening the app
+// @scenario [#history-persists]
 func TestStatusHistoryPersistsAcrossReopen(t *testing.T) {
 	dataDir := t.TempDir()
 	s, conn := openStore(t, dataDir)
@@ -173,7 +172,7 @@ func TestStatusHistoryPersistsAcrossReopen(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-status-history.feature#history-deleted-with-job] Deleting a job deletes its status history
+// @scenario [#history-deleted-with-job]
 func TestDeleteJobDeletesItsStatusChangeRows(t *testing.T) {
 	s, _ := openStore(t, t.TempDir())
 	ctx := context.Background()

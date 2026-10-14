@@ -16,15 +16,7 @@ type Props = {
 
 // NextActionPanel shows what's next on a job and when it's expected, and sets, changes, and clears
 // it. Setting one doesn't move the job, whatever its status.
-// @scenario [features/job-next-action.feature#set-next-action] Set a next action with an expected date
-// @scenario [features/job-next-action.feature#set-next-action-no-date] Set a next action without an expected date
-// @scenario [features/job-next-action.feature#next-action-needs-text] A next action can't be saved without saying what it is
-// @scenario [features/job-next-action.feature#next-action-past-date] The expected date can be in the past
-// @scenario [features/job-next-action.feature#next-action-any-status] A next action can be set on a job in any status
-// @scenario [features/job-next-action.feature#edit-next-action] Change the next action and its expected date
-// @scenario [features/job-next-action.feature#clear-next-action-date] Clear only the expected date
-// @scenario [features/job-next-action.feature#clear-next-action] Clear the next action once it's done
-// @scenario [features/job-next-action.feature#view-next-action] See the next action when opening the card
+// @scenario [#set-next-action] [#set-next-action-no-date] [#next-action-needs-text] [#next-action-past-date] [#next-action-any-status] [#edit-next-action] [#clear-next-action-date] [#clear-next-action] [#view-next-action]
 export function NextActionPanel({ nextAction, onSet, onClear }: Props) {
 	const [editing, setEditing] = useState(false);
 	const { error, run } = useAction();

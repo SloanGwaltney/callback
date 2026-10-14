@@ -129,7 +129,7 @@ const relationships = [
 ];
 
 describe("ContactList", () => {
-	// @scenario [features/job-contacts.feature#add-contact] Add a contact with all their details
+	// @scenario [#add-contact]
 	it("adds a contact with all their details", async () => {
 		// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme"
 		const list = renderList();
@@ -165,7 +165,7 @@ describe("ContactList", () => {
 		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/job-contacts.feature#add-contact-minimum] Add a contact with only a name and a relationship
+	// @scenario [#add-contact-minimum]
 	it("adds a contact with only a name and a relationship", async () => {
 		// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme"
 		const list = renderList();
@@ -178,7 +178,7 @@ describe("ContactList", () => {
 		expect(within(contact(list, "Dana Smith") as HTMLElement).queryByRole("term")).toBeNull();
 	});
 
-	// @scenario [features/job-contacts.feature#contact-relationships] Choose how a contact relates to the job
+	// @scenario [#contact-relationships]
 	it.each(relationships)("adds a contact as %s", async (_spec, label) => {
 		// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme"
 		const list = renderList();
@@ -190,7 +190,7 @@ describe("ContactList", () => {
 		expect(shownAs(list, "Dana Smith")).toBe(label);
 	});
 
-	// @scenario [features/job-contacts.feature#contact-missing-required] A contact can't be saved without a name or a relationship
+	// @scenario [#contact-missing-required]
 	it.each([
 		["", "Recruiter", "name"],
 		["Dana Smith", "", "relationship"],
@@ -210,7 +210,7 @@ describe("ContactList", () => {
 		expect(within(dialog).getByLabelText(/^Name/)).toHaveValue(name);
 	});
 
-	// @scenario [features/job-contacts.feature#contact-invalid-email] A contact's email must be an email address
+	// @scenario [#contact-invalid-email]
 	it("doesn't add a contact whose email isn't an email address", async () => {
 		// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme"
 		const list = renderList();
@@ -231,7 +231,7 @@ describe("ContactList", () => {
 		);
 	});
 
-	// @scenario [features/job-contacts.feature#contact-invalid-profile-link] A contact's profile link must be a web address
+	// @scenario [#contact-invalid-profile-link]
 	it("doesn't add a contact whose profile link isn't a web address", async () => {
 		// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme"
 		const list = renderList();
@@ -254,7 +254,7 @@ describe("ContactList", () => {
 		);
 	});
 
-	// @scenario [features/job-contacts.feature#contact-phone-free-text] A phone number is written however I have it
+	// @scenario [#contact-phone-free-text]
 	it.each(["(555) 010-4477", "+44 20 7946 0958", "555-0104 ext. 12"])(
 		"keeps the phone %s as written",
 		async (phone) => {
@@ -279,7 +279,7 @@ describe("ContactList", () => {
 		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/job-contacts.feature#view-contacts] See a job's contacts when opening its card
+	// @scenario [#view-contacts]
 	it("lists contacts in the order they were added", () => {
 		// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme"
 		// @and [features/job-contacts.feature] I added the contact "Dana Smith" as a recruiter
@@ -298,7 +298,7 @@ describe("ContactList", () => {
 		expect(shownAs(list, "Lee Park")).toBe("Hiring manager");
 	});
 
-	// @scenario [features/job-contacts.feature#no-contacts] A job with no contacts says so
+	// @scenario [#no-contacts]
 	it("says when a job has no contacts", () => {
 		// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme" with no contacts
 		// @when [features/job-contacts.feature] I open the card
@@ -308,7 +308,7 @@ describe("ContactList", () => {
 		expect(within(list).getByText("No contacts yet.")).toBeInTheDocument();
 	});
 
-	// @scenario [features/job-contacts.feature#open-contact-profile-link] Open a contact's profile link
+	// @scenario [#open-contact-profile-link]
 	it("opens a contact's profile link", async () => {
 		// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme"
 		// @and [features/job-contacts.feature] the contact "Dana Smith" has the profile link "https://www.linkedin.com/in/dana-smith"
@@ -334,7 +334,7 @@ describe("ContactList", () => {
 		expect(within(list).getByRole("alert")).toHaveTextContent("contact not found");
 	});
 
-	// @scenario [features/job-contacts.feature#edit-contact] Edit a contact
+	// @scenario [#edit-contact]
 	it("edits a contact", async () => {
 		// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme" with the contact "Dana Smith" as a recruiter
 		seed(1, "Dana Smith", { email: "dana@acme.example.com", phone: "(555) 010-4477" });
@@ -376,7 +376,7 @@ describe("ContactList", () => {
 		expect(contact(list, "Dana Smith")).toHaveTextContent("dana@acme.example.com");
 	});
 
-	// @scenario [features/job-contacts.feature#remove-contact] Remove a contact after confirming
+	// @scenario [#remove-contact]
 	it("removes a contact after confirming", async () => {
 		// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme" with the contact "Dana Smith"
 		seed(1, "Dana Smith");
@@ -405,7 +405,7 @@ describe("ContactList", () => {
 		expect(within(confirm).getByRole("alert")).toHaveTextContent("contact not found");
 	});
 
-	// @scenario [features/job-contacts.feature#cancel-remove-contact] Cancel removing a contact
+	// @scenario [#cancel-remove-contact]
 	it("keeps a contact when removing is cancelled", async () => {
 		// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme" with the contact "Dana Smith"
 		seed(1, "Dana Smith");
@@ -426,7 +426,7 @@ describe("ContactList", () => {
 		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 	});
 
-	// @scenario [features/job-contacts.feature#same-person-many-jobs] The same person can be a contact on more than one job
+	// @scenario [#same-person-many-jobs]
 	it("adds the same person to two jobs", async () => {
 		// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme" and a job for "Developer" at "Globex"
 		render(
@@ -447,7 +447,7 @@ describe("ContactList", () => {
 		expect(shownAs(globex, "Dana Smith")).toBe("Recruiter");
 	});
 
-	// @scenario [features/job-contacts.feature#contacts-edited-separately] Editing a contact on one job doesn't change it on another
+	// @scenario [#contacts-edited-separately]
 	it("edits a contact on one job without changing it on another", async () => {
 		// @given [features/job-contacts.feature] I have a job at "Acme" and a job at "Globex" that both have the contact "Dana Smith"
 		seed(1, "Dana Smith", { email: "dana@acme.example.com" });
