@@ -124,8 +124,19 @@ The exit codes:
 - Nothing asks you to confirm. A command does what it says at once, so be sure before you delete
   a job: it takes the job's contacts, interviews, documents, and status history with it, and it
   can't be undone. Removing a contact, interview, document, or library document can't be undone either.
-- Callback backs up the person's data once on each day it runs, the first time the app opens or
-  a command runs that day.
+- Before you change many jobs at once, back up the person's data with
+  `{{.Name}} backup make <backup-name> --days <days>`, under a name that says what it's before,
+  like `before-cleanup`. Keep it for as long as the person might take to notice something went
+  wrong: 7 days suits most changes, and it can be kept from 1 to 90. It's removed after that, and
+  nothing removes it before then.
+- If the changes go wrong, `{{.Name}} backup restore <backup-name>` puts all of the person's data
+  back as it was when the backup was made. It first backs up the data as it is, kept for 7 days,
+  and tells you that backup's name, so restoring that one undoes the restore. Restoring replaces
+  everything, including what the person changed in the app since the backup, so tell them what
+  you restored. `{{.Name}} backup list` lists the backups agents have made, with the day each is
+  kept until.
+- Callback also backs up the person's data once on each day it runs, the first time the app opens
+  or a command runs that day. Those daily backups are the person's, not yours to restore.
 - If the data was last opened by a newer version of Callback, every command stops with exit code
   5 and changes nothing. Tell the person to update Callback. Data from an older version is
   brought up to date first, as the app does.

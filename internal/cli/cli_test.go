@@ -459,9 +459,10 @@ func TestRefusesNewerData(t *testing.T) {
 	r := h.run("job", "list")
 
 	// @and [features/agent-cli.feature] no daily backup is taken and no backup is removed
-	// TakeDaily is what takes the day's backup and then removes the oldest ones.
-	if h.backups.calls != 0 {
-		t.Errorf("TakeDaily called %d times, want none", h.backups.calls)
+	// TakeDaily is what takes the day's backup and then removes the oldest ones, and RemoveExpired
+	// removes expired agent backups.
+	if h.backups.calls != 0 || h.backups.removals != 0 {
+		t.Errorf("TakeDaily called %d times and RemoveExpired %d, want none", h.backups.calls, h.backups.removals)
 	}
 	// @and [features/agent-cli.feature] my agent is told my data is from a newer version of Callback, and to update Callback
 	if r.stderr != "callback-cli: "+newerDataMessage+"\n" {

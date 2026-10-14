@@ -16,8 +16,11 @@ type command struct {
 	// path is the words that name it, like {"job", "move"}.
 	path []string
 	// takesID names what the ID it takes is of, like "job", or is "" for a command that takes no
-	// arguments.
+	// ID.
 	takesID string
+	// takesName names what the name it takes is of, like "backup", for a command that takes a name
+	// instead of an ID.
+	takesName string
 	// summary is the one line the help lists it with.
 	summary string
 	// about is what its own help says about it, after the usage line.
@@ -30,10 +33,13 @@ func (cmd *command) name() string { return strings.Join(cmd.path, " ") }
 
 // usage is the command's name with the ID it takes, like "job show <job-id>".
 func (cmd *command) usage() string {
-	if cmd.takesID == "" {
-		return cmd.name()
+	switch {
+	case cmd.takesID != "":
+		return cmd.name() + " <" + cmd.takesID + "-id>"
+	case cmd.takesName != "":
+		return cmd.name() + " <" + cmd.takesName + "-name>"
 	}
-	return cmd.name() + " <" + cmd.takesID + "-id>"
+	return cmd.name()
 }
 
 // option is one of a command's options. Every option takes a value, except a flag (value "").
@@ -71,14 +77,17 @@ func findCommand(words []string) (*command, []string, error) {
 type call struct {
 	cmd *command
 	// id is the ID the command was given, for a command that takes one.
-	id     int64
-	values map[string]*string
-	flags  map[string]*bool
-	set    map[string]bool
-	asJSON bool
-	ctx    context.Context
-	env    Env
-	jobs   Jobs
+	id int64
+	// name is the name the command was given, for a command that takes one.
+	name    string
+	values  map[string]*string
+	flags   map[string]*bool
+	set     map[string]bool
+	asJSON  bool
+	ctx     context.Context
+	env     Env
+	jobs    Jobs
+	backups Backups
 }
 
 // parseCall reads a command's arguments and options, which can come in any order, and checks
@@ -113,6 +122,11 @@ func parseCall(cmd *command, args []string) (*call, error) {
 	c.asJSON = *c.flags["json"]
 
 	switch {
+	case cmd.takesName != "" && len(positional) != 1:
+		return nil, usageErr("`%s %s` needs a %s name, like `%s %s before-cleanup`", Name, cmd.name(), cmd.takesName, Name, cmd.name())
+	case cmd.takesName != "":
+		c.name = positional[0]
+		return c, nil
 	case cmd.takesID == "" && len(positional) > 0:
 		return nil, usageErr("`%s %s` takes no arguments, but was given %q", Name, cmd.name(), strings.Join(positional, " "))
 	case cmd.takesID == "":

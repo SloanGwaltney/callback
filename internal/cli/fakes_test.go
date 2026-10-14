@@ -11,7 +11,9 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
+	"callback/internal/backups"
 	"callback/internal/jobs"
 )
 
@@ -475,15 +477,61 @@ func (f *fakeJobs) RemoveLibraryDocument(_ context.Context, id int64) error {
 	return nil
 }
 
-// fakeBackups counts the daily backups it was asked for.
+// fakeBackups counts the daily backups and removals of expired backups it was asked for, and keeps
+// the agent backups it's given. Which backups expire, and the rules for names and days, are the
+// backups service's.
 type fakeBackups struct {
 	calls int
 	err   error
+	// removals counts the calls to RemoveExpired, which returns removeErr.
+	removals  int
+	removeErr error
+	agent     []backups.AgentBackup
+	// restored lists the names restored, and undo is the backup each restore makes first.
+	restored []string
+	undo     backups.AgentBackup
+	// fail is returned by the next MakeAgent or Restore, which then changes nothing.
+	fail error
 }
 
 func (b *fakeBackups) TakeDaily(context.Context) (bool, error) {
 	b.calls++
 	return b.err == nil, b.err
+}
+
+func (b *fakeBackups) RemoveExpired() error {
+	b.removals++
+	return b.removeErr
+}
+
+// failure returns the next call's failure, clearing it.
+func (b *fakeBackups) failure() error {
+	err := b.fail
+	b.fail = nil
+	return err
+}
+
+// MakeAgent keeps the backup until days after 2026-10-14.
+func (b *fakeBackups) MakeAgent(_ context.Context, name string, days int) (backups.AgentBackup, error) {
+	if err := b.failure(); err != nil {
+		return backups.AgentBackup{}, err
+	}
+	made := backups.AgentBackup{Name: name, KeptUntil: time.Date(2026, time.October, 14+days, 0, 0, 0, 0, time.UTC).Format("2006-01-02")}
+	b.agent = append(b.agent, made)
+	return made, nil
+}
+
+func (b *fakeBackups) ListAgent() ([]backups.AgentBackup, error) {
+	return slices.Clone(b.agent), nil
+}
+
+func (b *fakeBackups) Restore(_ context.Context, name string) (backups.AgentBackup, error) {
+	if err := b.failure(); err != nil {
+		return backups.AgentBackup{}, err
+	}
+	b.restored = append(b.restored, name)
+	b.agent = append(b.agent, b.undo)
+	return b.undo, nil
 }
 
 // watchedReader is stdin that records whether anything read it.

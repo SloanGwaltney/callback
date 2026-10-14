@@ -43,7 +43,7 @@ func open(ctx context.Context) (cli.Services, func() error, error) {
 	store := db.NewStore(conn)
 	return cli.Services{
 		Jobs:    jobs.New(store, docfiles.New(dataDir), noOpener{}, time.Now),
-		Backups: backups.New(store, backups.NewDir(dataDir), time.Now),
+		Backups: backups.New(store, db.NewRestorer(conn, migrations.FS), backups.NewDir(dataDir), backups.NewAgentDir(dataDir), time.Now),
 	}, conn.Close, nil
 }
 

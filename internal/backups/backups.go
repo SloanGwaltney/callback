@@ -1,6 +1,8 @@
 // Package backups takes a backup of the user's data once on each day the app runs, and keeps only
-// the most recent ones. A backup is a copy of the SQLite database. It holds which documents are
-// attached, but not their files, which stay in the documents folder.
+// the most recent ones. It also makes, lists, and restores the backups the user's agent makes
+// through the command line (agent.go), each kept for the days the agent chose. A backup is a copy
+// of the SQLite database. It holds which documents are attached, but not their files, which stay
+// in the documents folder.
 package backups
 
 import (
@@ -33,16 +35,19 @@ type Folder interface {
 	Remove(date string) error
 }
 
-// Service takes the daily backups.
+// Service takes the daily backups, and makes and restores agent backups.
 type Service struct {
-	db     Snapshotter
-	folder Folder
-	now    func() time.Time
+	db       Snapshotter
+	restorer Restorer
+	folder   Folder
+	agent    AgentFolder
+	now      func() time.Time
 }
 
-// New returns a Service. now supplies the current time, which decides which day a backup is for.
-func New(db Snapshotter, folder Folder, now func() time.Time) *Service {
-	return &Service{db: db, folder: folder, now: now}
+// New returns a Service over the daily backups' folder and the agent backups' folder. now supplies
+// the current time, which decides which day a backup is for and which agent backups have expired.
+func New(db Snapshotter, restorer Restorer, folder Folder, agent AgentFolder, now func() time.Time) *Service {
+	return &Service{db: db, restorer: restorer, folder: folder, agent: agent, now: now}
 }
 
 // TakeDaily backs up the data if no backup has been taken today, then removes the oldest daily

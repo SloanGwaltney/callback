@@ -231,6 +231,19 @@ func TestOverviewSaysTheAgentCanReadDocuments(t *testing.T) {
 	wantPhrases(t, text, "Read them when they help with what you're doing")
 }
 
+// @scenario [features/agent-cli.feature#cli-overview-working-safely] The overview tells my agent how to work safely
+func TestOverviewSaysHowToWorkSafely(t *testing.T) {
+	// @when [features/agent-cli.feature] my agent asks Callback for its overview
+	text := overview(t)
+
+	// @then [features/agent-cli.feature] it's told to make a backup before changing many jobs at once, and how long to keep it
+	wantPhrases(t, text, "Before you change many jobs at once, back up the person's data with",
+		"`callback-cli backup make <backup-name> --days <days>`", "7 days suits most changes, and it can be kept from 1 to 90")
+	// @and [features/agent-cli.feature] it's told how to restore that backup if the changes go wrong
+	wantPhrases(t, text, "If the changes go wrong, `callback-cli backup restore <backup-name>`",
+		"restoring that one undoes the restore")
+}
+
 // @scenario [features/agent-cli.feature#cli-overview-matches-commands] Every command the overview names is one Callback has
 func TestEveryCommandTheOverviewNamesIsOne(t *testing.T) {
 	// @when [features/agent-cli.feature] my agent asks Callback for its overview

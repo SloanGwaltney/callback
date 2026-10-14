@@ -11,6 +11,7 @@ import type { Board, Details, Job, Move } from "./types";
 // @scenario [features/job-board.feature#board-persists] Board is the same after reopening the app
 // @scenario [features/job-board.feature#card-order-persists] Card order is the same after reopening the app
 // @scenario [features/job-board.feature#refresh-on-focus] The board shows my agent's changes when I come back to the app
+// @scenario [features/agent-backups.feature#restore-app-open] The app shows the restored data when I come back to it
 export function useBoard() {
 	const [board, setBoard] = useState<Board | null>(null);
 	const [error, setError] = useState("");

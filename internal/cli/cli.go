@@ -15,6 +15,7 @@ import (
 	"slices"
 	"strings"
 
+	"callback/internal/backups"
 	"callback/internal/db"
 	"callback/internal/jobs"
 )
@@ -58,15 +59,20 @@ type Jobs interface {
 	RemoveLibraryDocument(ctx context.Context, id int64) error
 }
 
-// DailyBackups takes the daily backup. *backups.Service satisfies it.
-type DailyBackups interface {
+// Backups takes the daily backup, and makes, lists, restores, and expires agent backups.
+// *backups.Service satisfies it. Nothing deletes a backup an agent made before it expires.
+type Backups interface {
 	TakeDaily(ctx context.Context) (bool, error)
+	RemoveExpired() error
+	MakeAgent(ctx context.Context, name string, days int) (backups.AgentBackup, error)
+	ListAgent() ([]backups.AgentBackup, error)
+	Restore(ctx context.Context, name string) (backups.AgentBackup, error)
 }
 
 // Services are the services a command runs over.
 type Services struct {
 	Jobs    Jobs
-	Backups DailyBackups
+	Backups Backups
 }
 
 // Env is everything Run reaches outside itself.
@@ -134,22 +140,31 @@ func notFoundErr(format string, args ...any) error {
 // newerDataMessage is what the agent is told about data from a newer version of Callback.
 const newerDataMessage = "your data is from a newer version of Callback than this command line; update Callback, then run the command again"
 
+// newerBackupMessage is what the agent is told about a backup from a newer version of Callback.
+const newerBackupMessage = "the backup is from a newer version of Callback than this command line, so it can't be restored; your data is unchanged. Update Callback to restore it"
+
 // classify turns any error a command returns into a cliError with its exit code.
 func classify(err error) *cliError {
 	var ce *cliError
 	var invalid *jobs.ValidationError
 	var missing *jobs.MissingFileError
+	var invalidBackup *backups.ValidationError
+	var noBackup *backups.NotFoundError
 	switch {
 	case errors.As(err, &ce):
 		return ce
-	case errors.As(err, &invalid), errors.As(err, &missing):
+	case errors.As(err, &invalid), errors.As(err, &missing), errors.As(err, &invalidBackup):
 		return &cliError{code: ExitValidation, msg: err.Error()}
+	case errors.As(err, &noBackup):
+		return &cliError{code: ExitNotFound, msg: fmt.Sprintf("%v; run `%s backup list` to see the backups you can restore", err, Name)}
 	case errors.Is(err, jobs.ErrJobNotFound), errors.Is(err, jobs.ErrDocumentNotFound),
 		errors.Is(err, jobs.ErrContactNotFound), errors.Is(err, jobs.ErrInterviewNotFound),
 		errors.Is(err, jobs.ErrLibraryDocumentNotFound):
 		return &cliError{code: ExitNotFound, msg: err.Error()}
 	case errors.Is(err, db.ErrNewerData):
 		return &cliError{code: ExitNewerData, msg: newerDataMessage}
+	case errors.Is(err, db.ErrNewerBackup):
+		return &cliError{code: ExitNewerData, msg: newerBackupMessage}
 	default:
 		return &cliError{code: ExitUnexpected, msg: err.Error()}
 	}
@@ -168,7 +183,8 @@ func kindOf(code int) string {
 // Run runs the command line with args, the arguments after the binary's name, and returns the
 // exit code. It never asks a question: everything a command needs comes from its arguments, a
 // file, or what's piped in. Help, the overview, and usage errors don't open the data; every other
-// command opens it, takes the day's backup if none has been taken yet, then runs.
+// command opens it, takes the day's backup if none has been taken yet, removes the agent backups
+// that have expired, then runs.
 // @scenario [features/agent-cli.feature#cli-error] A command that can't be done says why and changes nothing
 // @scenario [features/agent-cli.feature#cli-unknown-command] An unknown command points my agent to the help
 // @scenario [features/agent-cli.feature#cli-exit-codes] A failed command ends with the exit code for its kind of failure
@@ -180,6 +196,8 @@ func kindOf(code int) string {
 // @scenario [features/agent-cli.feature#cli-older-data] The command line brings older data up to date, as the app does
 // @scenario [features/agent-cli.feature#cli-no-questions] Commands finish without waiting for an answer
 // @scenario [features/daily-backups.feature#backup-on-first-start] The first start of the day takes a backup
+// @scenario [features/agent-backups.feature#agent-backup-expires] An expired backup is removed when Callback runs
+// @scenario [features/agent-backups.feature#agent-backup-expiry-keeps-daily] Removing expired backups never removes a daily backup
 func Run(ctx context.Context, args []string, env Env) int {
 	asJSON := slices.Contains(args, "--json") || slices.Contains(args, "-json")
 	if err := run(ctx, args, env); err != nil {
@@ -242,8 +260,12 @@ func run(ctx context.Context, args []string, env Env) error {
 	if _, err := services.Backups.TakeDaily(ctx); err != nil {
 		fmt.Fprintf(env.Stderr, "%s: warning: the daily backup failed: %v\n", Name, err)
 	}
+	// An expired backup that can't be removed is left for a later run.
+	if err := services.Backups.RemoveExpired(); err != nil {
+		fmt.Fprintf(env.Stderr, "%s: warning: removing expired backups failed, and will be tried again next time: %v\n", Name, err)
+	}
 
-	c.ctx, c.env, c.jobs = ctx, env, services.Jobs
+	c.ctx, c.env, c.jobs, c.backups = ctx, env, services.Jobs, services.Backups
 	return cmd.run(c)
 }
 

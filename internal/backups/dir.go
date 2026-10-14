@@ -59,25 +59,31 @@ func (d *Dir) Dates() ([]string, error) {
 // Save has write make the backup at a temporary path, then renames it to the backup for date. If
 // write or the rename fails, the temporary file is removed.
 func (d *Dir) Save(date string, write func(path string) error) error {
-	if err := os.MkdirAll(d.dir, 0o700); err != nil {
+	return saveFile(d.dir, d.path(date), write)
+}
+
+// saveFile has write make a file at a temporary path in dir, then renames it to final. If write or
+// the rename fails, the temporary file is removed.
+func saveFile(dir, final string, write func(path string) error) error {
+	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return fmt.Errorf("backups: %w", err)
 	}
-	partial := d.path(date) + partialExt
+	partial := final + partialExt
 	// A partial file from a run that crashed partway would stop the snapshot, which won't
 	// overwrite a file.
 	if err := os.Remove(partial); err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return fmt.Errorf("backups: %w", err)
 	}
 	if err := write(partial); err != nil {
-		return errors.Join(err, d.removePartial(partial))
+		return errors.Join(err, removePartial(partial))
 	}
-	if err := os.Rename(partial, d.path(date)); err != nil {
-		return errors.Join(fmt.Errorf("backups: %w", err), d.removePartial(partial))
+	if err := os.Rename(partial, final); err != nil {
+		return errors.Join(fmt.Errorf("backups: %w", err), removePartial(partial))
 	}
 	return nil
 }
 
-func (d *Dir) removePartial(partial string) error {
+func removePartial(partial string) error {
 	if err := os.Remove(partial); err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return fmt.Errorf("backups: remove a partial backup: %w", err)
 	}

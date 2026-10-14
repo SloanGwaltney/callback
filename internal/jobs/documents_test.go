@@ -242,6 +242,28 @@ func TestOpenDocument(t *testing.T) {
 	}
 }
 
+// The restore that brings back the document without its file is
+// TestRestoreListsARemovedDocumentWithoutItsFile in internal/backups.
+// @scenario [features/agent-backups.feature#restore-missing-document-file] A document removed after the backup is listed again but its file is gone
+func TestOpenADocumentRestoredWithoutItsFile(t *testing.T) {
+	h := newHarness(t)
+	id := h.acme(StatusApplied)
+	// A restored document's row is back, but its stored copy was deleted when it was removed.
+	docID := h.seedDoc(id, "resume-2026.pdf", KindResume)
+	delete(h.files.copies, h.store.docs[docID].StoredPath)
+
+	err := h.svc.OpenDocument(h.ctx, docID)
+
+	// @but [features/agent-backups.feature] opening it tells me its file can't be found
+	var missing *MissingFileError
+	if !errors.As(err, &missing) || err.Error() != `the file for "resume-2026.pdf" can't be found` {
+		t.Errorf("err = %v, want a MissingFileError", err)
+	}
+	if len(h.opener.opened) != 0 {
+		t.Errorf("opened %v", h.opener.opened)
+	}
+}
+
 // @scenario [features/job-documents.feature#open-missing-document] Told when an attached document's file is missing
 func TestOpenMissingDocument(t *testing.T) {
 	h := newHarness(t)

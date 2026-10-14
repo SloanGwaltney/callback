@@ -83,6 +83,30 @@ describe("useBoard", () => {
 		expect(result.current.board?.columns[1].cards).toEqual([]);
 	});
 
+	// The restore itself, into the database the app has open, is TestRestoreWhileTheAppIsOpen in
+	// internal/db.
+	// @scenario [features/agent-backups.feature#restore-app-open] The app shows the restored data when I come back to it
+	it("shows the restored data when the window gets focus again", async () => {
+		// @given [features/agent-backups.feature] the app is open and I have switched to another window
+		vi.mocked(GetBoard).mockResolvedValue(asBoard(board({ closed: [card(1, "Acme")] })));
+		const { result } = renderHook(() => useBoard());
+		await waitFor(() => expect(result.current.board?.columns[4].cards[0]?.company).toBe("Acme"));
+		act(() => {
+			window.dispatchEvent(new Event("blur"));
+		});
+		// @and [features/agent-backups.feature] my agent restores a backup an agent made
+		vi.mocked(GetBoard).mockResolvedValue(asBoard(board({ applied: [card(1, "Acme")] })));
+
+		// @when [features/agent-backups.feature] I switch back to the app
+		act(() => {
+			window.dispatchEvent(new Event("focus"));
+		});
+
+		// @then [features/agent-backups.feature] the board shows the restored data
+		await waitFor(() => expect(result.current.board?.columns[1].cards[0]?.company).toBe("Acme"));
+		expect(result.current.board?.columns[4].cards).toEqual([]);
+	});
+
 	it("stops reloading on focus once it's gone", async () => {
 		vi.mocked(GetBoard).mockResolvedValue(asBoard(board()));
 		const { result, unmount } = renderHook(() => useBoard());
