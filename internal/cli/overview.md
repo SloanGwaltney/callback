@@ -35,16 +35,20 @@ This version of the command line reads contacts, interviews, and attached docume
 ## How the commands fit together
 
 1. Find the job. `{{.Name}} job list` lists the jobs that aren't closed, one line each, in board
-   order, starting with each job's ID. Add `--all` for closed jobs too.
+   order, starting with each job's ID. Add `--all` for closed jobs too. Its options narrow the
+   list: to some statuses, to a search of the role and company, to jobs whose next action is
+   overdue, to jobs that have been in their status for some days, or to jobs rated at least some
+   stars. Every option you give applies.
 2. Read the job. `{{.Name}} job show <job-id>` shows everything about it: its details,
    description, notes, contacts, interviews, next action, status history, and documents.
 3. Change it, by its ID:
    - `{{.Name}} job update <job-id>` changes the details you name and keeps the rest.
-   - `{{.Name}} job move <job-id> --status <status>` moves it to the top of another status.
+   - `{{.Name}} job move <job-id> --status <status>` moves it to the top of another status, or
+     with `--bottom` or `--position <place>`, to the bottom or a place in the column.
    - `{{.Name}} job close <job-id> --reason <reason>` closes it, or changes a closed job's
      reason. A job is moved to Closed only this way.
    - `{{.Name}} job set-next-action <job-id>` and `{{.Name}} job clear-next-action <job-id>`
-     set and clear its next action.
+     set and clear its next action. Add `--only-date` to clear only its expected date.
    - `{{.Name}} job delete <job-id>` deletes it.
 4. `{{.Name}} job add` adds a new job.
 

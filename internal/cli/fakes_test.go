@@ -143,9 +143,28 @@ func (f *fakeJobs) MoveJob(_ context.Context, m jobs.Move) error {
 	}
 	f.moves = append(f.moves, m)
 	job.Status, job.ClosingReason, job.ClosingReasonOther = m.Status, m.ClosingReason, m.ClosingReasonOther
-	job.ClosingReasonText = m.ClosingReason.Label()
-	f.toTop(job.ID)
+	job.ClosingReasonText = reasonText(m.ClosingReason, m.ClosingReasonOther)
+	f.place(job.ID, m.Index)
 	return nil
+}
+
+// place puts a job at index in its column, from 0 at the top, or at the bottom when index is
+// past it, as the jobs service does.
+func (f *fakeJobs) place(id int64, index int) {
+	f.order = slices.DeleteFunc(f.order, func(o int64) bool { return o == id })
+	at, seen := len(f.order), 0
+	for i, o := range f.order {
+		if f.jobs[o].Status != f.jobs[id].Status {
+			continue
+		}
+		if seen == index {
+			at = i
+			break
+		}
+		seen++
+		at = i + 1
+	}
+	f.order = slices.Insert(f.order, at, id)
 }
 
 func (f *fakeJobs) SetClosingReason(_ context.Context, id int64, reason jobs.ClosingReason, other string) error {
@@ -156,8 +175,17 @@ func (f *fakeJobs) SetClosingReason(_ context.Context, id int64, reason jobs.Clo
 	if !ok {
 		return jobs.ErrJobNotFound
 	}
-	job.ClosingReason, job.ClosingReasonOther, job.ClosingReasonText = reason, other, reason.Label()
+	job.ClosingReason, job.ClosingReasonOther, job.ClosingReasonText = reason, other, reasonText(reason, other)
 	return nil
+}
+
+// reasonText is how a closing reason reads, as the jobs service gives it: Other's own words, or the
+// reason's label.
+func reasonText(reason jobs.ClosingReason, other string) string {
+	if reason == jobs.ReasonOther {
+		return other
+	}
+	return reason.Label()
 }
 
 func (f *fakeJobs) DeleteJob(_ context.Context, id int64) error {
