@@ -53,7 +53,7 @@ Feature: Agent command line
       Then it's told it can't open anything on my screen, delete backups, or restore a daily backup
       And it's told to change a job's document by attaching a new file, not by editing the stored copy
 
-    @status:not-implemented @id:cli-overview-read-documents
+    @status:implemented @id:cli-overview-read-documents
     Scenario: The overview tells my agent it can read my documents
       When my agent asks Callback for its overview
       Then it's told where to find the stored copies of a job's documents and the library's
