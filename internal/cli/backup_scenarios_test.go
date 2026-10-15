@@ -142,20 +142,65 @@ func TestATakenBackupName(t *testing.T) {
 	r.wantError(t, errNameTaken.Msg)
 }
 
-// Leaving out the daily backups is TestListingLeavesOutTheDailyBackups in internal/backups.
-// @scenario [#agent-list-backups]
-func TestAgentListsTheBackups(t *testing.T) {
+// Which backups are listed, and in what order, is TestEveryKindOfBackupIsListedNewestFirst in
+// internal/backups.
+// @scenario [#agent-list-all-backups]
+func TestAgentListsEveryBackup(t *testing.T) {
 	h := newHarness()
-	// @given [features/agent-backups.feature] an agent made a backup named "old-backup" last week that is still kept
-	// @and [features/agent-backups.feature] my agent has just made a backup named "before-cleanup"
-	h.backups.agent = []backups.AgentBackup{{Name: "before-cleanup", KeptUntil: "2026-10-21"}, {Name: "old-backup", KeptUntil: "2026-11-06"}}
+	// The service lists them newest first.
+	h.backups.listed = []backups.Backup{
+		// @and [features/agent-backups.feature] I restored a backup in the app on 2026-10-14, so a backup was made before restoring it
+		{
+			Kind: backups.App, Name: "20261014-093000_daily_2026-10-12", KeptUntil: "2026-10-21",
+			Restored: &backups.Restored{Kind: backups.Daily, Name: "2026-10-12"},
+		},
+		// @and [features/agent-backups.feature] an agent made a backup named "before-cleanup" on 2026-10-13
+		{Kind: backups.Agent, Name: "before-cleanup", KeptUntil: "2026-10-20"},
+		// @given [features/agent-backups.feature] a daily backup was taken on 2026-10-12
+		{Kind: backups.Daily, Name: "2026-10-12"},
+	}
 
 	// @when [features/agent-backups.feature] my agent lists the backups
 	r := h.run("backup", "list")
 
 	r.wantCode(t, ExitOK)
-	// @then [features/agent-backups.feature] it sees "old-backup" and "before-cleanup", each with the day it's kept until
-	if want := "before-cleanup | kept until 2026-10-21\nold-backup | kept until 2026-11-06\n"; r.stdout != want {
+	// @then [features/agent-backups.feature] it sees all 3 backups
+	// @and [features/agent-backups.feature] each says whether it's a daily backup, made by an agent, or made by the app before a restore
+	// @and [features/agent-backups.feature] the backups made by an agent or before a restore show the day each is kept until
+	want := "20261014-093000_daily_2026-10-12 | made by the app before restoring 2026-10-12 | kept until 2026-10-21\n" +
+		"before-cleanup | made by an agent | kept until 2026-10-20\n" +
+		"2026-10-12 | daily backup\n"
+	if r.stdout != want {
+		t.Errorf("stdout = %q, want %q", r.stdout, want)
+	}
+}
+
+func TestListingBackupsAsJSON(t *testing.T) {
+	h := newHarness()
+	h.backups.listed = []backups.Backup{{Kind: backups.Daily, Name: "2026-10-12", Made: "2026-10-12T09:30:00-04:00"}}
+
+	r := h.run("backup", "list", "--json")
+
+	var got []map[string]any
+	if err := json.Unmarshal([]byte(r.stdout), &got); err != nil {
+		t.Fatal(err)
+	}
+	want := map[string]any{"kind": "daily", "name": "2026-10-12", "made": "2026-10-12T09:30:00-04:00"}
+	if len(got) != 1 || len(got[0]) != len(want) || got[0]["kind"] != want["kind"] || got[0]["name"] != want["name"] || got[0]["made"] != want["made"] {
+		t.Errorf("JSON = %s, want one backup %v", r.stdout, want)
+	}
+}
+
+func TestABackupMadeBeforeUndoingARestoreSaysSo(t *testing.T) {
+	h := newHarness()
+	h.backups.listed = []backups.Backup{{
+		Kind: backups.App, Name: "20261014-093100_app_20261014-093000", KeptUntil: "2026-10-21",
+		Restored: &backups.Restored{Kind: backups.App, Name: "20261014-093000"},
+	}}
+
+	r := h.run("backup", "list")
+
+	if want := "20261014-093100_app_20261014-093000 | made by the app before a restore | kept until 2026-10-21\n"; r.stdout != want {
 		t.Errorf("stdout = %q, want %q", r.stdout, want)
 	}
 }
@@ -163,7 +208,7 @@ func TestAgentListsTheBackups(t *testing.T) {
 func TestListingNoBackups(t *testing.T) {
 	h := newHarness()
 
-	if r := h.run("backup", "list"); r.stdout != "No backups made by agents are kept.\n" {
+	if r := h.run("backup", "list"); r.stdout != "No backups are kept yet.\n" {
 		t.Errorf("stdout = %q", r.stdout)
 	}
 	if r := h.run("backup", "list", "--json"); r.stdout != "[]\n" {
@@ -249,6 +294,26 @@ func TestRestoringADailyBackup(t *testing.T) {
 	r.wantCode(t, ExitValidation)
 	// @and [features/agent-backups.feature] my agent is told it can only restore backups an agent made
 	r.wantError(t, `"2026-10-14" is a daily backup; you can only restore a backup an agent made`)
+}
+
+// Which backups the app made is the backups service's to say (TestAgentCantRestoreABackupTheAppMade
+// in internal/backups). The fake hands back its message as the service would.
+// @scenario [#agent-restore-app-backup]
+func TestRestoringABackupTheAppMade(t *testing.T) {
+	h := newHarness()
+	msg := `"20261014-093000_daily_2026-10-12" was made by the app before a restore; you can only restore a backup an agent made`
+	h.backups.fail = &backups.ValidationError{Msg: msg}
+
+	// @when [features/agent-backups.feature] my agent tries to restore the backup the app made
+	r := h.run("backup", "restore", "20261014-093000_daily_2026-10-12")
+
+	// @then [features/agent-backups.feature#agent-restore-app-backup] my data is unchanged
+	r.wantCode(t, ExitValidation)
+	if len(h.backups.restored) != 0 {
+		t.Errorf("restored %v, want nothing", h.backups.restored)
+	}
+	// @and [features/agent-backups.feature] my agent is told it can only restore backups an agent made
+	r.wantError(t, msg)
 }
 
 // @scenario [#agent-restore-unknown]

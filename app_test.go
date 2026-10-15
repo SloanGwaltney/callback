@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+
+	"callback/internal/backups"
 )
 
 // fakeBackups stands in for the backups service, whose rules are tested in internal/backups.
@@ -15,6 +17,11 @@ type fakeBackups struct {
 	// removals counts the calls to RemoveExpired, which returns removeErr.
 	removals  int
 	removeErr error
+	// listed is what List returns, and undo what RestoreBackup returns, after recording which backup
+	// it was asked for in restored.
+	listed   []backups.Backup
+	undo     backups.Backup
+	restored []string
 }
 
 func (f *fakeBackups) TakeDaily(context.Context) (bool, error) {
@@ -25,6 +32,15 @@ func (f *fakeBackups) TakeDaily(context.Context) (bool, error) {
 func (f *fakeBackups) RemoveExpired() error {
 	f.removals++
 	return f.removeErr
+}
+
+func (f *fakeBackups) List() ([]backups.Backup, error) {
+	return f.listed, nil
+}
+
+func (f *fakeBackups) RestoreBackup(_ context.Context, kind backups.Kind, name string) (backups.Backup, error) {
+	f.restored = append(f.restored, string(kind)+" "+name)
+	return f.undo, nil
 }
 
 // newTestApp returns an App with fake backups whose log is collected in logged.
@@ -140,5 +156,30 @@ func TestDataIsNewer(t *testing.T) {
 	}
 	if NewApp(nil, &fakeBackups{}).DataIsNewer() {
 		t.Error("an App with services reports the data is newer")
+	}
+}
+
+// Which backups are listed and what a restore does is the backups service's (restore_test.go in
+// internal/backups); the bindings only pass the calls on.
+func TestListBackupsListsTheServicesBackups(t *testing.T) {
+	daily := backups.Backup{Kind: backups.Daily, Name: "2026-10-12"}
+	a, _ := newTestApp(&fakeBackups{listed: []backups.Backup{daily}})
+
+	listed, err := a.ListBackups()
+
+	if err != nil || len(listed) != 1 || listed[0] != daily {
+		t.Errorf("listed %v, %v", listed, err)
+	}
+}
+
+func TestRestoreBackupRestoresTheKindAndNameItsGiven(t *testing.T) {
+	undo := backups.Backup{Kind: backups.App, Name: "20261014-093000_daily_2026-10-12"}
+	b := &fakeBackups{undo: undo}
+	a, _ := newTestApp(b)
+
+	got, err := a.RestoreBackup("daily", "2026-10-12")
+
+	if err != nil || got.Name != undo.Name || len(b.restored) != 1 || b.restored[0] != "daily 2026-10-12" {
+		t.Errorf("got %+v, %v, restored %v", got, err, b.restored)
 	}
 }

@@ -65,7 +65,7 @@ type Backups interface {
 	TakeDaily(ctx context.Context) (bool, error)
 	RemoveExpired() error
 	MakeAgent(ctx context.Context, name string, days int) (backups.AgentBackup, error)
-	ListAgent() ([]backups.AgentBackup, error)
+	List() ([]backups.Backup, error)
 	Restore(ctx context.Context, name string) (backups.AgentBackup, error)
 }
 

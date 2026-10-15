@@ -5,6 +5,7 @@ import (
 	"log"
 	"strings"
 
+	"callback/internal/backups"
 	"callback/internal/jobs"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -16,7 +17,7 @@ import (
 type App struct {
 	ctx     context.Context
 	jobs    *jobs.Service
-	backups startupBackups
+	backups appBackups
 	// newerData is set when a newer version of Callback has updated the data. The app then has no
 	// services, and only tells the user to update Callback.
 	newerData bool
@@ -24,15 +25,17 @@ type App struct {
 	logf func(format string, args ...any)
 }
 
-// startupBackups takes the daily backup and removes expired agent backups. *backups.Service
-// satisfies it. The app has no restore; agents restore through the command line.
-type startupBackups interface {
+// appBackups takes the daily backup and removes expired agent and app backups when the app starts,
+// and lists and restores every backup. *backups.Service satisfies it.
+type appBackups interface {
 	TakeDaily(ctx context.Context) (bool, error)
 	RemoveExpired() error
+	List() ([]backups.Backup, error)
+	RestoreBackup(ctx context.Context, kind backups.Kind, name string) (backups.Backup, error)
 }
 
 // NewApp creates a new App application struct
-func NewApp(jobs *jobs.Service, backups startupBackups) *App {
+func NewApp(jobs *jobs.Service, backups appBackups) *App {
 	return &App{jobs: jobs, backups: backups, logf: log.Printf}
 }
 
@@ -255,4 +258,20 @@ func (a *App) RemoveLibraryDocument(id int64) error {
 // @scenario [#open-library-document] [#library-document-kept-if-original-moved] [#open-missing-library-document]
 func (a *App) OpenLibraryDocument(id int64) error {
 	return a.jobs.OpenLibraryDocument(a.ctx, id)
+}
+
+// ListBackups returns every backup that's still kept, newest first: the daily backups, the ones
+// the user's agent made, and the ones the app made before a restore.
+// @scenario [#app-backups-open] [#app-backups-newest-first] [#app-backups-none] [#app-backups-list-every-kind] [#app-restore-keeps-daily-backups]
+func (a *App) ListBackups() ([]backups.Backup, error) {
+	return a.backups.List()
+}
+
+// RestoreBackup replaces the user's data with the backup of kind ("daily", "agent", or "app")
+// named name, after backing up the data as it is so the restore can be undone, and returns that
+// backup. The frontend asks for confirmation first, and reloads the board after. A restore that
+// doesn't happen leaves the data unchanged and rejects with a message for the user.
+// @scenario [#app-restore-daily-backup] [#app-restore-agent-backup] [#app-restore-backs-up-first] [#app-undo-restore] [#app-pre-restore-backup-not-daily] [#app-restore-older-version] [#app-restore-newer-version] [#app-restore-unreadable] [#app-restore-missing] [#app-restore-missing-document-file] [#app-restore-keeps-document-files]
+func (a *App) RestoreBackup(kind, name string) (backups.Backup, error) {
+	return a.backups.RestoreBackup(a.ctx, backups.Kind(kind), name)
 }

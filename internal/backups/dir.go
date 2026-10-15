@@ -59,7 +59,22 @@ func (d *Dir) Dates() ([]string, error) {
 // Save has write make the backup at a temporary path, then renames it to the backup for date. If
 // write or the rename fails, the temporary file is removed.
 func (d *Dir) Save(date string, write func(path string) error) error {
-	return saveFile(d.dir, d.path(date), write)
+	return saveFile(d.dir, d.Path(date), write)
+}
+
+// Made returns when the backup for date was written: its file's modification time.
+func (d *Dir) Made(date string) (time.Time, error) {
+	return modTime(d.Path(date))
+}
+
+// modTime returns when the file at path was last written, which for a backup is when it was made:
+// nothing writes to a backup after it's saved.
+func modTime(path string) (time.Time, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("backups: %w", err)
+	}
+	return info.ModTime(), nil
 }
 
 // saveFile has write make a file at a temporary path in dir, then renames it to final. If write or
@@ -92,12 +107,13 @@ func removePartial(partial string) error {
 
 // Remove deletes the backup for date. One that's already gone isn't an error.
 func (d *Dir) Remove(date string) error {
-	if err := os.Remove(d.path(date)); err != nil && !errors.Is(err, fs.ErrNotExist) {
+	if err := os.Remove(d.Path(date)); err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return fmt.Errorf("backups: %w", err)
 	}
 	return nil
 }
 
-func (d *Dir) path(date string) string {
+// Path returns the file that holds the backup for date.
+func (d *Dir) Path(date string) string {
 	return filepath.Join(d.dir, date+".db")
 }

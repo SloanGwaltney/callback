@@ -15,7 +15,13 @@ import (
 // restoring a backup, which replaces the database, never changes which backups are kept.
 const AgentFolderName = "backups/agent"
 
-// AgentDir keeps the agent backups as files in the data directory, apart from the daily backups.
+// AppFolderName is the folder, relative to the data directory, of the backups the app makes just
+// before it restores one. They're named like agent backups, but kept apart from them so an agent
+// can't restore them.
+const AppFolderName = "backups/app"
+
+// AgentDir keeps backups named by a name and the day they're kept until as files in the data
+// directory, apart from the daily backups: the agent backups, or the app's.
 type AgentDir struct {
 	dir string
 }
@@ -26,6 +32,12 @@ var _ AgentFolder = (*AgentDir)(nil)
 // backup is saved.
 func NewAgentDir(dataDir string) *AgentDir {
 	return &AgentDir{dir: filepath.Join(dataDir, filepath.FromSlash(AgentFolderName))}
+}
+
+// NewAppDir returns the folder in dataDir of the backups the app makes before a restore. It's
+// created when the first one is saved.
+func NewAppDir(dataDir string) *AgentDir {
+	return &AgentDir{dir: filepath.Join(dataDir, filepath.FromSlash(AppFolderName))}
 }
 
 // Backups returns every agent backup in the folder, expired ones included, in no set order.
@@ -76,6 +88,11 @@ func (d *AgentDir) Remove(b AgentBackup) error {
 		return fmt.Errorf("backups: %w", err)
 	}
 	return nil
+}
+
+// Made returns when b was written: its file's modification time.
+func (d *AgentDir) Made(b AgentBackup) (time.Time, error) {
+	return modTime(d.Path(b))
 }
 
 // Path returns the file that holds b.

@@ -28,10 +28,13 @@ func (f *fakeDB) SnapshotTo(_ context.Context, path string) error {
 	return nil
 }
 
-// fakeFolder holds backup dates in memory.
+// fakeFolder holds backup dates in memory. A backup is made at the time now gives when it's saved,
+// and a seeded one at noon on its date unless made says otherwise.
 type fakeFolder struct {
 	dates   []string
 	removed []string
+	made    map[string]time.Time
+	now     func() time.Time
 }
 
 func (f *fakeFolder) Dates() ([]string, error) {
@@ -45,7 +48,27 @@ func (f *fakeFolder) Save(date string, write func(string) error) error {
 		return err
 	}
 	f.dates = append(f.dates, date)
+	setMade(&f.made, date, f.now())
 	return nil
+}
+
+func (f *fakeFolder) Path(date string) string {
+	return "backups/daily/" + date + ".db"
+}
+
+func (f *fakeFolder) Made(date string) (time.Time, error) {
+	if at, ok := f.made[date]; ok {
+		return at, nil
+	}
+	day, err := time.ParseInLocation(dateLayout, date, time.Local)
+	return day.Add(12 * time.Hour), err
+}
+
+func setMade(made *map[string]time.Time, key string, at time.Time) {
+	if *made == nil {
+		*made = map[string]time.Time{}
+	}
+	(*made)[key] = at
 }
 
 func (f *fakeFolder) Remove(date string) error {
@@ -54,10 +77,15 @@ func (f *fakeFolder) Remove(date string) error {
 	return nil
 }
 
-// fakeAgentFolder holds agent backups in memory. failRemove makes the next Remove fail.
+// fakeAgentFolder holds agent or app backups in memory, under dir. failRemove makes the next
+// Remove fail. A backup is made at the time now gives when it's saved, and a seeded one at the
+// zero time unless made says otherwise.
 type fakeAgentFolder struct {
+	dir        string
 	backups    []AgentBackup
 	failRemove bool
+	made       map[string]time.Time
+	now        func() time.Time
 }
 
 func (f *fakeAgentFolder) Backups() ([]AgentBackup, error) {
@@ -69,7 +97,12 @@ func (f *fakeAgentFolder) Save(b AgentBackup, write func(string) error) error {
 		return err
 	}
 	f.backups = append(f.backups, b)
+	setMade(&f.made, b.Name, f.now())
 	return nil
+}
+
+func (f *fakeAgentFolder) Made(b AgentBackup) (time.Time, error) {
+	return f.made[b.Name], nil
 }
 
 func (f *fakeAgentFolder) Remove(b AgentBackup) error {
@@ -82,7 +115,7 @@ func (f *fakeAgentFolder) Remove(b AgentBackup) error {
 }
 
 func (f *fakeAgentFolder) Path(b AgentBackup) string {
-	return "backups/agent/" + b.Name + "." + b.KeptUntil + ".db"
+	return "backups/" + f.dir + "/" + b.Name + "." + b.KeptUntil + ".db"
 }
 
 // fakeRestorer records the backups it restored. It runs before as the real one does, and restores
@@ -108,13 +141,18 @@ type harness struct {
 	restorer *fakeRestorer
 	folder   *fakeFolder
 	agent    *fakeAgentFolder
+	app      *fakeAgentFolder
 	svc      *Service
 	today    time.Time
 }
 
 func newHarness() *harness {
-	h := &harness{db: &fakeDB{}, restorer: &fakeRestorer{}, folder: &fakeFolder{}, agent: &fakeAgentFolder{}}
-	h.svc = New(h.db, h.restorer, h.folder, h.agent, func() time.Time { return h.today })
+	h := &harness{db: &fakeDB{}, restorer: &fakeRestorer{}}
+	now := func() time.Time { return h.today }
+	h.folder = &fakeFolder{now: now}
+	h.agent = &fakeAgentFolder{dir: "agent", now: now}
+	h.app = &fakeAgentFolder{dir: "app", now: now}
+	h.svc = New(h.db, h.restorer, h.folder, h.agent, h.app, now)
 	return h
 }
 

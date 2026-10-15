@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"regexp"
 	"slices"
+	"time"
 )
 
 // MinDays and MaxDays are how many days an agent backup can be kept.
@@ -38,6 +39,8 @@ type AgentFolder interface {
 	Remove(b AgentBackup) error
 	// Path returns the file that holds b.
 	Path(b AgentBackup) string
+	// Made returns when b was written.
+	Made(b AgentBackup) (time.Time, error)
 }
 
 // Restorer copies a backup into the live data. *db.Restorer satisfies it.
@@ -80,7 +83,13 @@ func (s *Service) today() string {
 // kept returns the agent backups that haven't expired, by the day they're kept until and then by
 // name. A backup is kept through the last day it's kept until.
 func (s *Service) kept() ([]AgentBackup, error) {
-	all, err := s.agent.Backups()
+	return s.keptIn(s.agent)
+}
+
+// keptIn returns the backups in folder that haven't expired, by the day they're kept until and
+// then by name.
+func (s *Service) keptIn(folder AgentFolder) ([]AgentBackup, error) {
+	all, err := folder.Backups()
 	if err != nil {
 		return nil, err
 	}
@@ -111,27 +120,27 @@ func (s *Service) MakeAgent(ctx context.Context, name string, days int) (AgentBa
 	if i := slices.IndexFunc(kept, func(b AgentBackup) bool { return b.Name == name }); i >= 0 {
 		return AgentBackup{}, &ValidationError{Msg: fmt.Sprintf("the name %q is already taken by a backup kept until %s; choose another name", name, kept[i].KeptUntil)}
 	}
-	return s.saveAgent(ctx, name, days)
+	return s.saveIn(ctx, s.agent, name, days)
 }
 
-func (s *Service) saveAgent(ctx context.Context, name string, days int) (AgentBackup, error) {
+// saveIn backs up the data to folder under name, kept for days days from today.
+func (s *Service) saveIn(ctx context.Context, folder AgentFolder, name string, days int) (AgentBackup, error) {
 	b := AgentBackup{Name: name, KeptUntil: s.now().AddDate(0, 0, days).Format(dateLayout)}
-	if err := s.agent.Save(b, func(path string) error { return s.db.SnapshotTo(ctx, path) }); err != nil {
+	if err := folder.Save(b, func(path string) error { return s.db.SnapshotTo(ctx, path) }); err != nil {
 		return AgentBackup{}, err
 	}
 	return b, nil
 }
 
-// ListAgent returns the agent backups that are still kept, by the day they're kept until and then
-// by name. The daily backups aren't listed.
-func (s *Service) ListAgent() ([]AgentBackup, error) {
-	return s.kept()
+// RemoveExpired removes the agent backups, and the backups the app made before a restore, kept
+// until a day before today. One that can't be removed is left for a later run, and the rest are
+// still removed. It never removes a daily backup.
+func (s *Service) RemoveExpired() error {
+	return errors.Join(s.removeExpiredIn(s.agent), s.removeExpiredIn(s.app))
 }
 
-// RemoveExpired removes the agent backups kept until a day before today. One that can't be removed
-// is left for a later run, and the rest are still removed. It never removes a daily backup.
-func (s *Service) RemoveExpired() error {
-	all, err := s.agent.Backups()
+func (s *Service) removeExpiredIn(folder AgentFolder) error {
+	all, err := folder.Backups()
 	if err != nil {
 		return err
 	}
@@ -141,7 +150,7 @@ func (s *Service) RemoveExpired() error {
 		if b.KeptUntil >= today {
 			continue
 		}
-		if err := s.agent.Remove(b); err != nil {
+		if err := folder.Remove(b); err != nil {
 			errs = append(errs, fmt.Errorf("backups: remove the expired backup %q: %w", b.Name, err))
 		}
 	}
@@ -150,8 +159,8 @@ func (s *Service) RemoveExpired() error {
 
 // Restore copies the agent backup named name into the live data. Just before, it backs up the data
 // as it is, kept for UndoDays, and returns that backup, which undoes the restore. It restores only
-// agent backups that are still kept, never a daily backup, and leaves which backups are kept as
-// it was.
+// agent backups that are still kept, never a daily backup or one the app made before a restore,
+// and leaves which backups are kept as it was.
 func (s *Service) Restore(ctx context.Context, name string) (AgentBackup, error) {
 	kept, err := s.kept()
 	if err != nil {
@@ -174,7 +183,8 @@ func (s *Service) Restore(ctx context.Context, name string) (AgentBackup, error)
 	return undo, nil
 }
 
-// notAgentBackup says why name can't be restored: it's a daily backup's, or no backup's.
+// notAgentBackup says why name can't be restored: it's a daily backup's, one the app made before
+// a restore, or no backup's.
 func (s *Service) notAgentBackup(name string) error {
 	dates, err := s.folder.Dates()
 	if err != nil {
@@ -183,6 +193,13 @@ func (s *Service) notAgentBackup(name string) error {
 	if slices.Contains(dates, name) {
 		return &ValidationError{Msg: fmt.Sprintf("%q is a daily backup; you can only restore a backup an agent made", name)}
 	}
+	app, err := s.keptIn(s.app)
+	if err != nil {
+		return err
+	}
+	if slices.ContainsFunc(app, func(b AgentBackup) bool { return b.Name == name }) {
+		return &ValidationError{Msg: fmt.Sprintf("%q was made by the app before a restore; you can only restore a backup an agent made", name)}
+	}
 	return &NotFoundError{Name: name}
 }
 
@@ -190,14 +207,31 @@ func (s *Service) notAgentBackup(name string) error {
 // before-restore-20261014-093000, kept for UndoDays. A second restore in the same second adds a
 // number to the name.
 func (s *Service) makeUndo(ctx context.Context) (AgentBackup, error) {
-	all, err := s.agent.Backups()
+	name, err := s.unusedName(s.agent, func(n int) string { return undoPrefix + s.stamp(n) })
 	if err != nil {
 		return AgentBackup{}, err
 	}
-	base := undoPrefix + s.now().Format("20060102-150405")
-	name := base
-	for n := 2; slices.ContainsFunc(all, func(b AgentBackup) bool { return b.Name == name }); n++ {
-		name = fmt.Sprintf("%s-%d", base, n)
+	return s.saveIn(ctx, s.agent, name, UndoDays)
+}
+
+// stamp is the time now, like 20261014-093000, with -n added for n of 2 or more.
+func (s *Service) stamp(n int) string {
+	stamp := s.now().Format("20060102-150405")
+	if n > 1 {
+		stamp += fmt.Sprintf("-%d", n)
 	}
-	return s.saveAgent(ctx, name, UndoDays)
+	return stamp
+}
+
+// unusedName returns the first of name(1), name(2), and so on that no backup in folder has.
+func (s *Service) unusedName(folder AgentFolder, name func(n int) string) (string, error) {
+	all, err := folder.Backups()
+	if err != nil {
+		return "", err
+	}
+	for n := 1; ; n++ {
+		if candidate := name(n); !slices.ContainsFunc(all, func(b AgentBackup) bool { return b.Name == candidate }) {
+			return candidate, nil
+		}
+	}
 }

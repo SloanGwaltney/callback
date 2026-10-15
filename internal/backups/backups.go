@@ -1,8 +1,8 @@
 // Package backups takes a backup of the user's data once on each day the app runs, and keeps only
 // the most recent ones. It also makes, lists, and restores the backups the user's agent makes
-// through the command line (agent.go), each kept for the days the agent chose. A backup is a copy
-// of the SQLite database. It holds which documents are attached, but not their files, which stay
-// in the documents folder.
+// through the command line (agent.go), each kept for the days the agent chose, and lists and
+// restores every backup from the app (restore.go). A backup is a copy of the SQLite database. It
+// holds which documents are attached, but not their files, which stay in the documents folder.
 package backups
 
 import (
@@ -33,21 +33,30 @@ type Folder interface {
 	Save(date string, write func(path string) error) error
 	// Remove deletes the backup for date.
 	Remove(date string) error
+	// Path returns the file that holds the backup for date.
+	Path(date string) string
+	// Made returns when the backup for date was written.
+	Made(date string) (time.Time, error)
 }
 
-// Service takes the daily backups, and makes and restores agent backups.
+// Service takes the daily backups, makes and restores agent backups, and lists and restores every
+// backup for the app.
 type Service struct {
 	db       Snapshotter
 	restorer Restorer
 	folder   Folder
 	agent    AgentFolder
-	now      func() time.Time
+	// app holds the backups the app makes just before it restores one, apart from the agent's, so
+	// an agent can't restore them.
+	app AgentFolder
+	now func() time.Time
 }
 
-// New returns a Service over the daily backups' folder and the agent backups' folder. now supplies
-// the current time, which decides which day a backup is for and which agent backups have expired.
-func New(db Snapshotter, restorer Restorer, folder Folder, agent AgentFolder, now func() time.Time) *Service {
-	return &Service{db: db, restorer: restorer, folder: folder, agent: agent, now: now}
+// New returns a Service over the daily backups' folder, the agent backups' folder, and the folder
+// of backups the app makes before a restore. now supplies the current time, which decides which
+// day a backup is for and which agent and app backups have expired.
+func New(db Snapshotter, restorer Restorer, folder Folder, agent, app AgentFolder, now func() time.Time) *Service {
+	return &Service{db: db, restorer: restorer, folder: folder, agent: agent, app: app, now: now}
 }
 
 // TakeDaily backs up the data if no backup has been taken today, then removes the oldest daily

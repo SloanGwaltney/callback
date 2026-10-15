@@ -133,10 +133,11 @@ The exit codes:
   back as it was when the backup was made. It first backs up the data as it is, kept for 7 days,
   and tells you that backup's name, so restoring that one undoes the restore. Restoring replaces
   everything, including what the person changed in the app since the backup, so tell them what
-  you restored. `{{.Name}} backup list` lists the backups agents have made, with the day each is
-  kept until.
+  you restored. `{{.Name}} backup list` lists every backup, newest first, with who made it and,
+  for one that expires, the day it's kept until.
 - Callback also backs up the person's data once on each day it runs, the first time the app opens
-  or a command runs that day. Those daily backups are the person's, not yours to restore.
+  or a command runs that day, and the app backs it up just before the person restores a backup
+  there. Those backups are listed too, but they're the person's, not yours to restore.
 - If the data was last opened by a newer version of Callback, every command stops with exit code
   5 and changes nothing. Tell the person to update Callback. Data from an older version is
   brought up to date first, as the app does.
@@ -145,6 +146,7 @@ The exit codes:
 
 - You can't open anything on the person's screen: not a posting link, a contact's profile link,
   or a document. Read the link, or the document's stored copy, instead.
-- You can't delete backups, and you can't restore a daily backup.
+- You can't delete backups, and you can't restore a daily backup. You can't restore one the app
+  made before a restore either.
 - Never edit a document's stored copy. To change a job's document, attach a new file in its place.
   To change a library document, add the new file and remove the old one.

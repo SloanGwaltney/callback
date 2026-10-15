@@ -5,7 +5,7 @@ import { ErrorMessage } from "./ErrorMessage";
 
 type Props = {
 	title: string;
-	// message says what will be removed or deleted.
+	// message says what will be removed, deleted, or replaced.
 	message: string;
 	// confirmLabel is the button that does it, like "Remove".
 	confirmLabel: string;
@@ -14,7 +14,7 @@ type Props = {
 	onCancel: () => void;
 };
 
-// ConfirmDialog asks before something is removed or deleted.
+// ConfirmDialog asks before something is removed, deleted, or replaced.
 export function ConfirmDialog({ title, message, confirmLabel, onConfirm, onCancel }: Props) {
 	const { error, run } = useAction();
 	return (

@@ -487,6 +487,8 @@ type fakeBackups struct {
 	removals  int
 	removeErr error
 	agent     []backups.AgentBackup
+	// listed are the daily and app backups List lists before the agent backups.
+	listed []backups.Backup
 	// restored lists the names restored, and undo is the backup each restore makes first.
 	restored []string
 	undo     backups.AgentBackup
@@ -521,8 +523,13 @@ func (b *fakeBackups) MakeAgent(_ context.Context, name string, days int) (backu
 	return made, nil
 }
 
-func (b *fakeBackups) ListAgent() ([]backups.AgentBackup, error) {
-	return slices.Clone(b.agent), nil
+// List lists the backups in listed, then the agent backups the fake made or was given.
+func (b *fakeBackups) List() ([]backups.Backup, error) {
+	out := slices.Clone(b.listed)
+	for _, a := range b.agent {
+		out = append(out, backups.Backup{Kind: backups.Agent, Name: a.Name, KeptUntil: a.KeptUntil})
+	}
+	return out, nil
 }
 
 func (b *fakeBackups) Restore(_ context.Context, name string) (backups.AgentBackup, error) {

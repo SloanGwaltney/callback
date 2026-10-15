@@ -58,7 +58,7 @@ func main() {
 		store := db.NewStore(conn)
 		app = NewApp(
 			jobs.New(store, docfiles.New(dataDir), desktop.Opener{}, now),
-			backups.New(store, db.NewRestorer(conn, migrations.FS), backups.NewDir(dataDir), backups.NewAgentDir(dataDir), now),
+			backups.New(store, db.NewRestorer(conn, migrations.FS), backups.NewDir(dataDir), backups.NewAgentDir(dataDir), backups.NewAppDir(dataDir), now),
 		)
 	}
 
