@@ -54,6 +54,10 @@ export function GetLibrary() {
   return window['go']['main']['App']['GetLibrary']();
 }
 
+export function ListBackups() {
+  return window['go']['main']['App']['ListBackups']();
+}
+
 export function MoveJob(arg1) {
   return window['go']['main']['App']['MoveJob'](arg1);
 }
@@ -88,6 +92,10 @@ export function RemoveInterview(arg1) {
 
 export function RemoveLibraryDocument(arg1) {
   return window['go']['main']['App']['RemoveLibraryDocument'](arg1);
+}
+
+export function RestoreBackup(arg1, arg2) {
+  return window['go']['main']['App']['RestoreBackup'](arg1, arg2);
 }
 
 export function SetClosingReason(arg1, arg2, arg3) {

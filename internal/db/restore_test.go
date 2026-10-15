@@ -98,10 +98,11 @@ func TestRestoreFromAMissingBackupChangesNothing(t *testing.T) {
 	}
 }
 
-// @scenario [#restore-older-backup]
+// @scenario [#restore-older-backup] [#app-restore-older-version]
 func TestRestoreBringsAnOlderBackupUpToDate(t *testing.T) {
 	ctx := context.Background()
 	// @given [features/agent-backups.feature] my agent made a backup named "before-cleanup" while I had a job at "Acme" in "Applied"
+	// @given [features/restore-backups.feature] a daily backup was taken on 2026-10-12 while I had a job at "Acme" in "Applied"
 	// The backup is from before the status history (00007) existed.
 	backupDir := t.TempDir()
 	old := openBefore(t, backupDir, "00007")
@@ -110,15 +111,18 @@ func TestRestoreBringsAnOlderBackupUpToDate(t *testing.T) {
 	path := filepath.Join(backupDir, FileName)
 	before := readFile(t, path)
 	// @and [features/agent-backups.feature] I have since updated to a version of Callback that changes how my data is stored
+	// @and [features/restore-backups.feature] I have since updated to a version of Callback that changes how my data is stored
 	s, conn := openStore(t, t.TempDir())
 	createJob(t, s, "Globex", "saved", 0)
 
 	// @when [features/agent-backups.feature] my agent restores the backup "before-cleanup"
+	// @when [features/restore-backups.feature] I restore the backup from 2026-10-12 and confirm
 	if err := NewRestorer(conn, migrations.FS).RestoreFrom(ctx, path, noBefore); err != nil {
 		t.Fatal(err)
 	}
 
 	// @then [features/agent-backups.feature] the job at "Acme" is in "Applied" again
+	// @then [features/restore-backups.feature] the job at "Acme" is in "Applied" again
 	if got := companiesIn(t, s, "applied"); len(got) != 1 || got[0] != "Acme" {
 		t.Errorf("applied = %v, want Acme", got)
 	}
@@ -129,14 +133,16 @@ func TestRestoreBringsAnOlderBackupUpToDate(t *testing.T) {
 		t.Errorf("history = %+v, %v, want the job's Applied status", history, err)
 	}
 	// @and [features/agent-backups.feature] the "before-cleanup" backup itself is unchanged
+	// @and [features/restore-backups.feature] the backup from 2026-10-12 itself is unchanged
 	if !bytes.Equal(readFile(t, path), before) {
 		t.Error("the backup file changed")
 	}
 }
 
-// @scenario [#restore-newer-backup]
+// @scenario [#restore-newer-backup] [#app-restore-newer-version]
 func TestRestoreRefusesANewerBackup(t *testing.T) {
 	// @given [features/agent-backups.feature] a backup named "from-newer" was made by a newer version of Callback than the command line
+	// @given [features/restore-backups.feature] a daily backup from 2026-10-12 was taken by a newer version of Callback
 	backupDir := t.TempDir()
 	newer := openWith(t, backupDir, withNewerMigration(t))
 	createJob(t, newer, "Initech", "saved", 0)
@@ -147,10 +153,12 @@ func TestRestoreRefusesANewerBackup(t *testing.T) {
 	data := readDatabase(t, dataDir)
 
 	// @when [features/agent-backups.feature] my agent tries to restore the backup "from-newer"
+	// @when [features/restore-backups.feature] I restore the backup from 2026-10-12 and confirm
 	ran := false
 	err := NewRestorer(conn, migrations.FS).RestoreFrom(context.Background(), path, func() error { ran = true; return nil })
 
 	// @then [features/agent-backups.feature] my data is unchanged
+	// @then [features/restore-backups.feature#app-restore-newer-version] my data is unchanged
 	if !bytes.Equal(readDatabase(t, dataDir), data) || ran {
 		t.Errorf("the data changed, or the backup of the data from before was made (%v)", ran)
 	}
@@ -159,6 +167,32 @@ func TestRestoreRefusesANewerBackup(t *testing.T) {
 	// internal/cli).
 	if !errors.Is(err, ErrNewerBackup) {
 		t.Errorf("err = %v, want ErrNewerBackup", err)
+	}
+}
+
+// The app's message for it is TestTheAppIsToldABackupCouldntBeRestored in internal/backups.
+// @scenario [#app-restore-unreadable]
+func TestRestoreFromADamagedBackupChangesNothing(t *testing.T) {
+	// @given [features/restore-backups.feature] the daily backup from 2026-10-12 is damaged
+	path := filepath.Join(t.TempDir(), "2026-10-12.db")
+	if err := os.WriteFile(path, []byte("not a database, or what's left of one"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	dataDir := t.TempDir()
+	s, conn := openStore(t, dataDir)
+	createJob(t, s, "Acme", "applied", 0)
+	data := readDatabase(t, dataDir)
+
+	// @when [features/restore-backups.feature] I restore the backup from 2026-10-12 and confirm
+	ran := false
+	err := NewRestorer(conn, migrations.FS).RestoreFrom(context.Background(), path, func() error { ran = true; return nil })
+
+	// @then [features/restore-backups.feature#app-restore-unreadable] my data is unchanged
+	if err == nil {
+		t.Error("restoring a damaged backup worked")
+	}
+	if !bytes.Equal(readDatabase(t, dataDir), data) || ran {
+		t.Errorf("the data changed, or the backup of the data from before was made (%v)", ran)
 	}
 }
 

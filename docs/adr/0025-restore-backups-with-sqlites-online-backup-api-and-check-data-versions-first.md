@@ -6,9 +6,12 @@
 ## Context
 
 Agents restore the backups they make through the CLI
-([docs/adr/0023-let-users-drive-agent-tasks-from-their-own-agent-through-a-cli.md]). Restore is
-CLI-only; the app has no restore. The app may be open while the CLI restores, and the app holds an
-open connection to `callback.db` the whole time it runs.
+([docs/adr/0023-let-users-drive-agent-tasks-from-their-own-agent-through-a-cli.md]). When this
+was decided, restore was CLI-only and the app had no restore. The app may be open while the CLI
+restores, and the app holds an open connection to `callback.db` the whole time it runs.
+
+Update, 2026-10-15: the app now restores any backup itself (features/restore-backups.feature),
+through the same restorer, so these decisions apply to its restores too.
 
 A backup is a whole copy of the database, made with `VACUUM INTO`. Agent backups are kept for up to
 90 days, so the user may update Callback between making a backup and restoring it. The backup then
@@ -70,6 +73,8 @@ database is roughly 12 MB, and copying it takes about a tenth of a second.
 
 - [features/agent-backups.feature#restore-older-backup] A backup from an older version is brought up to date when it's restored
 - [features/agent-backups.feature#restore-newer-backup] A backup from a newer version can't be restored
+- [features/restore-backups.feature#app-restore-older-version] A backup from an older version is brought up to date when it's restored
+- [features/restore-backups.feature#app-restore-newer-version] A backup from a newer version can't be restored
 - [features/agent-backups.feature#restore-app-open-safe] Restoring while the app is open doesn't need the app closed
 - [features/agent-backups.feature#restore-app-open] The app shows the restored data when I come back to it
 - [features/data-version.feature#app-newer-data] The app refuses data a newer Callback has updated

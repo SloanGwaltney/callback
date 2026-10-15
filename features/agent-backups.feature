@@ -68,7 +68,7 @@ Feature: Agent backups
 
   Rule: My agent can see every backup an agent made, but not the daily backups
 
-    @status:implemented @id:agent-list-backups
+    @status:withdrawn @id:agent-list-backups
     Scenario: My agent lists the backups agents have made
       Given an agent made a backup named "old-backup" last week that is still kept
       And my agent has just made a backup named "before-cleanup"
@@ -76,6 +76,26 @@ Feature: Agent backups
       When my agent lists the backups
       Then it sees "old-backup" and "before-cleanup", each with the day it's kept until
       But it doesn't see the daily backup
+
+  Rule: My agent can see every backup, but can only restore the ones agents made
+
+    # Replaces: @id:agent-list-backups
+    @status:implemented @id:agent-list-all-backups
+    Scenario: My agent lists every backup, saying which kind each is
+      Given a daily backup was taken on 2026-10-12
+      And an agent made a backup named "before-cleanup" on 2026-10-13
+      And I restored a backup in the app on 2026-10-14, so a backup was made before restoring it
+      When my agent lists the backups
+      Then it sees all 3 backups
+      And each says whether it's a daily backup, made by an agent, or made by the app before a restore
+      And the backups made by an agent or before a restore show the day each is kept until
+
+    @status:implemented @id:agent-restore-app-backup
+    Scenario: My agent can't restore a backup the app made before a restore
+      Given I restored a backup in the app, so a backup was made before restoring it
+      When my agent tries to restore the backup the app made
+      Then my data is unchanged
+      And my agent is told it can only restore backups an agent made
 
   Rule: Expired backups are removed whenever Callback runs
 

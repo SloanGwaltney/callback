@@ -36,7 +36,7 @@ func newLive(t *testing.T) *live {
 	}
 	t.Cleanup(func() { conn.Close() })
 	l.store = db.NewStore(conn)
-	l.svc = New(l.store, db.NewRestorer(conn, migrations.FS), NewDir(l.dataDir), NewAgentDir(l.dataDir), func() time.Time { return l.today })
+	l.svc = New(l.store, db.NewRestorer(conn, migrations.FS), NewDir(l.dataDir), NewAgentDir(l.dataDir), NewAppDir(l.dataDir), func() time.Time { return l.today })
 	l.setToday(2026, time.October, 14)
 	return l
 }
@@ -94,7 +94,7 @@ func (l *live) restore(t *testing.T, name string) AgentBackup {
 
 func (l *live) list(t *testing.T) []AgentBackup {
 	t.Helper()
-	listed, err := l.svc.ListAgent()
+	listed, err := l.svc.kept()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -166,31 +166,6 @@ func TestAgentBackupHoldsTheDataAsItIsNow(t *testing.T) {
 	// @and [features/agent-backups.feature] the "before-cleanup" backup is kept until 2026-10-21
 	if b.KeptUntil != "2026-10-21" || !slices.Equal(l.list(t), []AgentBackup{{"before-cleanup", "2026-10-21"}}) {
 		t.Errorf("made %+v, listed %v", b, l.list(t))
-	}
-}
-
-// @scenario [#agent-list-backups]
-func TestListingLeavesOutTheDailyBackups(t *testing.T) {
-	l := newLive(t)
-	// @given [features/agent-backups.feature] an agent made a backup named "old-backup" last week that is still kept
-	l.setToday(2026, time.October, 7)
-	l.makeAgent(t, "old-backup", 30)
-	l.setToday(2026, time.October, 14)
-	// @and [features/agent-backups.feature] my agent has just made a backup named "before-cleanup"
-	l.makeAgent(t, "before-cleanup", 7)
-	// @and [features/agent-backups.feature] a daily backup was taken today
-	if taken, err := l.svc.TakeDaily(l.ctx); err != nil || !taken {
-		t.Fatalf("taken = %v, %v", taken, err)
-	}
-
-	// @when [features/agent-backups.feature] my agent lists the backups
-	listed := l.list(t)
-
-	// @then [features/agent-backups.feature] it sees "old-backup" and "before-cleanup", each with the day it's kept until
-	// @but [features/agent-backups.feature] it doesn't see the daily backup
-	want := []AgentBackup{{"before-cleanup", "2026-10-21"}, {"old-backup", "2026-11-06"}}
-	if !slices.Equal(listed, want) {
-		t.Errorf("listed %v, want %v", listed, want)
 	}
 }
 

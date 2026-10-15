@@ -1,0 +1,99 @@
+.page {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+/* Back on the left and the title taking the rest, like the document library's header. */
+.header {
+	display: flex;
+	align-items: center;
+	gap: var(--space-4);
+	padding: var(--space-3) var(--space-5);
+	border-bottom: 1px solid var(--color-border);
+	background: var(--color-surface);
+}
+
+.title {
+	flex: 1;
+	margin: 0;
+	font-size: var(--font-size-xl);
+}
+
+.main {
+	flex: 1;
+	min-height: 0;
+	padding: var(--space-5);
+	overflow: auto;
+}
+
+/* The page's content keeps a readable width rather than stretching across a wide window. */
+.intro,
+.list,
+.empty,
+.pageError {
+	max-width: 48rem;
+}
+
+.intro {
+	margin: 0 0 var(--space-4);
+	color: var(--color-text-muted);
+	font-size: var(--font-size-sm);
+}
+
+.empty {
+	margin: 0;
+	padding: var(--space-5);
+	border: 1px dashed var(--color-border-strong);
+	border-radius: var(--radius-md);
+}
+
+.list {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+/* The name and details take the leftover width; the button keeps its natural width. */
+.backup {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	gap: var(--space-2);
+	padding: var(--space-3);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-sm);
+	background: var(--color-surface);
+}
+
+.info {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-1);
+	min-width: 0;
+}
+
+.name {
+	margin: 0;
+	font-weight: var(--font-weight-bold);
+	overflow-wrap: anywhere;
+}
+
+.details {
+	margin: 0;
+	color: var(--color-text-muted);
+	font-size: var(--font-size-sm);
+}
+
+.button {
+	composes: button from "./form.module.css";
+	white-space: nowrap;
+}
+
+.pageError {
+	composes: error from "./form.module.css";
+	margin: 0 0 var(--space-4);
+}

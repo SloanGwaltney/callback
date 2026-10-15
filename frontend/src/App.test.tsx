@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 import { applyMove } from "./board/boardDnd";
 import type { Board, Details } from "./hooks/types";
+import { useBackups } from "./hooks/useBackups";
 import { useBoard } from "./hooks/useBoard";
 import { useDocuments } from "./hooks/useDocuments";
 import { useJob } from "./hooks/useJob";
@@ -15,13 +16,15 @@ vi.mock("./hooks/useBoard", () => ({ useBoard: vi.fn() }));
 vi.mock("./hooks/useJob", () => ({ useJob: vi.fn() }));
 vi.mock("./hooks/useDocuments", () => ({ useDocuments: vi.fn() }));
 vi.mock("./hooks/useLibrary", () => ({ useLibrary: vi.fn() }));
+vi.mock("./hooks/useBackups", () => ({ useBackups: vi.fn() }));
 
 // mockBoard makes useBoard keep the board in state, adding a job at the top of its column and
 // deleting it as the backend would. Given a refreshed board, the window getting focus again loads
-// it, as useBoard does (useBoard.test.ts proves that).
+// it, as useBoard does (useBoard.test.ts proves that), and so does reloading it.
 function mockBoard(start: Board, refreshed?: Board) {
 	const added = vi.fn<(details: Details, status: string) => void>();
 	const deleted = vi.fn<(id: number) => void>();
+	const reloaded = vi.fn();
 	vi.mocked(useBoard).mockImplementation(() => {
 		const [current, setCurrent] = useState(start);
 		useEffect(() => {
@@ -35,7 +38,12 @@ function mockBoard(start: Board, refreshed?: Board) {
 		return {
 			board: current,
 			error: "",
-			reload: async () => {},
+			reload: async () => {
+				reloaded();
+				if (refreshed) {
+					setCurrent(refreshed);
+				}
+			},
 			addJob: async (details: Details, status: string) => {
 				added(details, status);
 				const columns = current.columns.map((c) => {
@@ -62,7 +70,7 @@ function mockBoard(start: Board, refreshed?: Board) {
 			},
 		};
 	});
-	return { added, deleted };
+	return { added, deleted, reloaded };
 }
 
 beforeEach(() => {
@@ -81,6 +89,12 @@ beforeEach(() => {
 		setDescription: vi.fn(),
 		remove: vi.fn(),
 		open: vi.fn(),
+	});
+	vi.mocked(useBackups).mockReturnValue({
+		backups: [{ kind: "daily", name: "2026-10-12", made: "2026-10-12T09:30:00-04:00" }],
+		error: "",
+		reload: vi.fn(),
+		restore: vi.fn(),
 	});
 });
 
@@ -890,6 +904,86 @@ describe("App", () => {
 
 			expect(screen.getByRole("searchbox")).toHaveValue("Globex");
 			expect(acmeIn("Saved")).not.toBeInTheDocument();
+		});
+	});
+
+	describe("backups", () => {
+		const boardShown = () => screen.queryByRole("heading", { name: "Job search" });
+		const backupsShown = () => screen.queryByRole("heading", { name: "Backups" });
+
+		// @scenario [#app-backups-open]
+		it("goes from the board to the backups", async () => {
+			// @given [features/restore-backups.feature] I am on the board
+			mockBoard(board({ saved: [card(1, "Acme")] }));
+			render(<App />);
+			expect(boardShown()).toBeInTheDocument();
+
+			// @when [features/restore-backups.feature] I open my backups
+			await userEvent.click(screen.getByRole("button", { name: "Backups" }));
+
+			// @then [features/restore-backups.feature] I see my backups
+			expect(backupsShown()).toBeInTheDocument();
+			expect(
+				screen.getByRole("listitem", { name: "Daily backup from 2026-10-12" }),
+			).toBeInTheDocument();
+			expect(boardShown()).not.toBeInTheDocument();
+		});
+
+		// @scenario [#app-backups-back-to-board]
+		it("goes back to the board from the backups", async () => {
+			mockBoard(board({ saved: [card(1, "Acme")] }));
+			render(<App />);
+			// @given [features/restore-backups.feature] I am looking at my backups
+			await userEvent.click(screen.getByRole("button", { name: "Backups" }));
+
+			// @when [features/restore-backups.feature] I go back to the board
+			await userEvent.click(screen.getByRole("button", { name: "← Back to board" }));
+
+			// @then [features/restore-backups.feature] I see the board
+			expect(boardShown()).toBeInTheDocument();
+			expect(acmeIn("Saved")).toBeInTheDocument();
+			expect(backupsShown()).not.toBeInTheDocument();
+		});
+
+		// @scenario [#app-restore-daily-backup] [#app-restore-agent-backup]
+		it("shows the board with the restored data after a restore", async () => {
+			// @given [features/restore-backups.feature] a daily backup was taken on 2026-10-12 while I had a job at "Acme" in "Applied"
+			// @and [features/restore-backups.feature] I have since moved the job to "Closed"
+			const { reloaded } = mockBoard(
+				board({ closed: [card(1, "Acme")] }),
+				board({ applied: [card(1, "Acme")] }),
+			);
+			const restore = vi.fn(async () => ({
+				kind: "app" as const,
+				name: "20261014-093000_daily_2026-10-12",
+				made: "2026-10-14T09:30:00-04:00",
+			}));
+			vi.mocked(useBackups).mockReturnValue({
+				backups: [{ kind: "daily", name: "2026-10-12", made: "2026-10-12T09:30:00-04:00" }],
+				error: "",
+				reload: vi.fn(),
+				restore,
+			});
+			render(<App />);
+			await userEvent.type(screen.getByRole("searchbox"), "Acme");
+			await userEvent.click(screen.getByRole("button", { name: "Backups" }));
+
+			// @when [features/restore-backups.feature] I restore the backup from 2026-10-12 and confirm
+			await userEvent.click(
+				screen.getByRole("button", { name: "Restore Daily backup from 2026-10-12" }),
+			);
+			await userEvent.click(
+				within(screen.getByRole("dialog")).getByRole("button", { name: "Restore" }),
+			);
+
+			// @then [features/restore-backups.feature] I see the board
+			expect(await screen.findByRole("heading", { name: "Job search" })).toBeInTheDocument();
+			expect(restore).toHaveBeenCalledOnce();
+			expect(reloaded).toHaveBeenCalledOnce();
+			// @then [features/restore-backups.feature] the job at "Acme" is in "Applied" again
+			expect(acmeIn("Applied")).toBeInTheDocument();
+			expect(acmeIn("Closed")).not.toBeInTheDocument();
+			expect(screen.getByRole("searchbox")).toHaveValue("Acme");
 		});
 	});
 });

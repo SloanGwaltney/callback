@@ -243,8 +243,9 @@ func TestOpenDocument(t *testing.T) {
 }
 
 // The restore that brings back the document without its file is
-// TestRestoreListsARemovedDocumentWithoutItsFile in internal/backups.
-// @scenario [#restore-missing-document-file]
+// TestRestoreListsARemovedDocumentWithoutItsFile, or from the app
+// TestRestoreFromTheAppListsARemovedDocumentWithoutItsFile, in internal/backups.
+// @scenario [#restore-missing-document-file] [#app-restore-missing-document-file]
 func TestOpenADocumentRestoredWithoutItsFile(t *testing.T) {
 	h := newHarness(t)
 	id := h.acme(StatusApplied)
@@ -255,6 +256,7 @@ func TestOpenADocumentRestoredWithoutItsFile(t *testing.T) {
 	err := h.svc.OpenDocument(h.ctx, docID)
 
 	// @but [features/agent-backups.feature] opening it tells me its file can't be found
+	// @but [features/restore-backups.feature] opening it tells me its file can't be found
 	var missing *MissingFileError
 	if !errors.As(err, &missing) || err.Error() != `the file for "resume-2026.pdf" can't be found` {
 		t.Errorf("err = %v, want a MissingFileError", err)

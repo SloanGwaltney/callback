@@ -43,7 +43,7 @@ func (h *harness) wantNoBackupMade(t *testing.T) {
 
 func (h *harness) list(t *testing.T) []AgentBackup {
 	t.Helper()
-	listed, err := h.svc.ListAgent()
+	listed, err := h.svc.kept()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -180,7 +180,7 @@ func TestAnExpiredBackupsNameCanBeUsedAgain(t *testing.T) {
 	}
 }
 
-func TestListAgentIsByKeptUntilThenNameAndLeavesOutExpired(t *testing.T) {
+func TestKeptAgentBackupsAreByKeptUntilThenNameAndLeaveOutExpired(t *testing.T) {
 	h := newHarness()
 	h.setToday(2026, time.October, 14)
 	h.agent.backups = []AgentBackup{
