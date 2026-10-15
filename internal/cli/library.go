@@ -91,9 +91,7 @@ func libraryLine(d libraryDocumentJSON) string {
 	return fmt.Sprintf("#%d %s | %s | stored copy: %s%s", d.ID, d.FileName, description, d.StoredPath, missing)
 }
 
-// @scenario [features/agent-cli-library.feature#cli-list-library] List the library
-// @scenario [features/agent-cli-library.feature#cli-list-library-missing] The list marks a library document whose file is missing
-// @scenario [features/agent-cli-library.feature#cli-list-library-empty] My agent is told when the library is empty
+// @scenario [#cli-list-library] [#cli-list-library-missing] [#cli-list-library-empty]
 func listLibrary(c *call) error {
 	docs, err := c.jobs.Library(c.ctx)
 	if err != nil {
@@ -114,8 +112,7 @@ func listLibrary(c *call) error {
 	})
 }
 
-// @scenario [features/agent-cli-library.feature#cli-add-library-document] Add a document to the library
-// @scenario [features/agent-cli-library.feature#cli-add-library-rules] Adding a library document follows the app's rules
+// @scenario [#cli-add-library-document] [#cli-add-library-rules]
 func addLibraryDocument(c *call) error {
 	path, ok := c.value("file")
 	if !ok {
@@ -129,8 +126,7 @@ func addLibraryDocument(c *call) error {
 	return c.printLibraryDocument(doc)
 }
 
-// @scenario [features/agent-cli-library.feature#cli-describe-library-document] Change a library document's description
-// @scenario [features/agent-cli-library.feature#cli-clear-library-description] Clear a library document's description
+// @scenario [#cli-describe-library-document] [#cli-clear-library-description]
 func describeLibraryDocument(c *call) error {
 	description, ok := c.value("description")
 	if !ok {
@@ -153,7 +149,7 @@ func (c *call) printLibraryDocument(doc jobs.LibraryDocument) error {
 	return c.output(out, func(w io.Writer) { fmt.Fprintf(w, "Library document: %s\n", libraryLine(out)) })
 }
 
-// @scenario [features/agent-cli-library.feature#cli-remove-library-document] Remove a library document
+// @scenario [#cli-remove-library-document]
 func removeLibraryDocument(c *call) error {
 	doc, err := c.jobs.LibraryDocument(c.ctx, c.id)
 	if err != nil {

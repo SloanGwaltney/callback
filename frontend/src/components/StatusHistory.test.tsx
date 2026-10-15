@@ -21,7 +21,7 @@ function entries(): string[] {
 }
 
 describe("StatusHistory", () => {
-	// @scenario [features/job-status-history.feature#history-starts-when-added] A new job's history starts with the status it was added to
+	// @scenario [#history-starts-when-added]
 	it("shows the status a new job was added to", () => {
 		render(<StatusHistory history={[change("saved", "2026-10-09")]} />);
 
@@ -29,7 +29,7 @@ describe("StatusHistory", () => {
 		expect(entries()).toEqual(["Saved2026-10-09"]);
 	});
 
-	// @scenario [features/job-status-history.feature#history-oldest-first] The history lists every change from oldest to newest
+	// @scenario [#history-oldest-first]
 	it("lists the changes in the order the backend gives, oldest first, each with its date", () => {
 		render(
 			<StatusHistory
@@ -52,7 +52,7 @@ describe("StatusHistory", () => {
 		]);
 	});
 
-	// @scenario [features/job-status-history.feature#history-records-closing-reason] Closing a job records its closing reason in the history
+	// @scenario [#history-records-closing-reason]
 	it("shows the closing reason on the Closed entry", () => {
 		render(
 			<StatusHistory

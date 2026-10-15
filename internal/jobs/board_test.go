@@ -7,7 +7,7 @@ import (
 	"callback/internal/store"
 )
 
-// @scenario [features/job-board.feature#board-status-columns] Board shows the status columns in order
+// @scenario [#board-status-columns]
 func TestBoardShowsStatusColumnsInOrder(t *testing.T) {
 	h := newHarness(t)
 
@@ -25,7 +25,7 @@ func TestBoardShowsStatusColumnsInOrder(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-board.feature#empty-board] Empty board when no jobs have been added
+// @scenario [#empty-board]
 func TestEmptyBoard(t *testing.T) {
 	// @given [features/job-board.feature] I have not added any jobs
 	h := newHarness(t)
@@ -43,7 +43,7 @@ func TestEmptyBoard(t *testing.T) {
 	// "And I am prompted to add my first job" is the frontend's to show.
 }
 
-// @scenario [features/job-board.feature#column-card-count] Each column shows how many cards it holds
+// @scenario [#column-card-count]
 func TestColumnCardCount(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-board.feature] I have 3 jobs in "Saved" and 1 job in "Applied"
@@ -73,7 +73,7 @@ func TestColumnCardCount(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-documents.feature#card-shows-document-count] The card shows that documents are attached
+// @scenario [#card-shows-document-count]
 func TestCardShowsDocumentCount(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-documents.feature] I have a job for "Software Engineer" at "Acme" with 2 attached documents

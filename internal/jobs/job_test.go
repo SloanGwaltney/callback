@@ -9,7 +9,7 @@ import (
 	"callback/internal/store"
 )
 
-// @scenario [features/job-cards.feature#add-job] Add a job with all its details
+// @scenario [#add-job]
 func TestAddJobWithAllDetails(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-cards.feature] I open the job search board
@@ -52,7 +52,7 @@ func TestAddJobWithAllDetails(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-cards.feature#add-job-minimum] Add a job with only a company and a role
+// @scenario [#add-job-minimum]
 func TestAddJobWithOnlyCompanyAndRole(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-cards.feature] I open the job search board
@@ -71,7 +71,7 @@ func TestAddJobWithOnlyCompanyAndRole(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-cards.feature#add-job-in-column] Add a job directly to a status column
+// @scenario [#add-job-in-column]
 func TestAddJobToColumn(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-cards.feature] I open the job search board
@@ -89,7 +89,7 @@ func TestAddJobToColumn(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-cards.feature#add-job-missing-required] A job can't be saved without a company or a role
+// @scenario [#add-job-missing-required]
 func TestAddJobMissingRequired(t *testing.T) {
 	tests := []struct{ company, role, missing string }{
 		{"", "Software Engineer", "company"},
@@ -115,7 +115,7 @@ func TestAddJobMissingRequired(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-board.feature#new-card-at-top] A newly added job goes to the top of its column
+// @scenario [#new-card-at-top]
 func TestNewCardGoesToTop(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-board.feature] the "Saved" column holds the jobs at "Globex" and "Initech" in that order
@@ -134,7 +134,7 @@ func TestNewCardGoesToTop(t *testing.T) {
 	assertPositions(t, h, StatusSaved)
 }
 
-// @scenario [features/job-cards.feature#add-job-not-closed] A job can't be added straight to Closed
+// @scenario [#add-job-not-closed]
 func TestAddJobNotStraightToClosed(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-cards.feature] I open the job search board
@@ -186,7 +186,7 @@ func TestAddJobRollsBackWhenAQueryFails(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-cards.feature#view-job-details] View a job's full details
+// @scenario [#view-job-details]
 func TestViewJobDetails(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-cards.feature] I have a job for "Software Engineer" at "Acme" with every detail filled in
@@ -243,7 +243,7 @@ func details(j Job) Details {
 	}
 }
 
-// @scenario [features/job-cards.feature#edit-job-details] Edit a job's details
+// @scenario [#edit-job-details]
 func TestEditJobDetails(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-cards.feature] I have a job for "Software Engineer" at "Acme"
@@ -268,7 +268,7 @@ func TestEditJobDetails(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-cards.feature#salary-free-text] Salary is written however the posting gives it
+// @scenario [#salary-free-text]
 func TestSalaryIsFreeText(t *testing.T) {
 	for _, salary := range []string{"$120,000", "$120k - $140k", "$65/hr", "Not listed"} {
 		t.Run(salary, func(t *testing.T) {
@@ -291,7 +291,7 @@ func TestSalaryIsFreeText(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-cards.feature#add-notes] Keep notes on a job
+// @scenario [#add-notes]
 func TestKeepNotes(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-cards.feature] I have a job for "Software Engineer" at "Acme"
@@ -310,7 +310,7 @@ func TestKeepNotes(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-cards.feature#edit-notes] Add to existing notes
+// @scenario [#edit-notes]
 func TestAddToExistingNotes(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-cards.feature] I have a job for "Software Engineer" at "Acme" with the notes "Referred by Dana."
@@ -329,7 +329,7 @@ func TestAddToExistingNotes(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-cards.feature#open-job-link] Open a job's posting link
+// @scenario [#open-job-link]
 func TestOpenJobLink(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-cards.feature] I have a job for "Software Engineer" at "Acme" with the link "https://acme.example.com/jobs/123"
@@ -363,7 +363,7 @@ func TestOpenJobLinkRefusesMissingOrNonWebLinks(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-cards.feature#invalid-job-link] A job link must be a web address
+// @scenario [#invalid-job-link]
 func TestInvalidJobLink(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-cards.feature] I have a job for "Software Engineer" at "Acme"
@@ -402,7 +402,7 @@ func TestIsWebAddress(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-cards.feature#set-date-applied] Set the date applied
+// @scenario [#set-date-applied]
 func TestSetDateApplied(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-cards.feature] I have a job for "Software Engineer" at "Acme" in "Applied"
@@ -425,7 +425,7 @@ func TestSetDateApplied(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-cards.feature#date-applied-any-status] The date applied can be set in any status
+// @scenario [#date-applied-any-status]
 func TestDateAppliedInAnyStatus(t *testing.T) {
 	for _, label := range []string{"Saved", "Interviewing", "Offer", "Closed"} {
 		t.Run(label, func(t *testing.T) {
@@ -448,7 +448,7 @@ func TestDateAppliedInAnyStatus(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-cards.feature#clear-date-applied] Clear the date applied
+// @scenario [#clear-date-applied]
 func TestClearDateApplied(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-cards.feature] I have a job for "Software Engineer" at "Acme" with a date applied of 2026-10-01
@@ -467,7 +467,7 @@ func TestClearDateApplied(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-cards.feature#future-date-applied] The date applied can't be in the future
+// @scenario [#future-date-applied]
 func TestFutureDateApplied(t *testing.T) {
 	// @given [features/job-cards.feature] today is 2026-10-09
 	h := newHarness(t)
@@ -515,7 +515,7 @@ func TestDateAppliedEdges(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-cards.feature#delete-job] Delete a job after confirming
+// @scenario [#delete-job]
 func TestDeleteJob(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-cards.feature] I have a job for "Software Engineer" at "Acme"

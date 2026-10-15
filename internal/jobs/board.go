@@ -41,9 +41,7 @@ type Card struct {
 }
 
 // Board returns every job, laid out in status columns.
-// @scenario [features/job-status-history.feature#card-shows-days-in-status] The card shows how many days the job has been in its current status
-// @scenario [features/job-status-history.feature#days-in-status-from-added] A job that hasn't moved counts from when it was added
-// @scenario [features/job-status-history.feature#days-in-status-any-column] Every column's cards show their days in status
+// @scenario [#card-shows-days-in-status] [#days-in-status-from-added] [#days-in-status-any-column]
 func (s *Service) Board(ctx context.Context) (Board, error) {
 	rows, err := s.store.ListJobs(ctx)
 	if err != nil {

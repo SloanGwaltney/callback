@@ -42,7 +42,7 @@ func (h *harness) onlyContact(t *testing.T, jobID int64) Contact {
 	return contacts[0]
 }
 
-// @scenario [features/job-contacts.feature#add-contact] Add a contact with all their details
+// @scenario [#add-contact]
 func TestAddContactWithAllDetails(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme"
@@ -70,7 +70,7 @@ func TestAddContactWithAllDetails(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-contacts.feature#add-contact-minimum] Add a contact with only a name and a relationship
+// @scenario [#add-contact-minimum]
 func TestAddContactMinimum(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme"
@@ -88,7 +88,7 @@ func TestAddContactMinimum(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-contacts.feature#contact-relationships] Choose how a contact relates to the job
+// @scenario [#contact-relationships]
 func TestContactRelationships(t *testing.T) {
 	tests := []struct {
 		spec string
@@ -117,7 +117,7 @@ func TestContactRelationships(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-contacts.feature#contact-missing-required] A contact can't be saved without a name or a relationship
+// @scenario [#contact-missing-required]
 func TestContactMissingRequired(t *testing.T) {
 	tests := []struct {
 		name, rel, missing string
@@ -149,7 +149,7 @@ func TestContactMissingRequired(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-contacts.feature#contact-invalid-email] A contact's email must be an email address
+// @scenario [#contact-invalid-email]
 func TestContactInvalidEmail(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme"
@@ -181,7 +181,7 @@ func TestEmailAddressCheck(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-contacts.feature#contact-invalid-profile-link] A contact's profile link must be a web address
+// @scenario [#contact-invalid-profile-link]
 func TestContactInvalidProfileLink(t *testing.T) {
 	for _, link := range []string{"not a url", "linkedin.com/in/dana-smith", "file:///C:/Windows/System32/calc.exe"} {
 		t.Run(link, func(t *testing.T) {
@@ -204,7 +204,7 @@ func TestContactInvalidProfileLink(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-contacts.feature#contact-phone-free-text] A phone number is written however I have it
+// @scenario [#contact-phone-free-text]
 func TestContactPhoneFreeText(t *testing.T) {
 	for _, phone := range []string{"(555) 010-4477", "+44 20 7946 0958", "555-0104 ext. 12"} {
 		t.Run(phone, func(t *testing.T) {
@@ -225,7 +225,7 @@ func TestContactPhoneFreeText(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-contacts.feature#contact-any-status] Contacts can be added to a job in any status
+// @scenario [#contact-any-status]
 func TestAddContactInAnyStatus(t *testing.T) {
 	for _, status := range Statuses {
 		t.Run(status.Label(), func(t *testing.T) {
@@ -278,7 +278,7 @@ func TestAddContactTrimsNameEmailAndLink(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-contacts.feature#view-contacts] See a job's contacts when opening its card
+// @scenario [#view-contacts]
 func TestViewContactsInOrderAdded(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme"
@@ -297,7 +297,7 @@ func TestViewContactsInOrderAdded(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-contacts.feature#open-contact-profile-link] Open a contact's profile link
+// @scenario [#open-contact-profile-link]
 func TestOpenContactLink(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme"
@@ -333,7 +333,7 @@ func TestOpenContactLinkRefusesWhatIsntAWebAddress(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-contacts.feature#edit-contact] Edit a contact
+// @scenario [#edit-contact]
 func TestEditContact(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme" with the contact "Dana Smith" as a recruiter
@@ -376,7 +376,7 @@ func TestEditContactKeepsItWhenInvalid(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-contacts.feature#remove-contact] Remove a contact after confirming
+// @scenario [#remove-contact]
 func TestRemoveContact(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme" with the contact "Dana Smith"
@@ -400,7 +400,7 @@ func TestRemoveContact(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-contacts.feature#same-person-many-jobs] The same person can be a contact on more than one job
+// @scenario [#same-person-many-jobs]
 func TestSamePersonOnManyJobs(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme" and a job for "Developer" at "Globex"
@@ -419,7 +419,7 @@ func TestSamePersonOnManyJobs(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-contacts.feature#contacts-edited-separately] Editing a contact on one job doesn't change it on another
+// @scenario [#contacts-edited-separately]
 func TestContactsEditedSeparately(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-contacts.feature] I have a job at "Acme" and a job at "Globex" that both have the contact "Dana Smith"
@@ -443,7 +443,7 @@ func TestContactsEditedSeparately(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-contacts.feature#move-keeps-contacts] Moving a card keeps its contacts
+// @scenario [#move-keeps-contacts]
 func TestMoveKeepsContacts(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme" in "Applied" with the contact "Dana Smith"
@@ -460,7 +460,7 @@ func TestMoveKeepsContacts(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-contacts.feature#contacts-deleted-with-job] Deleting a job deletes its contacts
+// @scenario [#contacts-deleted-with-job]
 func TestDeleteJobDeletesItsContacts(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-contacts.feature] I have a job for "Software Engineer" at "Acme" with the contact "Dana Smith"

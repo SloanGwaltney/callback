@@ -18,12 +18,7 @@ type Props = {
 };
 
 // AddJobDialog adds a job to a column on the board.
-// @scenario [features/job-cards.feature#add-job] Add a job with all its details
-// @scenario [features/job-cards.feature#add-job-minimum] Add a job with only a company and a role
-// @scenario [features/job-cards.feature#add-job-in-column] Add a job directly to a status column
-// @scenario [features/job-cards.feature#add-job-not-closed] A job can't be added straight to Closed
-// @scenario [features/job-cards.feature#add-job-missing-required] A job can't be saved without a company or a role
-// @scenario [features/job-board.feature#new-card-at-top] A newly added job goes to the top of its column
+// @scenario [#add-job] [#add-job-minimum] [#add-job-in-column] [#add-job-not-closed] [#add-job-missing-required] [#new-card-at-top]
 export function AddJobDialog({ columns, initialStatus, onAdd, onCancel }: Props) {
 	const [details, setDetails] = useState<Details>(emptyDetails);
 	const [status, setStatus] = useState(initialStatus || STATUS_SAVED);

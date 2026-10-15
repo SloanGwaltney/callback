@@ -13,7 +13,7 @@ import type { LibraryDocument } from "./types";
 // useLibrary loads the document library, newest first, and changes it: adding, describing, and
 // removing documents, each followed by a reload. documents is null until the first load. Changes
 // and opening reject with the backend's message, for the caller to show.
-// @scenario [features/document-library.feature#library-persists] The library is the same after reopening the app
+// @scenario [#library-persists]
 export function useLibrary() {
 	const [documents, setDocuments] = useState<LibraryDocument[] | null>(null);
 	const [error, setError] = useState("");

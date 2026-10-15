@@ -80,8 +80,7 @@ ORDER BY date, time = '', time, id
 
 // A job's interviews from earliest to latest. Interviews on the same day are in time order, with
 // the ones that have no time last, then in the order they were added.
-// @scenario [features/job-interviews.feature#interviews-in-date-order] Interviews are listed from earliest to latest
-// @scenario [features/job-interviews.feature#interviews-same-day-by-time] Interviews on the same day are listed by time, with untimed ones last
+// @scenario [#interviews-in-date-order] [#interviews-same-day-by-time]
 func (q *Queries) ListInterviewsForJob(ctx context.Context, jobID int64) ([]Interview, error) {
 	rows, err := q.db.QueryContext(ctx, listInterviewsForJob, jobID)
 	if err != nil {
@@ -120,7 +119,7 @@ ORDER BY job_id, date, time = '', time, id
 
 // Every interview on or after a date, for every job, in the same order as ListInterviewsForJob
 // within each job. The board takes each job's first as its next interview.
-// @scenario [features/job-interviews.feature#card-shows-next-interview] The card shows the date of the next upcoming interview
+// @scenario [#card-shows-next-interview]
 func (q *Queries) ListUpcomingInterviews(ctx context.Context, date string) ([]Interview, error) {
 	rows, err := q.db.QueryContext(ctx, listUpcomingInterviews, date)
 	if err != nil {

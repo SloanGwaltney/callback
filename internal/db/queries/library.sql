@@ -9,7 +9,7 @@ WHERE id = ?;
 
 -- name: ListLibraryDocuments :many
 -- The library, newest first. IDs only grow, so the highest is the latest added.
--- @scenario [features/document-library.feature#library-newest-first] The newest documents are listed first
+-- @scenario [#library-newest-first]
 SELECT * FROM library_documents
 ORDER BY id DESC;
 

@@ -60,7 +60,7 @@ func kindFromLabel(t *testing.T, label string) InterviewKind {
 	return ""
 }
 
-// @scenario [features/job-interviews.feature#add-interview] Add an interview with all its details
+// @scenario [#add-interview]
 func TestAddInterviewWithAllDetails(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-interviews.feature] I have a job for "Software Engineer" at "Acme" in "Interviewing"
@@ -81,7 +81,7 @@ func TestAddInterviewWithAllDetails(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interviews.feature#add-interview-minimum] Add an interview with only a date and a kind
+// @scenario [#add-interview-minimum]
 func TestAddInterviewMinimum(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-interviews.feature] I have a job for "Software Engineer" at "Acme" in "Interviewing"
@@ -99,7 +99,7 @@ func TestAddInterviewMinimum(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interviews.feature#interview-kinds] Choose what kind of interview it is
+// @scenario [#interview-kinds]
 func TestInterviewKinds(t *testing.T) {
 	for _, label := range []string{"Phone screen", "Technical", "Behavioral", "Panel", "Onsite", "Other"} {
 		t.Run(label, func(t *testing.T) {
@@ -118,7 +118,7 @@ func TestInterviewKinds(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interviews.feature#interview-missing-required] An interview can't be saved without a date or a kind
+// @scenario [#interview-missing-required]
 func TestInterviewMissingRequired(t *testing.T) {
 	for _, tt := range []struct {
 		date    string
@@ -146,7 +146,7 @@ func TestInterviewMissingRequired(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interviews.feature#interview-past-date] An interview that already happened can be added
+// @scenario [#interview-past-date]
 func TestAddPastInterview(t *testing.T) {
 	// @given [features/job-interviews.feature] today is 2026-10-09
 	h := newHarness(t)
@@ -162,7 +162,7 @@ func TestAddPastInterview(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interviews.feature#interview-any-status] Interviews can be added to a job in any status
+// @scenario [#interview-any-status]
 func TestAddInterviewInAnyStatus(t *testing.T) {
 	for _, status := range Statuses {
 		t.Run(status.Label(), func(t *testing.T) {
@@ -185,7 +185,7 @@ func TestAddInterviewInAnyStatus(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interviews.feature#view-interviews] See a job's interviews when opening its card
+// @scenario [#view-interviews]
 func TestViewInterviews(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-interviews.feature] I have a job for "Software Engineer" at "Acme" with a "Phone screen" interview on 2026-10-02
@@ -205,7 +205,7 @@ func TestViewInterviews(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interviews.feature#interviews-in-date-order] Interviews are listed from earliest to latest
+// @scenario [#interviews-in-date-order]
 func TestInterviewsInDateOrder(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-interviews.feature] I have a job for "Software Engineer" at "Acme"
@@ -229,7 +229,7 @@ func TestInterviewsInDateOrder(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interviews.feature#past-interviews-marked] Interviews that have already happened are shown as past
+// @scenario [#past-interviews-marked]
 func TestPastInterviewsMarked(t *testing.T) {
 	// @given [features/job-interviews.feature] today is 2026-10-09
 	h := newHarness(t)
@@ -259,7 +259,7 @@ func TestPastInterviewsMarked(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interviews.feature#no-interviews] A job with no interviews says so
+// @scenario [#no-interviews]
 func TestNoInterviews(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-interviews.feature] I have a job for "Software Engineer" at "Acme" with no interviews
@@ -274,7 +274,7 @@ func TestNoInterviews(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interviews.feature#card-shows-next-interview] The card shows the date of the next upcoming interview
+// @scenario [#card-shows-next-interview]
 func TestCardShowsNextInterview(t *testing.T) {
 	// @given [features/job-interviews.feature] today is 2026-10-09
 	h := newHarness(t)
@@ -298,7 +298,7 @@ func TestCardShowsNextInterview(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interviews.feature#card-interview-today] An interview today counts as upcoming
+// @scenario [#card-interview-today]
 func TestCardShowsInterviewToday(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-interviews.feature] today is 2026-10-14
@@ -317,7 +317,7 @@ func TestCardShowsInterviewToday(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interviews.feature#card-no-upcoming-interview] The card shows no interview when every interview has passed
+// @scenario [#card-no-upcoming-interview]
 func TestCardNoUpcomingInterview(t *testing.T) {
 	// @given [features/job-interviews.feature] today is 2026-10-09
 	h := newHarness(t)
@@ -357,7 +357,7 @@ func TestBoardFailsWhenInterviewsCantBeListed(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interviews.feature#edit-interview] Edit an interview
+// @scenario [#edit-interview]
 func TestEditInterview(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-interviews.feature] I have a job for "Software Engineer" at "Acme" with a "Technical" interview on 2026-10-14
@@ -406,7 +406,7 @@ func TestEditMissingInterview(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interviews.feature#remove-interview] Remove an interview after confirming
+// @scenario [#remove-interview]
 func TestRemoveInterview(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-interviews.feature] I have a job for "Software Engineer" at "Acme" with a "Technical" interview on 2026-10-14
@@ -433,7 +433,7 @@ func TestRemoveMissingInterview(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interviews.feature#move-keeps-interviews] Moving a card keeps its interviews
+// @scenario [#move-keeps-interviews]
 func TestMoveKeepsInterviews(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-interviews.feature] I have a job for "Software Engineer" at "Acme" in "Interviewing" with a "Technical" interview on 2026-10-14
@@ -449,7 +449,7 @@ func TestMoveKeepsInterviews(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interviews.feature#interviews-deleted-with-job] Deleting a job deletes its interviews
+// @scenario [#interviews-deleted-with-job]
 func TestDeleteJobDeletesItsInterviews(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-interviews.feature] I have a job for "Software Engineer" at "Acme" with a "Technical" interview on 2026-10-14

@@ -78,58 +78,7 @@ const noSorting: SortingStrategy = () => null;
 
 // Board lays out the jobs in status columns. Cards are dragged with the mouse or the keyboard to
 // move them between columns and reorder them (docs/adr/0013-use-dnd-kit-for-moving-and-reordering-board-cards.md).
-// @scenario [features/job-board.feature#board-status-columns] Board shows the status columns in order
-// @scenario [features/job-board.feature#empty-board] Empty board when no jobs have been added
-// @scenario [features/job-board.feature#column-card-count] Each column shows how many cards it holds
-// @scenario [features/job-board.feature#move-card-forward] Move a card to the next status
-// @scenario [features/job-board.feature#move-card-any-status] Move a card to any other status
-// @scenario [features/job-board.feature#move-keeps-details] Moving a card keeps its details and documents
-// @scenario [features/job-board.feature#move-to-applied-sets-date] Moving a card to Applied fills in today's date when no date is set
-// @scenario [features/job-board.feature#move-to-applied-keeps-date] Moving a card to Applied keeps a date applied that is already set
-// @scenario [features/job-board.feature#move-to-saved-clears-date] Moving a card back to Saved clears the date applied
-// @scenario [features/job-board.feature#reorder-saved-keeps-date] Reordering a card within Saved keeps its date applied
-// @scenario [features/job-board.feature#reorder-applied-no-date] Reordering a card within Applied doesn't fill in a date applied
-// @scenario [features/job-board.feature#close-asks-reason] Moving a card to Closed asks for a reason
-// @scenario [features/job-board.feature#close-other-reason] Write my own reason when closing with Other
-// @scenario [features/job-board.feature#close-other-needs-text] Closing with Other needs a written reason
-// @scenario [features/job-board.feature#close-cancel] Cancelling the closing reason leaves the card where it was
-// @scenario [features/job-status-history.feature#history-ignores-cancelled-close] Cancelling a move to Closed doesn't change the history
-// @scenario [features/job-board.feature#reopen-clears-reason] Moving a card out of Closed clears the closing reason
-// @scenario [features/job-board.feature#reorder-closed-keeps-reason] Reordering a card within Closed keeps its closing reason
-// @scenario [features/job-board.feature#reorder-card] Reorder a card within its column
-// @scenario [features/job-board.feature#move-card-to-position] Place a moved card at a chosen position in another column
-// @scenario [features/job-board.feature#new-card-at-top] A newly added job goes to the top of its column
-// @scenario [features/job-board.feature#board-persists] Board is the same after reopening the app
-// @scenario [features/job-board.feature#card-order-persists] Card order is the same after reopening the app
-// @scenario [features/board-search.feature#search-keeps-columns] Matching cards stay in their own columns
-// @scenario [features/board-search.feature#search-counts-matches] Column counts show how many cards match
-// @scenario [features/board-search.feature#search-no-matches] Told when nothing matches
-// @scenario [features/board-search.feature#search-move-card] Move a matching card to another status while searching
-// @scenario [features/board-search.feature#search-move-to-top] A card moved to another status while searching goes to the top of that column
-// @scenario [features/board-search.feature#search-no-reorder] Cards can't be reordered within a column while searching
-// @scenario [features/board-pagination.feature#column-first-page] A column with more than 10 cards shows its first page
-// @scenario [features/board-pagination.feature#column-fits-one-page] A column with 10 cards or fewer has no pages to move between
-// @scenario [features/board-pagination.feature#count-shows-column-total] The column count shows every card in the column, not just the page
-// @scenario [features/board-pagination.feature#next-page] Go to a column's next page
-// @scenario [features/board-pagination.feature#previous-page] Go to a column's previous page
-// @scenario [features/board-pagination.feature#page-bounds] A column can't page past its first or last page
-// @scenario [features/board-pagination.feature#columns-page-independently] Paging one column leaves the other columns where they are
-// @scenario [features/board-pagination.feature#page-arrows] A column with more than one page shows previous and next arrows
-// @scenario [features/board-pagination.feature#page-transition] Changing page slides the cards in the direction of the arrow
-// @scenario [features/board-pagination.feature#page-transition-reduced-motion] Changing page doesn't animate when my system asks for reduced motion
-// @scenario [features/board-pagination.feature#one-page-per-column] A column shows only one page of cards at a time
-// @scenario [features/board-pagination.feature#move-card-onto-page] Place a moved card at a chosen position on a later page
-// @scenario [features/board-pagination.feature#last-card-leaves-page] Moving the only card off the last page shows the page before it
-// @scenario [features/board-pagination.feature#page-filled-after-move] A page fills back up after a card moves out of it
-// @scenario [features/board-pagination.feature#search-results-paged] Matching cards are shown a page at a time
-// @scenario [features/job-next-action.feature#filter-overdue] Show only overdue jobs
-// @scenario [features/job-next-action.feature#filter-not-overdue] Show only jobs that aren't overdue
-// @scenario [features/job-next-action.feature#filter-due-today-not-overdue] A job due today isn't overdue yet
-// @scenario [features/job-next-action.feature#filter-closed-never-overdue] A closed job is never overdue
-// @scenario [features/job-next-action.feature#filter-show-all] Show every job again
-// @scenario [features/job-next-action.feature#filter-keeps-columns] Filtered cards stay in their own columns and the counts show how many are shown
-// @scenario [features/job-next-action.feature#filter-with-search] The filter and the search both apply
-// @scenario [features/job-next-action.feature#filter-no-matches] Told when no jobs match the filter
+// @scenario [#board-status-columns] [#empty-board] [#column-card-count] [#move-card-forward] [#move-card-any-status] [#move-keeps-details] [#move-to-applied-sets-date] [#move-to-applied-keeps-date] [#move-to-saved-clears-date] [#reorder-saved-keeps-date] [#reorder-applied-no-date] [#close-asks-reason] [#close-other-reason] [#close-other-needs-text] [#close-cancel] [#history-ignores-cancelled-close] [#reopen-clears-reason] [#reorder-closed-keeps-reason] [#reorder-card] [#move-card-to-position] [#new-card-at-top] [#board-persists] [#card-order-persists] [#search-keeps-columns] [#search-counts-matches] [#search-no-matches] [#search-move-card] [#search-move-to-top] [#search-no-reorder] [#column-first-page] [#column-fits-one-page] [#count-shows-column-total] [#next-page] [#previous-page] [#page-bounds] [#columns-page-independently] [#page-arrows] [#page-transition] [#page-transition-reduced-motion] [#one-page-per-column] [#move-card-onto-page] [#last-card-leaves-page] [#page-filled-after-move] [#search-results-paged] [#filter-overdue] [#filter-not-overdue] [#filter-due-today-not-overdue] [#filter-closed-never-overdue] [#filter-show-all] [#filter-keeps-columns] [#filter-with-search] [#filter-no-matches]
 export function Board({
 	board,
 	onMove,

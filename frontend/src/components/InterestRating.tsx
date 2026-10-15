@@ -12,12 +12,7 @@ const STARS = Array.from({ length: MAX_INTEREST }, (_, i) => i + 1);
 
 // InterestRating asks how interested the user is in a job, answered with one to five stars. The
 // stars are radio buttons, so arrow keys move between them. Clear removes the rating.
-// @scenario [features/job-interest.feature#rate-interest] Rate how interested I am in a job
-// @scenario [features/job-interest.feature#rate-interest-when-adding] Rate my interest while adding a job
-// @scenario [features/job-interest.feature#interest-any-status] A job in any status can be rated
-// @scenario [features/job-interest.feature#change-interest] Change my interest rating
-// @scenario [features/job-interest.feature#clear-interest] Clear my interest rating
-// @scenario [features/job-interest.feature#view-interest] See the interest rating when opening the card
+// @scenario [#rate-interest] [#rate-interest-when-adding] [#interest-any-status] [#change-interest] [#clear-interest] [#view-interest]
 export function InterestRating({ value, onChange }: Props) {
 	const name = useId();
 	// hovered previews a rating while the pointer is over a star.

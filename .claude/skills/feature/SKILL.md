@@ -83,9 +83,10 @@ before the next one depends on it:
 
 Annotate as you write, not at the end:
 
-- `@scenario [features/x.feature#<id>] <title>` on the **entry point** where the behavior starts:
-  the Wails-bound method, the event handler, or the component that renders the outcome. A
-  scenario that spans the backend and frontend gets a `@scenario` at each entry point.
+- `@scenario [#<id>]` on the **entry point** where the behavior starts: the Wails-bound method,
+  the event handler, or the component that renders the outcome. A scenario that spans the backend
+  and frontend gets a `@scenario` at each entry point. If the entry point already has a
+  `@scenario` line, add the new ID to the end of it rather than adding a second line.
 - Use `//` in Go and TypeScript, `{/* */}` inside JSX, and `--` in SQL. Each annotation goes on
   its own comment line.
 
@@ -104,8 +105,8 @@ Every scenario gets unit tests, and the tests link the scenario and every one of
 
 In each test:
 
-- `@scenario [features/x.feature#<id>] <title>` on the test function, or on the subtest or `it`
-  block when one function covers several scenarios.
+- `@scenario [#<id>]` on the test function, or on the subtest or `it` block when one function
+  covers several scenarios.
 - `@given` on the setup, `@when` on the action, `@then` / `@and` / `@but` on the assertion, with
   the exact step text. Every step in every requested scenario must end up annotated in a test.
 

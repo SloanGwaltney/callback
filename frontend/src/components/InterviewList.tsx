@@ -27,19 +27,7 @@ export function when(interview: { date: string; time: string }): string {
 
 // InterviewList shows a job's interviews, marking the ones that have passed, and adds, edits, and
 // removes them, asking before a removal.
-// @scenario [features/job-interviews.feature#add-interview] Add an interview with all its details
-// @scenario [features/job-interviews.feature#add-interview-minimum] Add an interview with only a date and a kind
-// @scenario [features/job-interviews.feature#interview-kinds] Choose what kind of interview it is
-// @scenario [features/job-interviews.feature#interview-missing-required] An interview can't be saved without a date or a kind
-// @scenario [features/job-interviews.feature#interview-past-date] An interview that already happened can be added
-// @scenario [features/job-interviews.feature#interview-any-status] Interviews can be added to a job in any status
-// @scenario [features/job-interviews.feature#view-interviews] See a job's interviews when opening its card
-// @scenario [features/job-interviews.feature#interviews-same-day-by-time] Interviews on the same day are listed by time, with untimed ones last
-// @scenario [features/job-interviews.feature#past-interviews-marked] Interviews that have already happened are shown as past
-// @scenario [features/job-interviews.feature#no-interviews] A job with no interviews says so
-// @scenario [features/job-interviews.feature#edit-interview] Edit an interview
-// @scenario [features/job-interviews.feature#remove-interview] Remove an interview after confirming
-// @scenario [features/job-interviews.feature#cancel-remove-interview] Cancel removing an interview
+// @scenario [#add-interview] [#add-interview-minimum] [#interview-kinds] [#interview-missing-required] [#interview-past-date] [#interview-any-status] [#view-interviews] [#interviews-same-day-by-time] [#past-interviews-marked] [#no-interviews] [#edit-interview] [#remove-interview] [#cancel-remove-interview]
 export function InterviewList({ jobId, interviews, onChanged }: Props) {
 	const { add, update, remove } = useInterviews();
 	// editing is the interview being edited, "new" while adding one, or null.

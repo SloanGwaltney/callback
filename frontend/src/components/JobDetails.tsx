@@ -26,8 +26,7 @@ type Props = {
 
 // JobDetails shows everything about a job when its card is opened, including its next action,
 // interviews, contacts, documents, and status history, and edits it.
-// @scenario [features/job-cards.feature#view-job-details] View a job's full details
-// @scenario [features/job-board.feature#change-closing-reason] Change the closing reason of a closed job
+// @scenario [#view-job-details] [#change-closing-reason]
 export function JobDetails({ jobId, onClose, onChanged, onDelete }: Props) {
 	const { job, error, reload, update, setClosingReason, setNextAction, clearNextAction, openLink } =
 		useJob(jobId);
@@ -114,18 +113,7 @@ type FormProps = {
 };
 
 // DetailsForm edits a job's details. It's keyed to the loaded job, so it starts from what's saved.
-// @scenario [features/job-cards.feature#edit-job-details] Edit a job's details
-// @scenario [features/job-cards.feature#salary-free-text] Salary is written however the posting gives it
-// @scenario [features/job-cards.feature#add-notes] Keep notes on a job
-// @scenario [features/job-cards.feature#edit-notes] Add to existing notes
-// @scenario [features/job-cards.feature#open-job-link] Open a job's posting link
-// @scenario [features/job-cards.feature#invalid-job-link] A job link must be a web address
-// @scenario [features/job-cards.feature#set-date-applied] Set the date applied
-// @scenario [features/job-cards.feature#date-applied-any-status] The date applied can be set in any status
-// @scenario [features/job-cards.feature#clear-date-applied] Clear the date applied
-// @scenario [features/job-cards.feature#future-date-applied] The date applied can't be in the future
-// @scenario [features/job-cards.feature#delete-job] Delete a job after confirming
-// @scenario [features/job-cards.feature#cancel-delete-job] Cancel deleting a job
+// @scenario [#edit-job-details] [#salary-free-text] [#add-notes] [#edit-notes] [#open-job-link] [#invalid-job-link] [#set-date-applied] [#date-applied-any-status] [#clear-date-applied] [#future-date-applied] [#delete-job] [#cancel-delete-job]
 function DetailsForm({ job, onSave, onOpenLink, onDelete, onClose }: FormProps) {
 	const [details, setDetails] = useState<Details>({
 		company: job.company,

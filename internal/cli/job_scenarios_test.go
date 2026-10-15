@@ -49,7 +49,7 @@ func wantCompanies(t *testing.T, r result, want ...string) {
 // rate gives a job an interest rating.
 func rate(job *jobs.Job, stars int) { job.Interest = &stars }
 
-// @scenario [features/agent-cli-jobs.feature#cli-list-jobs] List my jobs
+// @scenario [#cli-list-jobs]
 func TestAgentListsJobs(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-jobs.feature] I have a job for "Software Engineer" at "Acme" in "Applied"
@@ -78,7 +78,7 @@ func TestAgentListsJobs(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-list-board-order] Jobs are listed column by column, in each column's order
+// @scenario [#cli-list-board-order]
 func TestAgentListsJobsInBoardOrder(t *testing.T) {
 	h := newHarness()
 	// @and [features/agent-cli-jobs.feature] the "Applied" column holds the job at "Globex"
@@ -94,7 +94,7 @@ func TestAgentListsJobsInBoardOrder(t *testing.T) {
 	wantCompanies(t, r, "Initech", "Acme", "Globex")
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-list-leaves-out-long-text] The list leaves out each job's description and notes
+// @scenario [#cli-list-leaves-out-long-text]
 func TestAgentListLeavesOutLongText(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-jobs.feature] I have a job for "Software Engineer" at "Acme" with a description and notes
@@ -113,7 +113,7 @@ func TestAgentListLeavesOutLongText(t *testing.T) {
 
 // Today's date, and the due marks it gives, are the jobs service's: see
 // TestDueMarksForTheCommandLine in internal/jobs.
-// @scenario [features/agent-cli-jobs.feature#cli-list-overdue-marked] The list marks a next action that's due or overdue
+// @scenario [#cli-list-overdue-marked]
 func TestAgentListMarksDueAndOverdue(t *testing.T) {
 	h := newHarness()
 	// @and [features/agent-cli-jobs.feature] I have a job at "Acme" whose next action was expected on 2026-10-10
@@ -134,7 +134,7 @@ func TestAgentListMarksDueAndOverdue(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-list-empty] My agent is told when no jobs are listed
+// @scenario [#cli-list-empty]
 func TestAgentIsToldThereAreNoJobs(t *testing.T) {
 	// @given [features/agent-cli-jobs.feature] I have no jobs
 	h := newHarness()
@@ -148,7 +148,7 @@ func TestAgentIsToldThereAreNoJobs(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-list-leaves-out-closed] The list leaves out closed jobs
+// @scenario [#cli-list-leaves-out-closed]
 func TestAgentListLeavesOutClosedJobs(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-jobs.feature] I have a job at "Acme" in "Applied"
@@ -164,7 +164,7 @@ func TestAgentListLeavesOutClosedJobs(t *testing.T) {
 	wantCompanies(t, r, "Acme")
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-list-all] My agent asks for every job, closed ones too
+// @scenario [#cli-list-all]
 func TestAgentListsAllJobs(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-jobs.feature] I have a job at "Acme" in "Applied"
@@ -179,7 +179,7 @@ func TestAgentListsAllJobs(t *testing.T) {
 	wantCompanies(t, r, "Acme", "Globex")
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-filter-status] List only the jobs in some statuses
+// @scenario [#cli-filter-status]
 func TestAgentListsJobsInSomeStatuses(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-jobs.feature] I have jobs at "Acme" in "Saved", "Globex" in "Applied", and "Initech" in "Interviewing"
@@ -195,7 +195,7 @@ func TestAgentListsJobsInSomeStatuses(t *testing.T) {
 	wantCompanies(t, r, "Globex", "Initech")
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-filter-closed-status] Asking for Closed lists closed jobs
+// @scenario [#cli-filter-closed-status]
 func TestAgentListsClosedJobsByStatus(t *testing.T) {
 	h := newHarness()
 	h.acme()
@@ -209,7 +209,7 @@ func TestAgentListsClosedJobsByStatus(t *testing.T) {
 	wantCompanies(t, r, "Globex")
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-filter-search] Search the list the way the board's search does
+// @scenario [#cli-filter-search]
 func TestAgentSearchesTheList(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-jobs.feature] I have jobs for "Software Engineer" at "Acme" and "Designer" at "Globex"
@@ -226,7 +226,7 @@ func TestAgentSearchesTheList(t *testing.T) {
 
 // Today's date, and the due marks it gives, are the jobs service's: see
 // TestDueMarksForTheCommandLine in internal/jobs.
-// @scenario [features/agent-cli-jobs.feature#cli-filter-overdue] List only the jobs whose next action is overdue
+// @scenario [#cli-filter-overdue]
 func TestAgentListsOverdueJobs(t *testing.T) {
 	h := newHarness()
 	// @and [features/agent-cli-jobs.feature] I have a job at "Acme" whose next action was expected on 2026-10-10
@@ -243,7 +243,7 @@ func TestAgentListsOverdueJobs(t *testing.T) {
 	wantCompanies(t, r, "Acme")
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-filter-stale] List only the jobs that have been in their status for some days
+// @scenario [#cli-filter-stale]
 func TestAgentListsJobsInTheirStatusForSomeDays(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-jobs.feature] I have a job at "Acme" that has been in "Applied" for 20 days
@@ -261,7 +261,7 @@ func TestAgentListsJobsInTheirStatusForSomeDays(t *testing.T) {
 	wantCompanies(t, r, "Acme")
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-filter-interest] List only the jobs rated at least some stars
+// @scenario [#cli-filter-interest]
 func TestAgentListsJobsRatedAtLeastSomeStars(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-jobs.feature] I have a job at "Acme" rated 5 stars
@@ -279,7 +279,7 @@ func TestAgentListsJobsRatedAtLeastSomeStars(t *testing.T) {
 	wantCompanies(t, r, "Acme")
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-filter-combined] Every filter my agent gives applies
+// @scenario [#cli-filter-combined]
 func TestEveryListFilterApplies(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-jobs.feature] I have a job for "Software Engineer" at "Acme" in "Applied" rated 5 stars
@@ -297,7 +297,7 @@ func TestEveryListFilterApplies(t *testing.T) {
 	wantCompanies(t, r, "Acme")
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-filter-no-match] My agent is told when no jobs match
+// @scenario [#cli-filter-no-match]
 func TestAgentIsToldNoJobsMatch(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-jobs.feature] I have a job for "Software Engineer" at "Acme"
@@ -312,7 +312,7 @@ func TestAgentIsToldNoJobsMatch(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-show-job] Show a job's full details
+// @scenario [#cli-show-job]
 func TestAgentShowsAJob(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-jobs.feature] I have a job for "Software Engineer" at "Acme" with every detail filled in
@@ -356,7 +356,7 @@ func wantShown(t *testing.T, shown string, want ...string) {
 	}
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-show-missing-document] Showing a job marks a document whose file is missing
+// @scenario [#cli-show-missing-document]
 func TestAgentShowMarksAMissingDocument(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-jobs.feature] I have a job at "Acme" with "resume-2026.pdf" attached
@@ -372,7 +372,7 @@ func TestAgentShowMarksAMissingDocument(t *testing.T) {
 	wantShown(t, r.stdout, "#9 resume-2026.pdf | Resume | stored copy: /data/documents/abc.pdf (missing: the stored copy is gone)\n")
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-no-opening] My agent can't open anything on my screen
+// @scenario [#cli-no-opening]
 func TestAgentCantOpenAnything(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-jobs.feature] I have a job at "Acme" with a posting link and an attached document
@@ -401,7 +401,7 @@ func TestAgentCantOpenAnything(t *testing.T) {
 
 // The board's order is the jobs service's (TestNewCardGoesToTop in internal/jobs); the fake puts
 // an added job at the top of its column as the service does.
-// @scenario [features/agent-cli-jobs.feature#cli-add-job] Add a job with its details
+// @scenario [#cli-add-job]
 func TestAgentAddsAJob(t *testing.T) {
 	h := newHarness()
 	h.jobs.add("Globex", "Designer", jobs.StatusSaved)
@@ -423,7 +423,7 @@ func TestAgentAddsAJob(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-add-job-status] Add a job straight to a status
+// @scenario [#cli-add-job-status]
 func TestAgentAddsAJobToAStatus(t *testing.T) {
 	h := newHarness()
 	h.jobs.add("Globex", "Designer", jobs.StatusApplied)
@@ -437,7 +437,7 @@ func TestAgentAddsAJobToAStatus(t *testing.T) {
 }
 
 // The messages are the jobs service's, tested in internal/jobs; the fake hands them back.
-// @scenario [features/agent-cli-jobs.feature#cli-add-job-rules] Adding a job follows the app's rules
+// @scenario [#cli-add-job-rules]
 func TestAddingAJobFollowsTheAppsRules(t *testing.T) {
 	for _, tc := range []struct {
 		problem string
@@ -472,7 +472,7 @@ func TestAddingAJobFollowsTheAppsRules(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-update-job] Change one detail and keep the rest
+// @scenario [#cli-update-job]
 func TestAgentChangesOneDetail(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-jobs.feature] I have a job for "Software Engineer" at "Acme" with notes and a salary of "$120k"
@@ -492,7 +492,7 @@ func TestAgentChangesOneDetail(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-clear-job-detail] Clear a detail
+// @scenario [#cli-clear-job-detail]
 func TestAgentClearsADetail(t *testing.T) {
 	for _, tc := range []struct {
 		detail string
@@ -533,7 +533,7 @@ func moveHarness() (*harness, *jobs.Job) {
 // Where a job lands is the jobs service's (TestMoveCardToPosition and
 // TestMoveIndexOutOfRangeLandsAtTheEnds in internal/jobs); the fake places it as the service does.
 func TestAgentMovesAJobInAColumn(t *testing.T) {
-	// @scenario [features/agent-cli-jobs.feature#cli-move-top] A moved job goes to the top of its new column
+	// @scenario [#cli-move-top]
 	t.Run("top", func(t *testing.T) {
 		// @given [features/agent-cli-jobs.feature] the "Applied" column holds the jobs at "Initech" and "Globex"
 		// @and [features/agent-cli-jobs.feature] I have a job at "Acme" in "Saved"
@@ -546,7 +546,7 @@ func TestAgentMovesAJobInAColumn(t *testing.T) {
 		wantCompanies(t, h.run("job", "list", "--status", "applied"), "Acme", "Initech", "Globex")
 	})
 
-	// @scenario [features/agent-cli-jobs.feature#cli-move-bottom] Move a job to the bottom of a column
+	// @scenario [#cli-move-bottom]
 	t.Run("bottom", func(t *testing.T) {
 		// @given [features/agent-cli-jobs.feature] the "Applied" column holds the jobs at "Initech" and "Globex"
 		// @and [features/agent-cli-jobs.feature] I have a job at "Acme" in "Saved"
@@ -559,7 +559,7 @@ func TestAgentMovesAJobInAColumn(t *testing.T) {
 		wantCompanies(t, h.run("job", "list", "--status", "applied"), "Initech", "Globex", "Acme")
 	})
 
-	// @scenario [features/agent-cli-jobs.feature#cli-move-position] Move a job to a chosen place in a column
+	// @scenario [#cli-move-position]
 	t.Run("position", func(t *testing.T) {
 		// @given [features/agent-cli-jobs.feature] the "Applied" column holds the jobs at "Initech" and "Globex"
 		// @and [features/agent-cli-jobs.feature] I have a job at "Acme" in "Saved"
@@ -603,7 +603,7 @@ func TestMovePlacement(t *testing.T) {
 
 // The date applied and the status history are the jobs service's: see
 // TestAgentMoveFollowsTheAppsRules in internal/jobs, which carries this scenario's other steps.
-// @scenario [features/agent-cli-jobs.feature#cli-move-follows-rules] Moving a job follows the app's rules
+// @scenario [#cli-move-follows-rules]
 func TestAgentMoveFollowsTheAppsRules(t *testing.T) {
 	h := newHarness()
 	job := h.acme()
@@ -616,7 +616,7 @@ func TestAgentMoveFollowsTheAppsRules(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-move-to-closed-needs-close] Moving a job to Closed points my agent to closing it
+// @scenario [#cli-move-to-closed-needs-close]
 func TestAgentMoveToClosedPointsToClosing(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-jobs.feature] I have a job at "Acme" in "Applied"
@@ -644,7 +644,7 @@ func wantClosed(t *testing.T, job *jobs.Job, text string) {
 	}
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-close-job] Close a job with a reason
+// @scenario [#cli-close-job]
 func TestAgentClosesAJob(t *testing.T) {
 	for _, reason := range []string{"Rejected", "Withdrew", "No response", "Declined offer", "Position filled"} {
 		t.Run(reason, func(t *testing.T) {
@@ -661,7 +661,7 @@ func TestAgentClosesAJob(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-close-other] Close a job with my own reason
+// @scenario [#cli-close-other]
 func TestAgentClosesAJobWithItsOwnReason(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-jobs.feature] I have a job at "Acme" in "Applied"
@@ -676,7 +676,7 @@ func TestAgentClosesAJobWithItsOwnReason(t *testing.T) {
 
 // The "Other" reason's message is the jobs service's (TestCloseWithOtherNeedsText in
 // internal/jobs); the fake hands it back.
-// @scenario [features/agent-cli-jobs.feature#cli-close-needs-reason] Closing a job needs a reason
+// @scenario [#cli-close-needs-reason]
 func TestAgentClosingNeedsAReason(t *testing.T) {
 	for _, tc := range []struct {
 		problem string
@@ -709,7 +709,7 @@ func TestAgentClosingNeedsAReason(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-change-closing-reason] Change a closed job's reason
+// @scenario [#cli-change-closing-reason]
 func TestAgentChangesAClosedJobsReason(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-jobs.feature] I have a job at "Acme" in "Closed" with the reason "No response"
@@ -724,7 +724,7 @@ func TestAgentChangesAClosedJobsReason(t *testing.T) {
 }
 
 // What goes with the job is the storage's: see TestDeleteJobDeletesEverythingOnIt in internal/db.
-// @scenario [features/agent-cli-jobs.feature#cli-delete-job] Delete a job
+// @scenario [#cli-delete-job]
 func TestAgentDeletesAJob(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-jobs.feature] I have a job at "Acme" with a contact, an interview, and an attached document
@@ -741,7 +741,7 @@ func TestAgentDeletesAJob(t *testing.T) {
 	wantCompanies(t, h.run("job", "list", "--all"), "Globex")
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-set-next-action] Set a next action with an expected date
+// @scenario [#cli-set-next-action]
 func TestAgentSetsANextAction(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-jobs.feature] I have a job at "Acme"
@@ -755,7 +755,7 @@ func TestAgentSetsANextAction(t *testing.T) {
 	wantShown(t, r.stdout, "Next action: Send thank-you note, expected 2026-10-20\n")
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-set-next-action-no-date] Set a next action without an expected date
+// @scenario [#cli-set-next-action-no-date]
 func TestAgentSetsANextActionWithoutADate(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-jobs.feature] I have a job at "Acme"
@@ -772,7 +772,7 @@ func TestAgentSetsANextActionWithoutADate(t *testing.T) {
 	wantShown(t, r.stdout, "Next action: Research the team\n")
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-clear-next-action-date] Clear only the expected date
+// @scenario [#cli-clear-next-action-date]
 func TestAgentClearsANextActionsDate(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-jobs.feature] I have a job at "Acme" whose next action is "Follow up" expected on 2026-10-20
@@ -800,7 +800,7 @@ func TestClearingTheDateOfNoNextAction(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-jobs.feature#cli-clear-next-action] Clear the next action
+// @scenario [#cli-clear-next-action]
 func TestAgentClearsANextAction(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-jobs.feature] I have a job at "Acme" whose next action is "Follow up"
@@ -819,7 +819,7 @@ func TestAgentClearsANextAction(t *testing.T) {
 
 // The message is the jobs service's (TestNextActionNeedsText in internal/jobs); the fake hands it
 // back.
-// @scenario [features/agent-cli-jobs.feature#cli-next-action-needs-text] A next action needs to say what it is
+// @scenario [#cli-next-action-needs-text]
 func TestAgentNextActionNeedsText(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-jobs.feature] I have a job at "Acme"

@@ -35,7 +35,7 @@ func newTestApp(b *fakeBackups) (*App, *[]string) {
 	return a, &logged
 }
 
-// @scenario [features/daily-backups.feature#backup-on-first-start] The first start of the day takes a backup
+// @scenario [#backup-on-first-start]
 func TestStartupTakesTheDailyBackup(t *testing.T) {
 	b := &fakeBackups{}
 	a, logged := newTestApp(b)
@@ -51,7 +51,7 @@ func TestStartupTakesTheDailyBackup(t *testing.T) {
 	}
 }
 
-// @scenario [features/daily-backups.feature#backup-failure-still-starts] Callback still starts when the daily backup fails
+// @scenario [#backup-failure-still-starts]
 func TestStartupStillStartsWhenTheBackupFails(t *testing.T) {
 	// @given [features/daily-backups.feature] no backup has been taken today
 	// @and [features/daily-backups.feature] the backup can't be written
@@ -74,7 +74,7 @@ func TestStartupStillStartsWhenTheBackupFails(t *testing.T) {
 	// No partial backup is left behind (TestAFailedBackupLeavesNothingBehind in internal/backups).
 }
 
-// @scenario [features/data-version.feature#app-newer-data-no-backup] The app takes no daily backup of data from a newer Callback
+// @scenario [#app-newer-data-no-backup]
 func TestStartupTakesNoBackupOfNewerData(t *testing.T) {
 	// @given [features/data-version.feature] my data was last updated by a newer version of Callback than the app
 	// db.Open reports it (TestOpenRefusesDataFromANewerVersion in internal/db), and main then makes
@@ -98,8 +98,7 @@ func TestStartupTakesNoBackupOfNewerData(t *testing.T) {
 
 // Which backups have expired is decided by the backups service (TestAnExpiredBackupIsRemoved and
 // TestABackupIsKeptThroughItsLastDay in internal/backups).
-// @scenario [features/agent-backups.feature#agent-backup-expires] An expired backup is removed when Callback runs
-// @scenario [features/agent-backups.feature#agent-backup-kept-through-last-day] A backup is still kept on the last day it's kept until
+// @scenario [#agent-backup-expires] [#agent-backup-kept-through-last-day]
 func TestStartupRemovesExpiredAgentBackups(t *testing.T) {
 	b := &fakeBackups{}
 	a, logged := newTestApp(b)
@@ -115,7 +114,7 @@ func TestStartupRemovesExpiredAgentBackups(t *testing.T) {
 
 // That it's removed on a later run is TestAnExpiredBackupThatCantBeRemovedIsRemovedLater in
 // internal/backups.
-// @scenario [features/agent-backups.feature#agent-backup-expiry-retries] An expired backup that can't be removed yet is removed on a later run
+// @scenario [#agent-backup-expiry-retries]
 func TestStartupStillOpensWhenExpiredBackupsCantBeRemoved(t *testing.T) {
 	// @and [features/agent-backups.feature] the "before-cleanup" backup can't be removed right now
 	b := &fakeBackups{removeErr: errors.New("the file is in use")}
@@ -134,7 +133,7 @@ func TestStartupStillOpensWhenExpiredBackupsCantBeRemoved(t *testing.T) {
 	}
 }
 
-// @scenario [features/data-version.feature#app-newer-data] The app refuses data a newer Callback has updated
+// @scenario [#app-newer-data]
 func TestDataIsNewer(t *testing.T) {
 	if !NewNewerDataApp().DataIsNewer() {
 		t.Error("an App for newer data reports the data isn't newer")

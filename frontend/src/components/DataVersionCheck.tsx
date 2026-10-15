@@ -11,9 +11,7 @@ type Props = {
 // the user to update Callback in its place. The app isn't rendered at all then, so nothing asks the
 // backend for the board. See
 // docs/adr/0025-restore-backups-with-sqlites-online-backup-api-and-check-data-versions-first.md.
-// @scenario [features/data-version.feature#app-newer-data] The app refuses data a newer Callback has updated
-// @scenario [features/data-version.feature#app-older-data] The app brings older data up to date
-// @scenario [features/data-version.feature#app-same-version-data] The app opens data from the same version as usual
+// @scenario [#app-newer-data] [#app-older-data] [#app-same-version-data]
 export function DataVersionCheck({ children }: Props) {
 	const { newerData } = useDataVersion();
 

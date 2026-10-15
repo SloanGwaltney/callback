@@ -57,7 +57,7 @@ func TestSaveCopiesIntoTheDocumentsFolder(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-documents.feature#document-kept-if-original-moved] An attached document still opens after the original file is moved
+// @scenario [#document-kept-if-original-moved]
 func TestCopySurvivesTheOriginalBeingDeleted(t *testing.T) {
 	d := New(t.TempDir())
 	// @given [features/job-documents.feature] I have attached "resume-2026.pdf" to a job for "Software Engineer" at "Acme"
@@ -81,7 +81,7 @@ func TestCopySurvivesTheOriginalBeingDeleted(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-documents.feature#remove-document] Remove an attached document
+// @scenario [#remove-document]
 func TestRemoveDeletesOnlyTheCopy(t *testing.T) {
 	d := New(t.TempDir())
 	// @given [features/job-documents.feature] I have attached "resume-2026.pdf" to a job for "Software Engineer" at "Acme"
@@ -106,7 +106,7 @@ func TestRemoveDeletesOnlyTheCopy(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-documents.feature#same-document-many-jobs] The same file can be attached to more than one job
+// @scenario [#same-document-many-jobs]
 func TestSameFileSavedTwiceMakesTwoCopies(t *testing.T) {
 	d := New(t.TempDir())
 	original := writeOriginal(t, "resume-2026.pdf", "resume")
@@ -133,7 +133,7 @@ func TestSameFileSavedTwiceMakesTwoCopies(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-documents.feature#remove-missing-document] Remove an attached document whose file is missing
+// @scenario [#remove-missing-document]
 func TestRemoveMissingCopyIsNotAnError(t *testing.T) {
 	d := New(t.TempDir())
 	// @given [features/job-documents.feature] I have attached "resume-2026.pdf" to a job for "Software Engineer" at "Acme"
@@ -229,7 +229,7 @@ func TestExists(t *testing.T) {
 	}
 }
 
-// @scenario [features/document-library.feature#library-document-kept-if-original-moved] A library document still opens after the original file is moved
+// @scenario [#library-document-kept-if-original-moved]
 func TestLibraryCopySurvivesTheOriginalBeingDeleted(t *testing.T) {
 	d := New(t.TempDir())
 	// @given [features/document-library.feature] I added "resume-base-2026.docx" to the library
@@ -253,7 +253,7 @@ func TestLibraryCopySurvivesTheOriginalBeingDeleted(t *testing.T) {
 	}
 }
 
-// @scenario [features/document-library.feature#remove-library-document] Remove a library document after confirming
+// @scenario [#remove-library-document]
 func TestRemoveLibraryCopyKeepsTheOriginal(t *testing.T) {
 	d := New(t.TempDir())
 	// @given [features/document-library.feature] the library lists "resume-base-2026.docx"

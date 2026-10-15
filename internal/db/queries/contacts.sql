@@ -9,7 +9,7 @@ WHERE id = ?;
 
 -- name: ListContactsForJob :many
 -- A job's contacts in the order they were added.
--- @scenario [features/job-contacts.feature#view-contacts] See a job's contacts when opening its card
+-- @scenario [#view-contacts]
 SELECT * FROM contacts
 WHERE job_id = ?
 ORDER BY id;

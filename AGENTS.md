@@ -60,6 +60,7 @@ One line each. Each entry links to the ADR that set it.
 - **Business rules:** in service packages under `internal/`, over a `store.Querier` + `InTx` interface; `app.go` bindings only call services ([docs/adr/0016-put-business-rules-in-services-over-a-transactional-store-interface.md](docs/adr/0016-put-business-rules-in-services-over-a-transactional-store-interface.md))
 - **Board search and pagination:** done in the frontend over the whole board from `GetBoard`; card order stays in the jobs service ([docs/adr/0020-search-and-paginate-the-board-in-the-frontend.md](docs/adr/0020-search-and-paginate-the-board-in-the-frontend.md))
 - **Spec links:** `@scenario` on entry points in code and on tests; step annotations in tests only, where `And`/`But` take their own keyword or the one they continue ([docs/adr/0021-link-spec-steps-from-tests-and-scenarios-from-code.md](docs/adr/0021-link-spec-steps-from-tests-and-scenarios-from-code.md))
+- **Scenario links:** one `@scenario` line per function, test, or block, naming every scenario by ID as `[#id]`, with no path or title ([docs/adr/0026-link-scenarios-by-id-on-one-line.md](docs/adr/0026-link-scenarios-by-id-on-one-line.md))
 - **Restoring and data versions:** restore with SQLite's online backup API, migrating an older backup's copy first; check the data's version before migrating, and stop on newer data ([docs/adr/0025-restore-backups-with-sqlites-online-backup-api-and-check-data-versions-first.md](docs/adr/0025-restore-backups-with-sqlites-online-backup-api-and-check-data-versions-first.md))
 - **Opening files and links:** only through the hand-written opener in `internal/desktop`, never Wails' `BrowserOpenURL`, and only `http`/`https` links ([docs/adr/0017-open-documents-and-links-with-a-hand-written-os-opener.md](docs/adr/0017-open-documents-and-links-with-a-hand-written-os-opener.md))
 
@@ -198,7 +199,8 @@ searchable. For why, see
 How we do that:
 
 - **Spec annotations.** A scenario in `features/*.feature` is linked by a comment like
-  `// @scenario [features/x.feature#<id>] <title>` on its entry points in code and on its tests,
+  `// @scenario [#<id>]` on its entry points in code and on its tests, with every scenario the
+  code implements on that one line,
   and each step by a comment like `// @then [features/x.feature] <step text>` in the tests, so
   grepping a spec file, scenario ID, or step text finds its implementation and tests. A step
   annotation goes on the test code that carries the step out, in the layer that does it, never

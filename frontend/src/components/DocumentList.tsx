@@ -15,20 +15,7 @@ type Props = {
 
 // DocumentList shows the documents attached to a job, and attaches, opens, relabels, and removes
 // them.
-// @scenario [features/job-documents.feature#attach-document] Attach a document of a given kind
-// @scenario [features/job-documents.feature#attach-multiple-documents] Attach several documents to one job
-// @scenario [features/job-documents.feature#allowed-file-types] Text-like document types can be attached
-// @scenario [features/job-documents.feature#file-type-any-case] A document's type is recognized whatever the letter case of its extension
-// @scenario [features/job-documents.feature#disallowed-file-types] Other file types can't be attached
-// @scenario [features/job-documents.feature#file-size-limit] A file larger than 10 MB can't be attached
-// @scenario [features/job-documents.feature#file-size-at-limit] A file of exactly 10 MB can be attached
-// @scenario [features/job-documents.feature#open-document] Open an attached document
-// @scenario [features/job-documents.feature#document-kept-if-original-moved] An attached document still opens after the original file is moved
-// @scenario [features/job-documents.feature#change-document-kind] Change what kind of document an attachment is
-// @scenario [features/job-documents.feature#remove-document] Remove an attached document
-// @scenario [features/job-documents.feature#same-document-many-jobs] The same file can be attached to more than one job
-// @scenario [features/job-documents.feature#open-missing-document] Told when an attached document's file is missing
-// @scenario [features/job-documents.feature#remove-missing-document] Remove an attached document whose file is missing
+// @scenario [#attach-document] [#attach-multiple-documents] [#allowed-file-types] [#file-type-any-case] [#disallowed-file-types] [#file-size-limit] [#file-size-at-limit] [#open-document] [#document-kept-if-original-moved] [#change-document-kind] [#remove-document] [#same-document-many-jobs] [#open-missing-document] [#remove-missing-document]
 export function DocumentList({ jobId, documents, onChanged }: Props) {
 	const { attach, setKind, remove, open } = useDocuments();
 	const [kind, setNewKind] = useState("resume");

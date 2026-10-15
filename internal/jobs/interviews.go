@@ -94,9 +94,7 @@ func interviewFromRow(row store.Interview, today string) Interview {
 
 // nextInterviews returns each job's next interview: its first on or after today, by date and then
 // time, with untimed interviews last on their day.
-// @scenario [features/job-interviews.feature#card-shows-next-interview] The card shows the date of the next upcoming interview
-// @scenario [features/job-interviews.feature#card-interview-today] An interview today counts as upcoming
-// @scenario [features/job-interviews.feature#card-no-upcoming-interview] The card shows no interview when every interview has passed
+// @scenario [#card-shows-next-interview] [#card-interview-today] [#card-no-upcoming-interview]
 func (s *Service) nextInterviews(ctx context.Context) (map[int64]*NextInterview, error) {
 	today := s.today()
 	rows, err := s.store.ListUpcomingInterviews(ctx, today)

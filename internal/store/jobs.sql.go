@@ -16,7 +16,7 @@ SET next_action = NULL, next_action_date = NULL
 WHERE id = ?
 `
 
-// @scenario [features/job-next-action.feature#clear-next-action] Clear the next action once it's done
+// @scenario [#clear-next-action]
 func (q *Queries) ClearNextAction(ctx context.Context, id int64) error {
 	_, err := q.db.ExecContext(ctx, clearNextAction, id)
 	return err
@@ -68,9 +68,7 @@ WHERE id = ?
 
 // Deletes the job and, through ON DELETE CASCADE, its document, contact, interview, and status
 // change rows. The document files are the caller's to delete.
-// @scenario [features/job-contacts.feature#contacts-deleted-with-job] Deleting a job deletes its contacts
-// @scenario [features/job-interviews.feature#interviews-deleted-with-job] Deleting a job deletes its interviews
-// @scenario [features/job-status-history.feature#history-deleted-with-job] Deleting a job deletes its status history
+// @scenario [#contacts-deleted-with-job] [#interviews-deleted-with-job] [#history-deleted-with-job]
 func (q *Queries) DeleteJob(ctx context.Context, id int64) error {
 	_, err := q.db.ExecContext(ctx, deleteJob, id)
 	return err
@@ -253,10 +251,7 @@ type SetNextActionParams struct {
 
 // Sets what's next on a job and when it's expected, or NULL for no expected date. Nothing else on
 // the job changes, so its column and place in it stay the same.
-// @scenario [features/job-next-action.feature#set-next-action] Set a next action with an expected date
-// @scenario [features/job-next-action.feature#set-next-action-no-date] Set a next action without an expected date
-// @scenario [features/job-next-action.feature#edit-next-action] Change the next action and its expected date
-// @scenario [features/job-next-action.feature#clear-next-action-date] Clear only the expected date
+// @scenario [#set-next-action] [#set-next-action-no-date] [#edit-next-action] [#clear-next-action-date]
 func (q *Queries) SetNextAction(ctx context.Context, arg SetNextActionParams) error {
 	_, err := q.db.ExecContext(ctx, setNextAction, arg.NextAction, arg.NextActionDate, arg.ID)
 	return err

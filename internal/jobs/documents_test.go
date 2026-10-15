@@ -32,7 +32,7 @@ func mustAttach(t *testing.T, h *harness, jobID int64, src string, kind Document
 	return doc
 }
 
-// @scenario [features/job-documents.feature#attach-document] Attach a document of a given kind
+// @scenario [#attach-document]
 func TestAttachDocument(t *testing.T) {
 	tests := []struct{ file, kind string }{
 		{"resume-2026.pdf", "resume"},
@@ -57,7 +57,7 @@ func TestAttachDocument(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-documents.feature#attach-multiple-documents] Attach several documents to one job
+// @scenario [#attach-multiple-documents]
 func TestAttachSeveralDocuments(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-documents.feature] I have a job for "Software Engineer" at "Acme"
@@ -77,7 +77,7 @@ func TestAttachSeveralDocuments(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-documents.feature#document-kept-if-original-moved] An attached document still opens after the original file is moved
+// @scenario [#document-kept-if-original-moved]
 func TestAttachedDocumentOpensItsOwnCopy(t *testing.T) {
 	h := newHarness(t)
 	id := h.acme(StatusSaved)
@@ -99,7 +99,7 @@ func TestAttachedDocumentOpensItsOwnCopy(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-documents.feature#allowed-file-types] Text-like document types can be attached
+// @scenario [#allowed-file-types]
 func TestAllowedFileTypes(t *testing.T) {
 	for _, file := range []string{"notes.txt", "resume.pdf", "prep.md", "cover.docx", "cover.doc", "resume.rtf", "resume.odt"} {
 		t.Run(file, func(t *testing.T) {
@@ -118,7 +118,7 @@ func TestAllowedFileTypes(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-documents.feature#file-type-any-case] A document's type is recognized whatever the letter case of its extension
+// @scenario [#file-type-any-case]
 func TestFileTypeAnyCase(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-documents.feature] I have a job for "Software Engineer" at "Acme"
@@ -133,7 +133,7 @@ func TestFileTypeAnyCase(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-documents.feature#disallowed-file-types] Other file types can't be attached
+// @scenario [#disallowed-file-types]
 func TestDisallowedFileTypes(t *testing.T) {
 	for _, file := range []string{"headshot.png", "take-home.zip", "setup.exe", "salaries.xlsx", "no-extension"} {
 		t.Run(file, func(t *testing.T) {
@@ -154,7 +154,7 @@ func TestDisallowedFileTypes(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-documents.feature#file-size-limit] A file larger than 10 MB can't be attached
+// @scenario [#file-size-limit]
 func TestFileSizeLimit(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-documents.feature] I have a job for "Software Engineer" at "Acme"
@@ -172,7 +172,7 @@ func TestFileSizeLimit(t *testing.T) {
 	wantValidation(t, err, "files can be at most 10 MB")
 }
 
-// @scenario [features/job-documents.feature#file-size-at-limit] A file of exactly 10 MB can be attached
+// @scenario [#file-size-at-limit]
 func TestFileSizeAtLimit(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-documents.feature] I have a job for "Software Engineer" at "Acme"
@@ -224,7 +224,7 @@ func TestAttachRemovesTheCopyIfTheRowFails(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-documents.feature#open-document] Open an attached document
+// @scenario [#open-document]
 func TestOpenDocument(t *testing.T) {
 	h := newHarness(t)
 	id := h.acme(StatusSaved)
@@ -244,7 +244,7 @@ func TestOpenDocument(t *testing.T) {
 
 // The restore that brings back the document without its file is
 // TestRestoreListsARemovedDocumentWithoutItsFile in internal/backups.
-// @scenario [features/agent-backups.feature#restore-missing-document-file] A document removed after the backup is listed again but its file is gone
+// @scenario [#restore-missing-document-file]
 func TestOpenADocumentRestoredWithoutItsFile(t *testing.T) {
 	h := newHarness(t)
 	id := h.acme(StatusApplied)
@@ -264,7 +264,7 @@ func TestOpenADocumentRestoredWithoutItsFile(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-documents.feature#open-missing-document] Told when an attached document's file is missing
+// @scenario [#open-missing-document]
 func TestOpenMissingDocument(t *testing.T) {
 	h := newHarness(t)
 	id := h.acme(StatusSaved)
@@ -290,7 +290,7 @@ func TestOpenMissingDocument(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-documents.feature#remove-missing-document] Remove an attached document whose file is missing
+// @scenario [#remove-missing-document]
 func TestRemoveMissingDocument(t *testing.T) {
 	h := newHarness(t)
 	id := h.acme(StatusSaved)
@@ -311,7 +311,7 @@ func TestRemoveMissingDocument(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-documents.feature#change-document-kind] Change what kind of document an attachment is
+// @scenario [#change-document-kind]
 func TestChangeDocumentKind(t *testing.T) {
 	h := newHarness(t)
 	id := h.acme(StatusSaved)
@@ -340,7 +340,7 @@ func TestSetDocumentKindRejectsUnknownKindAndDocument(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-documents.feature#remove-document] Remove an attached document
+// @scenario [#remove-document]
 func TestRemoveDocument(t *testing.T) {
 	h := newHarness(t)
 	id := h.acme(StatusSaved)
@@ -374,7 +374,7 @@ func TestRemoveDocumentNotFound(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-documents.feature#same-document-many-jobs] The same file can be attached to more than one job
+// @scenario [#same-document-many-jobs]
 func TestSameDocumentOnManyJobs(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-documents.feature] I have a job for "Software Engineer" at "Acme" and a job for "Developer" at "Globex"

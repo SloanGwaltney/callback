@@ -33,7 +33,7 @@ func (h *harness) libraryNames() []string {
 }
 
 // The order is the store's; internal/db's TestAgentListsTheLibraryNewestFirst checks it.
-// @scenario [features/agent-cli-library.feature#cli-list-library] List the library
+// @scenario [#cli-list-library]
 func TestAgentListsTheLibrary(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-library.feature] my library holds "resume-2026.pdf" described as "General resume"
@@ -76,7 +76,7 @@ func TestLibraryListAsJSON(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-library.feature#cli-list-library-missing] The list marks a library document whose file is missing
+// @scenario [#cli-list-library-missing]
 func TestLibraryListMarksAMissingFile(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-library.feature] my library holds "resume-2026.pdf"
@@ -97,7 +97,7 @@ func TestLibraryListMarksAMissingFile(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-library.feature#cli-list-library-empty] My agent is told when the library is empty
+// @scenario [#cli-list-library-empty]
 func TestAgentIsToldTheLibraryIsEmpty(t *testing.T) {
 	// @given [features/agent-cli-library.feature] my library is empty
 	h := newHarness()
@@ -115,7 +115,7 @@ func TestAgentIsToldTheLibraryIsEmpty(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-library.feature#cli-add-library-document] Add a document to the library
+// @scenario [#cli-add-library-document]
 func TestAgentAddsALibraryDocument(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-library.feature] there is a file "resume-2026.pdf" on my computer
@@ -162,7 +162,7 @@ func TestAddLibraryDocumentNeedsAFile(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-library.feature#cli-add-library-rules] Adding a library document follows the app's rules
+// @scenario [#cli-add-library-rules]
 func TestAddingALibraryDocumentFollowsTheAppsRules(t *testing.T) {
 	for _, tc := range []struct {
 		file   string
@@ -190,7 +190,7 @@ func TestAddingALibraryDocumentFollowsTheAppsRules(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-library.feature#cli-describe-library-document] Change a library document's description
+// @scenario [#cli-describe-library-document]
 func TestAgentChangesALibraryDescription(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-library.feature] my library holds "resume-2026.pdf" described as "General resume"
@@ -209,7 +209,7 @@ func TestAgentChangesALibraryDescription(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-library.feature#cli-clear-library-description] Clear a library document's description
+// @scenario [#cli-clear-library-description]
 func TestAgentClearsALibraryDescription(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-library.feature] my library holds "resume-2026.pdf" described as "General resume"
@@ -237,7 +237,7 @@ func TestDescribeNeedsADescription(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli-library.feature#cli-remove-library-document] Remove a library document
+// @scenario [#cli-remove-library-document]
 func TestAgentRemovesALibraryDocument(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-cli-library.feature] my library holds "resume-2026.pdf"

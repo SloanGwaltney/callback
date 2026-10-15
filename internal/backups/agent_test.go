@@ -64,7 +64,7 @@ func TestMakeAgentSnapshotsTheData(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-backups.feature#agent-backup-needs-name] A backup needs a name
+// @scenario [#agent-backup-needs-name]
 func TestABackupNeedsAName(t *testing.T) {
 	h := newHarness()
 	h.setToday(2026, time.October, 14)
@@ -78,7 +78,7 @@ func TestABackupNeedsAName(t *testing.T) {
 	wantValidation(t, err, "a backup needs a name")
 }
 
-// @scenario [features/agent-backups.feature#agent-backup-name-characters] A backup name may only use letters, numbers, hyphens, and underscores
+// @scenario [#agent-backup-name-characters]
 func TestABackupNameMayOnlyUseSomeCharacters(t *testing.T) {
 	for _, name := range []string{"../escape", "before cleanup", "notes.db"} {
 		t.Run(name, func(t *testing.T) {
@@ -104,7 +104,7 @@ func TestABackupNameMayUseLettersNumbersHyphensAndUnderscores(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-backups.feature#agent-backup-retention-range] A backup is kept for 1 to 90 days
+// @scenario [#agent-backup-retention-range]
 func TestABackupIsKeptForOneToNinetyDays(t *testing.T) {
 	for _, tc := range []struct {
 		days      int
@@ -136,7 +136,7 @@ func TestABackupIsKeptForOneToNinetyDays(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-backups.feature#agent-backup-name-in-use] A backup can't reuse the name of a backup that's still kept
+// @scenario [#agent-backup-name-in-use]
 func TestABackupCantReuseTheNameOfOneStillKept(t *testing.T) {
 	h := newHarness()
 	h.setToday(2026, time.October, 14)
@@ -159,7 +159,7 @@ func TestABackupCantReuseTheNameOfOneStillKept(t *testing.T) {
 
 // The data the backup holds is checked against a real database in
 // TestAgentBackupHoldsTheDataAsItIsNow.
-// @scenario [features/agent-backups.feature#agent-backup-name-freed] An expired backup's name can be used again
+// @scenario [#agent-backup-name-freed]
 func TestAnExpiredBackupsNameCanBeUsedAgain(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-backups.feature] today is 2026-10-22
@@ -198,7 +198,7 @@ func TestListAgentIsByKeptUntilThenNameAndLeavesOutExpired(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-backups.feature#agent-backup-kept-through-last-day] A backup is still kept on the last day it's kept until
+// @scenario [#agent-backup-kept-through-last-day]
 func TestABackupIsKeptThroughItsLastDay(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-backups.feature] today is 2026-10-21
@@ -219,7 +219,7 @@ func TestABackupIsKeptThroughItsLastDay(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-backups.feature#agent-backup-expires] An expired backup is removed when Callback runs
+// @scenario [#agent-backup-expires]
 func TestAnExpiredBackupIsRemoved(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-backups.feature] today is 2026-10-22
@@ -244,7 +244,7 @@ func TestAnExpiredBackupIsRemoved(t *testing.T) {
 
 // The app opening as usual is TestStartupStillOpensWhenExpiredBackupsCantBeRemoved in the main
 // package.
-// @scenario [features/agent-backups.feature#agent-backup-expiry-retries] An expired backup that can't be removed yet is removed on a later run
+// @scenario [#agent-backup-expiry-retries]
 func TestAnExpiredBackupThatCantBeRemovedIsRemovedLater(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-backups.feature] today is 2026-10-22
@@ -274,7 +274,7 @@ func TestAnExpiredBackupThatCantBeRemovedIsRemovedLater(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-backups.feature#agent-restore-daily-backup] My agent can't restore a daily backup
+// @scenario [#agent-restore-daily-backup]
 func TestAgentCantRestoreADailyBackup(t *testing.T) {
 	h := newHarness()
 	h.setToday(2026, time.October, 14)
@@ -307,7 +307,7 @@ func TestAnAgentBackupNamedLikeADateCanBeRestored(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-backups.feature#agent-restore-unknown] My agent is told when there's no backup with that name
+// @scenario [#agent-restore-unknown]
 func TestRestoringABackupThatDoesntExist(t *testing.T) {
 	h := newHarness()
 	h.setToday(2026, time.October, 14)
@@ -342,7 +342,7 @@ func TestAnExpiredBackupCantBeRestored(t *testing.T) {
 }
 
 // What the restore brings back is TestRestoreBringsBackTheData, against a real database.
-// @scenario [features/agent-backups.feature#restore-backs-up-first] Restoring backs up my current data first
+// @scenario [#restore-backs-up-first]
 func TestRestoringBacksUpTheDataFirst(t *testing.T) {
 	h := newHarness()
 	// @given [features/agent-backups.feature] today is 2026-10-14

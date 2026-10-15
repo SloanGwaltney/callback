@@ -46,7 +46,7 @@ func nextActionDueOf(a *NextAction) NextActionDue {
 	return a.Due
 }
 
-// @scenario [features/job-next-action.feature#set-next-action] Set a next action with an expected date
+// @scenario [#set-next-action]
 func TestSetNextAction(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with no next action
@@ -66,7 +66,7 @@ func TestSetNextAction(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-next-action.feature#set-next-action-no-date] Set a next action without an expected date
+// @scenario [#set-next-action-no-date]
 func TestSetNextActionWithoutDate(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with no next action
@@ -86,7 +86,7 @@ func TestSetNextActionWithoutDate(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-next-action.feature#next-action-needs-text] A next action can't be saved without saying what it is
+// @scenario [#next-action-needs-text]
 func TestNextActionNeedsText(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with no next action
@@ -103,7 +103,7 @@ func TestNextActionNeedsText(t *testing.T) {
 	wantValidation(t, err, "write what the next action is")
 }
 
-// @scenario [features/job-next-action.feature#next-action-past-date] The expected date can be in the past
+// @scenario [#next-action-past-date]
 func TestNextActionPastDate(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-next-action.feature] today is 2026-10-09
@@ -125,7 +125,7 @@ func TestNextActionPastDate(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-next-action.feature#next-action-any-status] A next action can be set on a job in any status
+// @scenario [#next-action-any-status]
 func TestNextActionAnyStatus(t *testing.T) {
 	for _, status := range Statuses {
 		t.Run(status.Label(), func(t *testing.T) {
@@ -152,7 +152,7 @@ func TestNextActionAnyStatus(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-next-action.feature#edit-next-action] Change the next action and its expected date
+// @scenario [#edit-next-action]
 func TestEditNextAction(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with the next action "Waiting for a call back" expected on 2026-10-14
@@ -172,7 +172,7 @@ func TestEditNextAction(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-next-action.feature#clear-next-action-date] Clear only the expected date
+// @scenario [#clear-next-action-date]
 func TestClearNextActionDate(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with the next action "Waiting for a call back" expected on 2026-10-14
@@ -192,7 +192,7 @@ func TestClearNextActionDate(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-next-action.feature#clear-next-action] Clear the next action once it's done
+// @scenario [#clear-next-action]
 func TestClearNextAction(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with the next action "Waiting for a call back" expected on 2026-10-14
@@ -246,7 +246,7 @@ func TestNextActionUnknownJob(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-next-action.feature#card-shows-next-action] The card shows the next action and its expected date
+// @scenario [#card-shows-next-action]
 func TestCardShowsNextAction(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-next-action.feature] today is 2026-10-09
@@ -264,7 +264,7 @@ func TestCardShowsNextAction(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-next-action.feature#card-next-action-no-date] The card shows a next action with no expected date
+// @scenario [#card-next-action-no-date]
 func TestCardShowsNextActionWithoutDate(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with the next action "Send a thank-you email" and no expected date
@@ -284,7 +284,7 @@ func TestCardShowsNextActionWithoutDate(t *testing.T) {
 }
 
 func TestCardMarksNextActionDue(t *testing.T) {
-	// @scenario [features/job-next-action.feature#card-next-action-due-today] A next action expected today is marked as due
+	// @scenario [#card-next-action-due-today]
 	t.Run("due today", func(t *testing.T) {
 		h := newHarness(t)
 		// @given [features/job-next-action.feature] today is 2026-10-14
@@ -301,7 +301,7 @@ func TestCardMarksNextActionDue(t *testing.T) {
 		}
 	})
 
-	// @scenario [features/job-next-action.feature#card-next-action-overdue] A next action whose expected date has passed is marked as overdue
+	// @scenario [#card-next-action-overdue]
 	t.Run("overdue", func(t *testing.T) {
 		h := newHarness(t)
 		// @given [features/job-next-action.feature] today is 2026-10-15
@@ -318,7 +318,7 @@ func TestCardMarksNextActionDue(t *testing.T) {
 		}
 	})
 
-	// @scenario [features/job-next-action.feature#card-next-action-upcoming] A next action expected later isn't marked
+	// @scenario [#card-next-action-upcoming]
 	t.Run("upcoming", func(t *testing.T) {
 		h := newHarness(t)
 		// @given [features/job-next-action.feature] today is 2026-10-09
@@ -336,7 +336,7 @@ func TestCardMarksNextActionDue(t *testing.T) {
 	})
 }
 
-// @scenario [features/job-next-action.feature#closed-card-no-due-marks] A closed job's next action is never marked as due or overdue
+// @scenario [#closed-card-no-due-marks]
 func TestClosedCardNoDueMarks(t *testing.T) {
 	for _, expected := range []string{"2026-10-14", "2026-10-10"} {
 		t.Run(expected, func(t *testing.T) {
@@ -365,7 +365,7 @@ func TestClosedCardNoDueMarks(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-next-action.feature#card-no-next-action] A job with no next action shows none on its card
+// @scenario [#card-no-next-action]
 func TestCardNoNextAction(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with no next action
@@ -380,7 +380,7 @@ func TestCardNoNextAction(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-next-action.feature#view-next-action] See the next action when opening the card
+// @scenario [#view-next-action]
 func TestViewNextAction(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/job-next-action.feature] I have a job for "Software Engineer" at "Acme" with the next action "Waiting for a call back" expected on 2026-10-14
@@ -418,8 +418,7 @@ func TestOverdueMarksForTheFilter(t *testing.T) {
 		}
 	}
 
-	// @scenario [features/job-next-action.feature#filter-overdue] Show only overdue jobs
-	// @scenario [features/job-next-action.feature#filter-not-overdue] Show only jobs that aren't overdue
+	// @scenario [#filter-overdue] [#filter-not-overdue]
 	t.Run("overdue, later, and none", func(t *testing.T) {
 		h := newHarness(t)
 		// @given [features/job-next-action.feature] today is 2026-10-14
@@ -434,7 +433,7 @@ func TestOverdueMarksForTheFilter(t *testing.T) {
 		check(t, dues(t, h), map[string]NextActionDue{"Acme": DueOverdue, "Globex": DueNone, "Initech": DueNone})
 	})
 
-	// @scenario [features/job-next-action.feature#filter-show-all] Show every job again
+	// @scenario [#filter-show-all]
 	t.Run("overdue and none", func(t *testing.T) {
 		h := newHarness(t)
 		// @given [features/job-next-action.feature] today is 2026-10-14
@@ -447,7 +446,7 @@ func TestOverdueMarksForTheFilter(t *testing.T) {
 		check(t, dues(t, h), map[string]NextActionDue{"Acme": DueOverdue, "Globex": DueNone})
 	})
 
-	// @scenario [features/job-next-action.feature#filter-due-today-not-overdue] A job due today isn't overdue yet
+	// @scenario [#filter-due-today-not-overdue]
 	t.Run("due today", func(t *testing.T) {
 		h := newHarness(t)
 		// @given [features/job-next-action.feature] today is 2026-10-14
@@ -458,7 +457,7 @@ func TestOverdueMarksForTheFilter(t *testing.T) {
 		check(t, dues(t, h), map[string]NextActionDue{"Acme": DueToday})
 	})
 
-	// @scenario [features/job-next-action.feature#filter-closed-never-overdue] A closed job is never overdue
+	// @scenario [#filter-closed-never-overdue]
 	t.Run("closed", func(t *testing.T) {
 		h := newHarness(t)
 		// @given [features/job-next-action.feature] today is 2026-10-14
@@ -469,7 +468,7 @@ func TestOverdueMarksForTheFilter(t *testing.T) {
 		check(t, dues(t, h), map[string]NextActionDue{"Acme": DueNone})
 	})
 
-	// @scenario [features/job-next-action.feature#filter-keeps-columns] Filtered cards stay in their own columns and the counts show how many are shown
+	// @scenario [#filter-keeps-columns]
 	t.Run("several columns", func(t *testing.T) {
 		h := newHarness(t)
 		// @given [features/job-next-action.feature] today is 2026-10-14
@@ -489,7 +488,7 @@ func TestOverdueMarksForTheFilter(t *testing.T) {
 		})
 	})
 
-	// @scenario [features/job-next-action.feature#filter-with-search] The filter and the search both apply
+	// @scenario [#filter-with-search]
 	t.Run("search", func(t *testing.T) {
 		h := newHarness(t)
 		// @given [features/job-next-action.feature] today is 2026-10-14
@@ -504,7 +503,7 @@ func TestOverdueMarksForTheFilter(t *testing.T) {
 		check(t, dues(t, h), map[string]NextActionDue{"Acme": DueOverdue, "Globex": DueOverdue, "Initech": DueNone})
 	})
 
-	// @scenario [features/job-next-action.feature#filter-no-matches] Told when no jobs match the filter
+	// @scenario [#filter-no-matches]
 	t.Run("none overdue", func(t *testing.T) {
 		h := newHarness(t)
 		// @given [features/job-next-action.feature] today is 2026-10-14
@@ -517,7 +516,7 @@ func TestOverdueMarksForTheFilter(t *testing.T) {
 	})
 }
 
-// @scenario [features/job-next-action.feature#move-keeps-next-action] Moving a card keeps its next action
+// @scenario [#move-keeps-next-action]
 func TestMoveKeepsNextAction(t *testing.T) {
 	for _, to := range []Status{StatusOffer, StatusApplied, StatusClosed} {
 		t.Run(to.Label(), func(t *testing.T) {
@@ -579,8 +578,7 @@ func TestNextActionDue(t *testing.T) {
 
 // The command line lists and filters jobs by the due marks the board gives; its tests in
 // internal/cli take the marks as given.
-// @scenario [features/agent-cli-jobs.feature#cli-list-overdue-marked] The list marks a next action that's due or overdue
-// @scenario [features/agent-cli-jobs.feature#cli-filter-overdue] List only the jobs whose next action is overdue
+// @scenario [#cli-list-overdue-marked] [#cli-filter-overdue]
 func TestDueMarksForTheCommandLine(t *testing.T) {
 	h := newHarness(t)
 	// @given [features/agent-cli-jobs.feature] today is 2026-10-14

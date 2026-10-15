@@ -48,7 +48,7 @@ func writeFile(t *testing.T, path, content string) {
 	}
 }
 
-// @scenario [features/daily-backups.feature#backup-holds-data-not-documents] A backup holds my data but not the attached documents' files
+// @scenario [#backup-holds-data-not-documents]
 func TestABackupHoldsTheDataButNotTheDocumentsFiles(t *testing.T) {
 	ctx := context.Background()
 	dataDir := t.TempDir()
@@ -111,7 +111,7 @@ func TestABackupHoldsTheDataButNotTheDocumentsFiles(t *testing.T) {
 	}
 }
 
-// @scenario [features/daily-backups.feature#backup-failure-still-starts] Callback still starts when the daily backup fails
+// @scenario [#backup-failure-still-starts]
 func TestAFailedBackupLeavesNothingBehind(t *testing.T) {
 	dataDir := t.TempDir()
 	d := NewDir(dataDir)

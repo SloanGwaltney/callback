@@ -91,7 +91,7 @@ func TestLibraryQueries(t *testing.T) {
 	}
 }
 
-// @scenario [features/document-library.feature#library-newest-first] The newest documents are listed first
+// @scenario [#library-newest-first]
 func TestListLibraryDocumentsIsNewestFirst(t *testing.T) {
 	s, _ := openStore(t, t.TempDir())
 
@@ -114,7 +114,7 @@ func TestListLibraryDocumentsIsNewestFirst(t *testing.T) {
 
 // The command line prints the library in this order; internal/cli's TestAgentListsTheLibrary
 // checks what it prints for each document.
-// @scenario [features/agent-cli-library.feature#cli-list-library] List the library
+// @scenario [#cli-list-library]
 func TestAgentListsTheLibraryNewestFirst(t *testing.T) {
 	s, _ := openStore(t, t.TempDir())
 
@@ -148,7 +148,7 @@ func TestNewestFirstAfterRemovingTheNewest(t *testing.T) {
 	}
 }
 
-// @scenario [features/document-library.feature#library-persists] The library is the same after reopening the app
+// @scenario [#library-persists]
 func TestLibraryPersistsAcrossReopen(t *testing.T) {
 	dataDir := t.TempDir()
 	s, conn := openStore(t, dataDir)
@@ -171,7 +171,7 @@ func TestLibraryPersistsAcrossReopen(t *testing.T) {
 	}
 }
 
-// @scenario [features/document-library.feature#delete-job-keeps-library] Deleting a job doesn't touch the library
+// @scenario [#delete-job-keeps-library]
 func TestDeleteJobKeepsLibraryRows(t *testing.T) {
 	s, _ := openStore(t, t.TempDir())
 	ctx := context.Background()
@@ -194,7 +194,7 @@ func TestDeleteJobKeepsLibraryRows(t *testing.T) {
 	}
 }
 
-// @scenario [features/document-library.feature#remove-library-keeps-attachments] Removing a library document doesn't remove it from jobs
+// @scenario [#remove-library-keeps-attachments]
 func TestDeleteLibraryDocumentKeepsJobDocuments(t *testing.T) {
 	s, _ := openStore(t, t.TempDir())
 	ctx := context.Background()

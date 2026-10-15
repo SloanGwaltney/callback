@@ -108,7 +108,7 @@ func TestInterviewQueries(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interviews.feature#interviews-in-date-order] Interviews are listed from earliest to latest
+// @scenario [#interviews-in-date-order]
 func TestListInterviewsForJobIsInDateOrder(t *testing.T) {
 	s, _ := openStore(t, t.TempDir())
 	ctx := context.Background()
@@ -135,7 +135,7 @@ func TestListInterviewsForJobIsInDateOrder(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interviews.feature#interviews-same-day-by-time] Interviews on the same day are listed by time, with untimed ones last
+// @scenario [#interviews-same-day-by-time]
 func TestListInterviewsForJobOrdersSameDayByTime(t *testing.T) {
 	s, _ := openStore(t, t.TempDir())
 	ctx := context.Background()
@@ -181,7 +181,7 @@ func TestListUpcomingInterviews(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interviews.feature#interviews-persist] Interviews are the same after reopening the app
+// @scenario [#interviews-persist]
 func TestInterviewsPersistAcrossReopen(t *testing.T) {
 	dataDir := t.TempDir()
 	s, conn := openStore(t, dataDir)
@@ -206,7 +206,7 @@ func TestInterviewsPersistAcrossReopen(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interviews.feature#interviews-deleted-with-job] Deleting a job deletes its interviews
+// @scenario [#interviews-deleted-with-job]
 func TestDeleteJobDeletesItsInterviewRows(t *testing.T) {
 	s, _ := openStore(t, t.TempDir())
 	ctx := context.Background()

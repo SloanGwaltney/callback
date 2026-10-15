@@ -254,7 +254,7 @@ func TestDocumentQueries(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-documents.feature#card-shows-document-count] The card shows that documents are attached
+// @scenario [#card-shows-document-count]
 func TestListJobsCountsDocuments(t *testing.T) {
 	s, _ := openStore(t, t.TempDir())
 	ctx := context.Background()
@@ -354,7 +354,7 @@ func TestContactQueries(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-contacts.feature#view-contacts] See a job's contacts when opening its card
+// @scenario [#view-contacts]
 func TestListContactsForJobIsInOrderAdded(t *testing.T) {
 	s, _ := openStore(t, t.TempDir())
 	ctx := context.Background()
@@ -383,7 +383,7 @@ func TestListContactsForJobIsInOrderAdded(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-contacts.feature#contacts-persist] Contacts are the same after reopening the app
+// @scenario [#contacts-persist]
 func TestContactsPersistAcrossReopen(t *testing.T) {
 	dataDir := t.TempDir()
 	s, conn := openStore(t, dataDir)
@@ -408,7 +408,7 @@ func TestContactsPersistAcrossReopen(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-contacts.feature#contacts-deleted-with-job] Deleting a job deletes its contacts
+// @scenario [#contacts-deleted-with-job]
 func TestDeleteJobDeletesItsContactRows(t *testing.T) {
 	s, _ := openStore(t, t.TempDir())
 	ctx := context.Background()
@@ -433,7 +433,7 @@ func TestDeleteJobDeletesItsContactRows(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-board.feature#board-persists] Board is the same after reopening the app
+// @scenario [#board-persists]
 func TestBoardPersistsAcrossReopen(t *testing.T) {
 	dataDir := t.TempDir()
 	s, conn := openStore(t, dataDir)
@@ -454,7 +454,7 @@ func TestBoardPersistsAcrossReopen(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-interest.feature#interest-persists] The interest rating is the same after reopening the app
+// @scenario [#interest-persists]
 func TestInterestPersistsAcrossReopen(t *testing.T) {
 	dataDir := t.TempDir()
 	s, conn := openStore(t, dataDir)
@@ -501,7 +501,7 @@ func TestUpdateJobDetailsSetsAndClearsInterest(t *testing.T) {
 	}
 }
 
-// @scenario [features/job-board.feature#card-order-persists] Card order is the same after reopening the app
+// @scenario [#card-order-persists]
 func TestCardOrderPersistsAcrossReopen(t *testing.T) {
 	dataDir := t.TempDir()
 	s, conn := openStore(t, dataDir)
@@ -523,7 +523,7 @@ func TestCardOrderPersistsAcrossReopen(t *testing.T) {
 
 // The command line's `job delete` calls the jobs service's DeleteJob, which deletes the job's row
 // and its documents' stored copies (TestDeleteJob in internal/jobs); the rest go with the row.
-// @scenario [features/agent-cli-jobs.feature#cli-delete-job] Delete a job
+// @scenario [#cli-delete-job]
 func TestDeleteJobDeletesEverythingOnIt(t *testing.T) {
 	s, _ := openStore(t, t.TempDir())
 	ctx := context.Background()

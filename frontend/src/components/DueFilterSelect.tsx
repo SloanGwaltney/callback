@@ -8,9 +8,7 @@ type Props = {
 
 // DueFilterSelect filters the board to overdue jobs, jobs that aren't overdue, or every job. Like
 // the search, the filter is the app's state, not saved, so every job shows each time the app opens.
-// @scenario [features/job-next-action.feature#filter-overdue] Show only overdue jobs
-// @scenario [features/job-next-action.feature#filter-not-overdue] Show only jobs that aren't overdue
-// @scenario [features/job-next-action.feature#filter-show-all] Show every job again
+// @scenario [#filter-overdue] [#filter-not-overdue] [#filter-show-all]
 export function DueFilterSelect({ value, onChange }: Props) {
 	return (
 		<label className={styles.filter}>

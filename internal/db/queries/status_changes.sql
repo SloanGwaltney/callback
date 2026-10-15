@@ -6,8 +6,7 @@ VALUES (?, ?, ?, ?, ?);
 -- name: ListStatusChangesForJob :many
 -- A job's status history from oldest to newest. Rows are only ever added, so ID order is the order
 -- the changes happened in, even on the same day.
--- @scenario [features/job-status-history.feature#history-oldest-first] The history lists every change from oldest to newest
--- @scenario [features/job-status-history.feature#history-same-day-order] Several changes on the same day keep the order they happened in
+-- @scenario [#history-oldest-first] [#history-same-day-order]
 SELECT * FROM status_changes
 WHERE job_id = ?
 ORDER BY id;

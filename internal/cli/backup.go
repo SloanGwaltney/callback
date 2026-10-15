@@ -11,7 +11,7 @@ import (
 // backupCommands are the commands for agent backups, in the order the help lists them. There's no
 // command to delete a backup: each is removed once it expires. The rules are the backups
 // service's.
-// @scenario [features/agent-backups.feature#agent-cant-delete-backup] My agent has no way to delete a backup
+// @scenario [#agent-cant-delete-backup]
 var backupCommands = []*command{
 	{
 		path:      []string{"backup", "make"},
@@ -53,13 +53,7 @@ var backupCommands = []*command{
 	},
 }
 
-// @scenario [features/agent-backups.feature#agent-backup] My agent backs up my data under a name, kept for a number of days
-// @scenario [features/agent-backups.feature#agent-backup-needs-name] A backup needs a name
-// @scenario [features/agent-backups.feature#agent-backup-name-characters] A backup name may only use letters, numbers, hyphens, and underscores
-// @scenario [features/agent-backups.feature#agent-backup-needs-retention] A backup needs to say how many days it's kept
-// @scenario [features/agent-backups.feature#agent-backup-retention-range] A backup is kept for 1 to 90 days
-// @scenario [features/agent-backups.feature#agent-backup-name-in-use] A backup can't reuse the name of a backup that's still kept
-// @scenario [features/agent-backups.feature#agent-backup-name-freed] An expired backup's name can be used again
+// @scenario [#agent-backup] [#agent-backup-needs-name] [#agent-backup-name-characters] [#agent-backup-needs-retention] [#agent-backup-retention-range] [#agent-backup-name-in-use] [#agent-backup-name-freed]
 func makeBackup(c *call) error {
 	value, ok := c.value("days")
 	if !ok {
@@ -78,7 +72,7 @@ func makeBackup(c *call) error {
 	})
 }
 
-// @scenario [features/agent-backups.feature#agent-list-backups] My agent lists the backups agents have made
+// @scenario [#agent-list-backups]
 func listBackups(c *call) error {
 	listed, err := c.backups.ListAgent()
 	if err != nil {
@@ -104,19 +98,7 @@ type restoredJSON struct {
 	Undo     backups.AgentBackup `json:"undo"`
 }
 
-// @scenario [features/agent-backups.feature#agent-restore] My agent restores a backup
-// @scenario [features/agent-backups.feature#agent-restore-earlier-backup] My agent restores a backup another agent made earlier
-// @scenario [features/agent-backups.feature#agent-restore-daily-backup] My agent can't restore a daily backup
-// @scenario [features/agent-backups.feature#agent-restore-unknown] My agent is told when there's no backup with that name
-// @scenario [features/agent-backups.feature#restore-keeps-backups] Restoring doesn't change which backups are kept
-// @scenario [features/agent-backups.feature#restore-older-backup] A backup from an older version is brought up to date when it's restored
-// @scenario [features/agent-backups.feature#restore-newer-backup] A backup from a newer version can't be restored
-// @scenario [features/agent-backups.feature#restore-app-open-safe] Restoring while the app is open doesn't need the app closed
-// @scenario [features/agent-backups.feature#restore-backs-up-first] Restoring backs up my current data first
-// @scenario [features/agent-backups.feature#undo-restore] My agent undoes a restore
-// @scenario [features/agent-backups.feature#restore-missing-document-file] A document removed after the backup is listed again but its file is gone
-// @scenario [features/agent-backups.feature#restore-app-open] The app shows the restored data when I come back to it
-// @scenario [features/agent-backups.feature#restore-keeps-document-files] Restoring never deletes a document's file
+// @scenario [#agent-restore] [#agent-restore-earlier-backup] [#agent-restore-daily-backup] [#agent-restore-unknown] [#restore-keeps-backups] [#restore-older-backup] [#restore-newer-backup] [#restore-app-open-safe] [#restore-backs-up-first] [#undo-restore] [#restore-missing-document-file] [#restore-app-open] [#restore-keeps-document-files]
 func restoreBackup(c *call) error {
 	undo, err := c.backups.Restore(c.ctx, c.name)
 	if err != nil {

@@ -10,7 +10,7 @@ import (
 	"callback/internal/jobs"
 )
 
-// @scenario [features/agent-cli.feature#cli-help] The help lists every command
+// @scenario [#cli-help]
 func TestHelpListsEveryCommand(t *testing.T) {
 	h := newHarness()
 
@@ -38,7 +38,7 @@ func TestEveryWayOfAskingForHelpGivesIt(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli.feature#cli-help-points-to-overview] The help points my agent to the overview
+// @scenario [#cli-help-points-to-overview]
 func TestHelpPointsToTheOverview(t *testing.T) {
 	// @when [features/agent-cli.feature] my agent asks Callback for help
 	r := newHarness().run("--help")
@@ -49,7 +49,7 @@ func TestHelpPointsToTheOverview(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli.feature#cli-command-help] The help for a command lists its options and the values they take
+// @scenario [#cli-command-help]
 func TestCommandHelpListsItsOptionsAndValues(t *testing.T) {
 	h := newHarness()
 
@@ -93,7 +93,7 @@ func TestEveryCommandHasHelp(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli.feature#cli-help-lists-choices] The help lists the values for every option that takes a fixed set
+// @scenario [#cli-help-lists-choices]
 func TestHelpListsTheChoices(t *testing.T) {
 	// described lists choices as the help writes them, "value (Label)".
 	described := func(values []string, label func(string) string) []string {
@@ -143,7 +143,7 @@ func TestAddingAJobDoesntOfferClosed(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli.feature#cli-help-stored-files] The help says how to use a document's stored copy
+// @scenario [#cli-help-stored-files]
 func TestShowHelpSaysHowToUseStoredCopies(t *testing.T) {
 	// @when [features/agent-cli.feature] my agent asks for help on showing a job
 	r := newHarness().run("job", "show", "--help")
@@ -182,7 +182,7 @@ func wantPhrases(t *testing.T, text string, phrases ...string) {
 	}
 }
 
-// @scenario [features/agent-cli.feature#cli-overview] My agent can read an overview of Callback and its commands
+// @scenario [#cli-overview]
 func TestOverview(t *testing.T) {
 	// @when [features/agent-cli.feature] my agent asks Callback for its overview
 	text := overview(t)
@@ -204,7 +204,7 @@ func TestOverview(t *testing.T) {
 		"--description-file job.txt", "## Errors", "standard error")
 }
 
-// @scenario [features/agent-cli.feature#cli-overview-limits] The overview says what my agent can't do
+// @scenario [#cli-overview-limits]
 func TestOverviewSaysWhatTheAgentCantDo(t *testing.T) {
 	// @when [features/agent-cli.feature] my agent asks Callback for its overview
 	text := overview(t)
@@ -216,7 +216,7 @@ func TestOverviewSaysWhatTheAgentCantDo(t *testing.T) {
 	wantPhrases(t, text, "Never edit a document's stored copy. To change a job's document, attach a new file in its place.")
 }
 
-// @scenario [features/agent-cli.feature#cli-overview-read-documents] The overview tells my agent it can read my documents
+// @scenario [#cli-overview-read-documents]
 func TestOverviewSaysTheAgentCanReadDocuments(t *testing.T) {
 	// @when [features/agent-cli.feature] my agent asks Callback for its overview
 	text := overview(t)
@@ -231,7 +231,7 @@ func TestOverviewSaysTheAgentCanReadDocuments(t *testing.T) {
 	wantPhrases(t, text, "Read them when they help with what you're doing")
 }
 
-// @scenario [features/agent-cli.feature#cli-overview-working-safely] The overview tells my agent how to work safely
+// @scenario [#cli-overview-working-safely]
 func TestOverviewSaysHowToWorkSafely(t *testing.T) {
 	// @when [features/agent-cli.feature] my agent asks Callback for its overview
 	text := overview(t)
@@ -244,7 +244,7 @@ func TestOverviewSaysHowToWorkSafely(t *testing.T) {
 		"restoring that one undoes the restore")
 }
 
-// @scenario [features/agent-cli.feature#cli-overview-matches-commands] Every command the overview names is one Callback has
+// @scenario [#cli-overview-matches-commands]
 func TestEveryCommandTheOverviewNamesIsOne(t *testing.T) {
 	// @when [features/agent-cli.feature] my agent asks Callback for its overview
 	text := overview(t)
@@ -265,7 +265,7 @@ func TestEveryCommandTheOverviewNamesIsOne(t *testing.T) {
 	}
 }
 
-// @scenario [features/agent-cli.feature#cli-exit-codes-listed] The overview lists every exit code and what it means
+// @scenario [#cli-exit-codes-listed]
 func TestOverviewListsEveryExitCode(t *testing.T) {
 	// @when [features/agent-cli.feature] my agent asks Callback for its overview
 	text := overview(t)
