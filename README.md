@@ -2,8 +2,9 @@
 
 A desktop app for tracking a job search, built with AI coding agents in a codebase designed so
 agents can find, build, and check their own work. Each job you're applying to is a card on a
-Kanban board, laid out by status, with its details, closing reason, and the documents you sent
-attached.
+Kanban board, laid out by status, with its details, contacts, interviews, next action, and the
+documents you sent. Your own AI agent can work with the same data through a command line program
+shipped beside the app.
 
 ## How this was built
 
@@ -47,6 +48,13 @@ the first thing built on it.** None of it is thrown away when the next feature c
 The two-hour build is the payoff: once the foundation exists, a detailed spec becomes working,
 tested, traceable code quickly, and keeps doing so for each feature after it.
 
+It kept doing so. In the week after, in spare hours between other work and life, the same loop
+added CI and tagged releases, then 15 more features: search and pagination, interest ratings,
+contacts, interviews, next actions, status history, a document library, daily backups, data
+version checks, and a command line for the user's own agent. The specs grew from 3 features to 18
+and nearly 300 scenarios, and the ADRs to 26. The foundation stayed largely the same throughout,
+with changes made along the way as needed to better support AI-driven development.
+
 ## Built for AI agents
 
 Most of callback's code is written by Claude Code. The interesting part of this repo isn't the
@@ -67,16 +75,25 @@ Scenario: The card shows that documents are attached
   Then the card shows that it has 2 documents
 ```
 
-The code that carries out each step, and the tests that check it, carry a comment naming that
-step, at every layer from the SQL query up to the React component:
+The code that implements a scenario names its ID on an `@scenario` line at each entry point,
+from the Wails binding to the React component, and every test that checks it names the scenario
+and each step it carries out:
 
 ```ts
-{/* @then [features/job-documents.feature] the card shows that it has 2 documents */}
-{card.documentCount > 0 && <p className={styles.documents}>{documents}</p>}
+// @scenario [#card-shows-document-count]
+it("shows how many documents are attached", () => {
+  // @given [features/job-documents.feature] I have a job for "Software Engineer" at "Acme" with 2 attached documents
+  // @when [features/job-documents.feature] I look at the card on the board
+  render(<JobCard card={card(1, "Acme", { documentCount: 2 })} onOpen={() => {}} />);
+
+  // @then [features/job-documents.feature] the card shows that it has 2 documents
+  expect(screen.getByText("2 documents")).toBeInTheDocument();
+});
 ```
 
 So a text search for a scenario ID or a step finds everything about it: its code, its tests,
-and the decisions behind it. The codebase is **grep-complete**
+and the decisions behind it. How the links are written is in
+[docs/spec-annotations.md](docs/spec-annotations.md). The codebase is **grep-complete**
 ([ADR 0001](docs/adr/0001-design-the-codebase-to-be-grep-complete.md)), which is how an agent
 starting cold finds its way around without reading everything. `spectrace` lays it out layer by
 layer:
@@ -84,25 +101,37 @@ layer:
 ```
 $ go run ./cmd/spectrace card-shows-document-count
 
+Scenario: The card shows that documents are attached
+  features/job-documents.feature:29  @id:card-shows-document-count  @status:implemented
+
+Entry points (@scenario)
+  storage test   internal/db/store_test.go:257                @scenario
+  service test   internal/jobs/board_test.go:76               @scenario
+  Wails binding  app.go:74                                    @scenario
+  frontend       frontend/src/components/JobCard.tsx:21       @scenario
+  frontend test  frontend/src/components/JobCard.test.tsx:30  @scenario
+
+...
+
 Then the card shows that it has 2 documents  (features/job-documents.feature:32)
-  SQL query      internal/db/queries/jobs.sql:6               @then
-  storage test   internal/db/store_test.go:237                @then
-  service        internal/jobs/board.go:90                    @then
+  storage test   internal/db/store_test.go:277                @then
   service test   internal/jobs/board_test.go:88               @then
-  frontend       frontend/src/components/JobCard.tsx:42       @then
   frontend test  frontend/src/components/JobCard.test.tsx:36  @then
 
-Fully linked: @scenario and all 3 steps in code and tests.
+Fully linked: @scenario in code and tests, and all 3 steps in tests.
 ```
 
 ### The links are enforced, not hoped for
 
 - **`speclint`** ([internal/speclint/](internal/speclint/)) fails on any annotation that doesn't
   match the spec word for word, uses the wrong keyword, or points at a missing or withdrawn
-  scenario, and on any implemented scenario or step with no link in code or in tests.
+  scenario, and on any implemented scenario with no `@scenario` link in code and tests, or step
+  with no link in tests.
 - **One script** ([scripts/check.sh](scripts/check.sh)) runs speclint alongside gofmt, `go vet`,
   `tsc`, Biome, and every test, so the agent, a person, and a pipeline all check the same thing.
-  The agent runs it on every turn; see the Stop hook below.
+  The agent runs it on every turn (see the Stop hook below), and GitHub Actions runs it on every
+  pull request, with a ruleset on `main` that blocks merging until it passes
+  ([ADR 0018](docs/adr/0018-enforce-the-check-script-in-github-actions-before-merging.md)).
 
 ### A repeatable workflow, as agent skills
 
@@ -111,13 +140,18 @@ each step runs the same way every time:
 
 1. **`/bdd-feature`** turns a plain-language description into scenarios with IDs and statuses.
 2. **`/adr`** records a decision (a library, a data model, a pattern) with the reasons and the
-   alternatives rejected, and links it to the scenarios it affects. 17 ADRs so far, in
-   [docs/adr/](docs/adr/).
+   alternatives rejected, and links it to the scenarios it affects. 26 ADRs so far, in
+   [docs/adr/](docs/adr/). Before one, **`/research`** can lay out the options with their pros
+   and cons and recommend one, leaving the choice to the person.
 3. **`/feature`** builds named scenarios end to end: it plans, builds from the schema up to the
    UI, annotates and tests every step, runs every check, and traces each scenario with
    `spectrace` to prove nothing is missing.
-4. A person confirms the feature works in the app. Only then is the scenario marked
+4. The agent runs the app itself, in headless Chrome, and looks at screenshots to check visual
+   and interaction changes the unit tests can't see (see [AGENTS.md](AGENTS.md#seeing-the-app)).
+5. A person confirms the feature works in the app. Only then is the scenario marked
    `implemented`, and from then on speclint holds every one of its links in place.
+6. **`/retro`** looks back at what was slow or painful in the work just done and proposes fixes
+   to the tooling, conventions, or code, for the person to choose from.
 
 ### Guardrails for the agent
 
@@ -148,17 +182,33 @@ each step runs the same way every time:
 
 - **Board.** Five columns: Saved, Applied, Interviewing, Offer, and Closed. Drag cards between
   columns and reorder them, with the mouse or the keyboard. Each column shows how many jobs it
-  holds.
+  holds, 10 cards to a page. Search by title or company, and filter to the jobs whose next action
+  is overdue.
 - **Job cards.** Record the company, role, job description, posting link, salary, location,
-  notes, and date applied. Moving a card to Applied fills in today's date, and moving it back to
-  Saved clears it.
+  notes, date applied, and a one-to-five-star interest rating. Moving a card to Applied fills in
+  today's date, and moving it back to Saved clears it. Each card shows how many days the job has
+  been in its status, its next interview, its next action, and how many documents it has.
 - **Closing a job.** Moving a card to Closed asks why: rejected, withdrew, no response, declined
   offer, position filled, or your own reason.
-- **Documents.** Attach the resume, cover letter, or other files you sent for each job. The app
-  keeps its own copy, so an attachment still opens if you move or delete the original.
+- **Contacts and interviews.** Keep the people you're dealing with on each job, and its
+  interviews, past and upcoming.
+- **Next action.** Write down what you're waiting for or need to do next, and when. Cards mark
+  it when it's due today or overdue.
+- **Status history.** See when a job moved between statuses.
+- **Documents.** Attach the resume, cover letter, or other files you sent for each job, and keep
+  the ones you reuse, like a base resume, in a document library. The app keeps its own copy, so a
+  document still opens if you move or delete the original.
+- **Backups.** The app backs up your data once on each day it runs and keeps the last 15. It
+  refuses data that a newer version of callback has updated, so an older one can't damage it.
+- **Your agent.** `callback-cli` lets the AI agent you already use (Claude Code or any other)
+  list, add, update, move, and close jobs, manage their contacts, interviews, and documents, add
+  to the library, and back up and restore your data first. Run `callback-cli --help` for its
+  commands, and have your agent read `callback-cli --overview` before it starts. There's no model
+  or API key inside the app
+  ([ADR 0023](docs/adr/0023-let-users-drive-agent-tasks-from-their-own-agent-through-a-cli.md)).
 
-Everything stays on your computer: the jobs in a SQLite database and the attached documents as
-files, both in your OS's usual app data directory under `callback`.
+Everything stays on your computer: the jobs in a SQLite database, the documents as files, and
+the backups, all in your OS's usual app data directory under `callback`.
 
 ## Tech stack
 
@@ -169,6 +219,8 @@ files, both in your OS's usual app data directory under `callback`.
 - **Tests:** Go tests with hand-written fakes, storage tests against real SQLite, and Vitest with
   React Testing Library on the frontend
 - **Lint:** gofmt, `go vet`, Biome, `tsc`, and speclint
+- **CI and releases:** GitHub Actions runs the checks on Windows; pushing a `vX.Y.Z` tag builds a
+  draft GitHub Release with Windows and Linux binaries
 
 Each choice, and why, is in [AGENTS.md](AGENTS.md) and [docs/adr/](docs/adr/).
 
@@ -214,11 +266,25 @@ bash scripts/check.sh             # everything
 bash scripts/check.sh --no-tests  # what the Stop hook runs
 ```
 
+To run the agent CLI against the same data:
+
+```sh
+go run ./cmd/callback-cli --help
+```
+
+Set `CALLBACK_DATA_DIR` to point the app or the CLI at a different data directory, for example to
+try things without touching your own job search.
+
 To build the app into `build/bin/`:
 
 ```sh
 wails build
 ```
+
+To release, push an annotated `vX.Y.Z` tag on `main`. That builds a draft GitHub Release with the
+app and `callback-cli` for Windows and Linux and their checksums; write the notes in the draft,
+then publish it
+([ADR 0019](docs/adr/0019-release-by-pushing-a-tag-that-builds-a-draft-github-release.md)).
 
 ## Project layout
 
@@ -228,9 +294,12 @@ wails build
 | `docs/adr/` | Architecture decision records |
 | `docs/spec-annotations.md` | How code and tests link to the specs |
 | `AGENTS.md` | Instructions for AI agents: stack, conventions, dependency policy |
-| `.claude/` | Agent skills and the Stop hook |
+| `.claude/` | Agent skills, the Stop hook, and the package install denials |
+| `.github/workflows/` | CI (`check.yml`) and releases (`release.yml`) |
 | `main.go`, `app.go` | App startup, and the methods bound to the frontend |
-| `internal/jobs/` | The business rules for jobs, the board, and documents |
+| `cmd/callback-cli/`, `internal/cli/` | The agent CLI, its commands, and its `--overview` |
+| `internal/jobs/` | The business rules for jobs, the board, their records, and the library |
+| `internal/backups/` | Daily backups, and the backups agents make and restore |
 | `internal/db/` | Opening the database, migrations, SQL queries, and the transactional store |
 | `internal/store/` | Go generated by sqlc from the queries |
 | `internal/docfiles/` | The app's copies of attached documents |
@@ -239,5 +308,7 @@ wails build
 | `internal/speclint/` | The spec link linter and tracer, run by `cmd/speclint` and `cmd/spectrace` |
 | `frontend/src/hooks/` | React hooks wrapping the Wails bindings, the only code that calls them |
 | `frontend/src/components/` | React components, each with its own CSS Module |
+| `frontend/src/board/` | Board search, pagination, and drag and drop logic |
 | `frontend/src/styles/tokens.css` | Design tokens: colors, spacing, and type |
 | `scripts/check.sh` | Runs every check |
+| `scripts/drive/` | Runs the app headless and drives it in Chrome, for the agent to see changes |
