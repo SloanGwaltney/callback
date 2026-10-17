@@ -6,6 +6,8 @@ Kanban board, laid out by status, with its details, contacts, interviews, next a
 documents you sent. Your own AI agent can work with the same data through a command line program
 shipped beside the app.
 
+![The board: jobs as cards in Saved, Applied, Interviewing, Offer, and Closed columns, with ratings, days in status, upcoming interviews, and next actions marked overdue or due today](docs/screenshots/board.png)
+
 ## How this was built
 
 callback went from an empty Wails template to a working app in one day, October 9, 2026, after
@@ -218,6 +220,24 @@ each step runs the same way every time:
 
 Everything stays on your computer: the jobs in a SQLite database, the documents as files, and
 the backups, all in your OS's usual app data directory under `callback`.
+
+### Screenshots
+
+Opening a card shows the job's details, ready to edit:
+
+![A job's details: company, role, location, salary, link, date applied, an interest rating, the job description, and notes](docs/screenshots/job.png)
+
+and below them its next action, interviews, contacts, and documents:
+
+![A job's next action, its past and upcoming interviews, its contacts, and its attached documents, one to a line](docs/screenshots/job-records.png)
+
+The document library, and the backups the app makes each day:
+
+![The document library, listing reusable documents like a base resume and a cover letter template](docs/screenshots/library.png)
+
+![The backups page, listing a daily backup for each day the app ran, each with a Restore button](docs/screenshots/backups.png)
+
+The screenshots show made-up companies and people.
 
 ## Tech stack
 
