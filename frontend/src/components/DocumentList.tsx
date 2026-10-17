@@ -13,8 +13,8 @@ type Props = {
 	onChanged: () => void;
 };
 
-// DocumentList shows the documents attached to a job, and attaches, opens, relabels, and removes
-// them.
+// DocumentList shows the documents attached to a job, one to a line, and attaches, opens, relabels,
+// and removes them.
 // @scenario [#attach-document] [#attach-multiple-documents] [#allowed-file-types] [#file-type-any-case] [#disallowed-file-types] [#file-size-limit] [#file-size-at-limit] [#open-document] [#document-kept-if-original-moved] [#change-document-kind] [#remove-document] [#same-document-many-jobs] [#open-missing-document] [#remove-missing-document]
 export function DocumentList({ jobId, documents, onChanged }: Props) {
 	const { attach, setKind, remove, open } = useDocuments();
@@ -31,9 +31,35 @@ export function DocumentList({ jobId, documents, onChanged }: Props) {
 
 	return (
 		<section className={styles.documents} aria-labelledby={`${kindId}-title`}>
-			<h3 id={`${kindId}-title`} className={styles.title}>
-				Documents
-			</h3>
+			<div className={styles.header}>
+				<h3 id={`${kindId}-title`} className={styles.title}>
+					Documents
+				</h3>
+				<div className={styles.attach}>
+					<label htmlFor={kindId} className={styles.kindLabel}>
+						Attach as
+					</label>
+					<select
+						id={kindId}
+						className={styles.select}
+						value={kind}
+						onChange={(e) => setNewKind(e.target.value)}
+					>
+						{DOCUMENT_KINDS.map((k) => (
+							<option key={k.value} value={k.value}>
+								{k.label}
+							</option>
+						))}
+					</select>
+					<button
+						type="button"
+						className={styles.button}
+						onClick={() => change(() => attach(jobId, kind))}
+					>
+						Attach a document…
+					</button>
+				</div>
+			</div>
 			{documents.length === 0 ? (
 				<p className={styles.none}>No documents attached.</p>
 			) : (
@@ -62,7 +88,7 @@ export function DocumentList({ jobId, documents, onChanged }: Props) {
 							</select>
 							<button
 								type="button"
-								className={styles.button}
+								className={styles.danger}
 								aria-label={`Remove ${doc.fileName}`}
 								onClick={() => change(() => remove(doc.id))}
 							>
@@ -72,30 +98,6 @@ export function DocumentList({ jobId, documents, onChanged }: Props) {
 					))}
 				</ul>
 			)}
-			<div className={styles.attach}>
-				<label htmlFor={kindId} className={styles.kindLabel}>
-					Attach as
-				</label>
-				<select
-					id={kindId}
-					className={styles.select}
-					value={kind}
-					onChange={(e) => setNewKind(e.target.value)}
-				>
-					{DOCUMENT_KINDS.map((k) => (
-						<option key={k.value} value={k.value}>
-							{k.label}
-						</option>
-					))}
-				</select>
-				<button
-					type="button"
-					className={styles.button}
-					onClick={() => change(() => attach(jobId, kind))}
-				>
-					Attach a document…
-				</button>
-			</div>
 			<ErrorMessage message={error} />
 		</section>
 	);

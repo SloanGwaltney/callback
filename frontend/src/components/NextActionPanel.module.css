@@ -1,20 +1,22 @@
 .panel {
 	margin-top: var(--space-5);
 	padding-top: var(--space-4);
-	border-top: 1px solid var(--color-border);
+	border-top: 1px solid var(--color-divider);
 }
 
-.header {
+/* Everything sits on one line: the title, what's next and when, and the buttons at the right.
+   Editing happens on the same line. It wraps only when there isn't room. */
+.row {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
-	justify-content: space-between;
-	gap: var(--space-2);
-	margin-bottom: var(--space-3);
+	gap: var(--space-2) var(--space-3);
 }
 
 .title {
 	margin: 0;
 	font-size: var(--font-size-md);
+	white-space: nowrap;
 }
 
 .none {
@@ -24,26 +26,49 @@
 }
 
 .current {
-	padding: var(--space-2) var(--space-3);
-	border: 1px solid var(--color-border);
-	border-radius: var(--radius-sm);
-	background: var(--color-surface-muted);
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-1) var(--space-2);
+	min-width: 0;
+	margin: 0;
 }
 
 .text {
-	margin: 0;
 	font-weight: var(--font-weight-bold);
 	overflow-wrap: anywhere;
 }
 
 .when {
-	display: flex;
-	flex-wrap: wrap;
+	display: inline-flex;
 	align-items: center;
-	gap: var(--space-1) var(--space-2);
-	margin: var(--space-1) 0 0;
 	color: var(--color-text-muted);
 	font-size: var(--font-size-sm);
+	white-space: nowrap;
+}
+
+.when::before {
+	content: "·" / "";
+	margin-right: var(--space-2);
+}
+
+/* The small × after the date, which clears only the date. */
+.clearDate {
+	width: 1.5rem;
+	height: 1.5rem;
+	margin-left: var(--space-1);
+	border: 1px solid transparent;
+	border-radius: var(--radius-md);
+	background: none;
+	color: var(--color-text-muted);
+	font-size: var(--font-size-md);
+	line-height: 1;
+	cursor: pointer;
+}
+
+.clearDate:hover {
+	background: var(--color-button-hover);
+	color: var(--color-text);
 }
 
 .dueToday,
@@ -65,41 +90,41 @@
 
 .buttons {
 	display: flex;
-	flex-wrap: wrap;
-	justify-content: flex-end;
 	gap: var(--space-2);
-	margin-top: var(--space-2);
+	margin-left: auto;
 }
 
-.fields {
-	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
-	gap: var(--space-3);
+/* The form fills the rest of the line after the title, with its error below. */
+.form {
+	flex: 1 1 auto;
+	min-width: 0;
 }
 
-.field {
-	composes: field from "./form.module.css";
+.what {
+	flex: 1 1 16rem;
+	min-width: 0;
 }
 
-.wide {
-	grid-column: 1 / -1;
+.date {
+	flex: 0 0 10rem;
 }
 
-.required {
-	font-size: var(--font-size-xs);
+/* The fields' labels are read out but not shown; the title and the placeholder say what they are. */
+.srOnly {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
 }
 
 .input {
 	composes: input from "./form.module.css";
 }
 
-.actions {
-	composes: actions from "./form.module.css";
-}
-
 .button {
 	composes: button from "./form.module.css";
-	white-space: nowrap;
 }
 
 .primary {

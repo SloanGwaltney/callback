@@ -23,7 +23,7 @@
 	height: 1.75rem;
 	transform: translateY(-50%);
 	border: 1px solid transparent;
-	border-radius: var(--radius-sm);
+	border-radius: var(--radius-md);
 	background: none;
 	color: var(--color-text-muted);
 	font-size: var(--font-size-lg);
@@ -32,7 +32,6 @@
 }
 
 .clear:hover {
-	border-color: var(--color-border);
-	background: var(--color-surface-muted);
+	background: var(--color-button-hover);
 	color: var(--color-text);
 }

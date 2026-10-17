@@ -21,7 +21,8 @@ export const emptyDetails: Details = {
 };
 
 // JobFields are the inputs for a job's details, shared by adding a job and editing one. The
-// backend checks what's entered; its messages are shown by the form these sit in.
+// backend checks what's entered; its messages are shown by the form these sit in. In a wide
+// dialog they sit four to a row.
 export function JobFields({ details, onChange }: Props) {
 	const id = useId();
 	const set = (field: keyof Details) => (value: string) => onChange({ ...details, [field]: value });
@@ -86,13 +87,13 @@ export function JobFields({ details, onChange }: Props) {
 					)}
 				</div>
 			</div>
-			<div className={styles.wide}>
+			<div className={styles.interest}>
 				<InterestRating
 					value={details.interest}
 					onChange={(interest) => onChange({ ...details, interest })}
 				/>
 			</div>
-			<div className={`${styles.field} ${styles.wide}`}>
+			<div className={`${styles.field} ${styles.full}`}>
 				<label htmlFor={`${id}-description`}>Job description</label>
 				<textarea
 					id={`${id}-description`}
@@ -101,7 +102,7 @@ export function JobFields({ details, onChange }: Props) {
 					onChange={(e) => onChange({ ...details, description: e.target.value })}
 				/>
 			</div>
-			<div className={`${styles.field} ${styles.wide}`}>
+			<div className={`${styles.field} ${styles.full}`}>
 				<label htmlFor={`${id}-notes`}>Notes</label>
 				<textarea
 					id={`${id}-notes`}

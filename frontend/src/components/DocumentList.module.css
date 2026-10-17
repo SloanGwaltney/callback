@@ -1,26 +1,35 @@
 .documents {
 	margin-top: var(--space-5);
 	padding-top: var(--space-4);
-	border-top: 1px solid var(--color-border);
+	border-top: 1px solid var(--color-divider);
+}
+
+/* The title, with attaching at the right, like the other sections' add buttons. */
+.header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-2);
+	margin-bottom: var(--space-3);
 }
 
 .title {
-	margin: 0 0 var(--space-3);
+	margin: 0;
 	font-size: var(--font-size-md);
 }
 
 .none {
-	margin: 0 0 var(--space-3);
+	margin: 0;
 	color: var(--color-text-muted);
 	font-size: var(--font-size-sm);
 }
 
+/* The documents are rows of one bordered list, one line each. */
 .list {
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-2);
-	margin: 0 0 var(--space-3);
+	margin: 0;
 	padding: 0;
+	border: 1px solid var(--color-divider);
+	border-radius: var(--radius-md);
 	list-style: none;
 }
 
@@ -31,10 +40,11 @@
 	grid-template-columns: minmax(0, 1fr) auto auto;
 	align-items: center;
 	gap: var(--space-2);
-	padding: var(--space-2) var(--space-3);
-	border: 1px solid var(--color-border);
-	border-radius: var(--radius-sm);
-	background: var(--color-surface-muted);
+	padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+}
+
+.document + .document {
+	border-top: 1px solid var(--color-divider);
 }
 
 .fileName {
@@ -65,14 +75,21 @@
 }
 
 .attach {
-	display: grid;
-	grid-template-columns: auto minmax(0, 1fr) auto;
+	display: flex;
 	align-items: center;
 	gap: var(--space-2);
+}
+
+.attach .select {
+	width: auto;
 }
 
 .kindLabel {
 	color: var(--color-text-muted);
 	font-size: var(--font-size-sm);
 	white-space: nowrap;
+}
+
+.danger {
+	composes: danger from "./form.module.css";
 }

@@ -1,7 +1,7 @@
 .interviews {
 	margin-top: var(--space-5);
 	padding-top: var(--space-4);
-	border-top: 1px solid var(--color-border);
+	border-top: 1px solid var(--color-divider);
 }
 
 .header {
@@ -23,36 +23,26 @@
 	font-size: var(--font-size-sm);
 }
 
+/* The interviews are rows of one bordered list, one line each. */
 .list {
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-2);
 	margin: 0;
 	padding: 0;
+	border: 1px solid var(--color-divider);
+	border-radius: var(--radius-md);
 	list-style: none;
 }
 
 .interview {
-	padding: var(--space-2) var(--space-3);
-	border: 1px solid var(--color-border);
-	border-radius: var(--radius-sm);
-	background: var(--color-surface-muted);
-}
-
-/* The summary wraps when it's long, so the buttons always stay together on the right. */
-.heading {
 	display: flex;
 	align-items: center;
 	gap: var(--space-2);
+	min-width: 0;
+	padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+	white-space: nowrap;
 }
 
-.summary {
-	display: flex;
-	flex: 1;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: var(--space-1) var(--space-2);
-	min-width: 0;
+.interview + .interview {
+	border-top: 1px solid var(--color-divider);
 }
 
 .kind {
@@ -61,7 +51,6 @@
 
 .when {
 	font-size: var(--font-size-sm);
-	white-space: nowrap;
 }
 
 /* A past interview recedes, so the ones still to come stand out. */
@@ -86,11 +75,21 @@
 	color: var(--color-text-muted);
 }
 
+/* The notes take what's left of the line, cut off with an ellipsis. */
 .notes {
-	margin: var(--space-2) 0 0;
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	color: var(--color-text-muted);
 	font-size: var(--font-size-sm);
-	white-space: pre-wrap;
-	overflow-wrap: anywhere;
+	text-overflow: ellipsis;
+}
+
+.buttons {
+	display: flex;
+	flex: none;
+	gap: var(--space-1);
+	margin-left: auto;
 }
 
 .fields {
@@ -130,4 +129,8 @@
 
 .primary {
 	composes: primary from "./form.module.css";
+}
+
+.danger {
+	composes: danger from "./form.module.css";
 }

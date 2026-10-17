@@ -57,18 +57,21 @@ export default function App() {
 	return (
 		<div className={styles.app}>
 			<header className={styles.header}>
+				{/* The search stands in for a visible title, so the heading is only read out. */}
 				<h1 className={styles.title}>Job search</h1>
 				<SearchBar value={search} onChange={changeSearch} />
-				<DueFilterSelect value={filter} onChange={changeFilter} />
-				<button type="button" className={styles.button} onClick={() => setPage("library")}>
-					Document library
-				</button>
-				<button type="button" className={styles.button} onClick={() => setPage("backups")}>
-					Backups
-				</button>
-				<button type="button" className={styles.primary} onClick={() => setAdding("")}>
-					Add job
-				</button>
+				<div className={styles.controls}>
+					<DueFilterSelect value={filter} onChange={changeFilter} />
+					<button type="button" className={styles.button} onClick={() => setPage("library")}>
+						Document library
+					</button>
+					<button type="button" className={styles.button} onClick={() => setPage("backups")}>
+						Backups
+					</button>
+					<button type="button" className={styles.primary} onClick={() => setAdding("")}>
+						Add job
+					</button>
+				</div>
 			</header>
 			<main className={styles.main}>
 				<ErrorMessage message={error} className={styles.error} />

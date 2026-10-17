@@ -14,9 +14,21 @@
 	background: var(--color-surface);
 }
 
+/* Hidden from view but read out, as the page's heading. */
 .title {
-	margin: 0;
-	font-size: var(--font-size-xl);
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* The filter and the buttons sit together at the right, the search on its own at the left. */
+.controls {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
 }
 
 .button {
