@@ -205,7 +205,9 @@ How we do that:
   grepping a spec file, scenario ID, or step text finds its implementation and tests. A step
   annotation goes on the test code that carries the step out, in the layer that does it, never
   on a comment with nothing under it. Start new features from their `@status:not-implemented` scenarios. Read
-  [docs/spec-annotations.md](docs/spec-annotations.md) before implementing or testing a scenario.
+  [tools/speclint/docs/spec-annotations.md](tools/speclint/docs/spec-annotations.md), the format,
+  and [docs/spec-annotations.md](docs/spec-annotations.md), how callback applies it, before
+  implementing or testing a scenario.
 - **Decision records.** Architectural decisions live in `docs/adr/` and are written with the `adr`
   skill. Each ADR's Related section lists the scenarios it affects as
   `[features/x.feature#<id>]`, the same form as code annotations, or `universal` for app-wide
@@ -213,5 +215,7 @@ How we do that:
   ADR, by running `/adr`. Don't create or edit files in `docs/adr/` on your own; if a decision
   looks worth recording, suggest that the user run `/adr`.
 - **Linted links.** A Stop hook (`.claude/hooks/check-stop.sh`) runs `scripts/check.sh
-  --no-tests`, which includes `cmd/speclint`, whenever you finish a turn. If it reports problems,
-  you'll be sent back to fix them.
+  --no-tests`, which includes speclint, whenever you finish a turn. If it reports problems,
+  you'll be sent back to fix them. speclint is its own repository, a git submodule at
+  `tools/speclint/` configured by `.speclint.json`. Don't edit files under `tools/speclint/`;
+  change speclint in its own repository and update the submodule.

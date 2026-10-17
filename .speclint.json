@@ -1,0 +1,11 @@
+{
+  "skipDirs": ["frontend/wailsjs", "tools/speclint"],
+  "layers": [
+    { "name": "SQL query", "match": "\\.sql$" },
+    { "name": "storage", "match": "^internal/db/" },
+    { "name": "service", "match": "^internal/" },
+    { "name": "Wails binding", "match": "^[^/]+\\.go$" },
+    { "name": "frontend hook", "match": "^frontend/src/hooks/" },
+    { "name": "frontend", "match": "^frontend/" }
+  ]
+}

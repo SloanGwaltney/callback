@@ -39,9 +39,18 @@ gofmt_check() {
   fi
 }
 
+speclint_check() {
+  # speclint is its own module, a git submodule at tools/speclint (see docs/spec-annotations.md).
+  if [ ! -f tools/speclint/go.mod ]; then
+    printf 'tools/speclint is empty; run: git submodule update --init\n'
+    return 1
+  fi
+  go run -C tools/speclint ./cmd/speclint -root ../..
+}
+
 check gofmt gofmt_check
 check "go vet" go vet ./...
-check speclint go run ./cmd/speclint
+check speclint speclint_check
 check tsc npx --prefix frontend --no-install tsc --noEmit -p frontend
 
 # Runs from frontend/ so Biome finds frontend/biome.json. Warnings fail the check too.

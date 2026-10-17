@@ -12,8 +12,9 @@ where it starts, and every step from the test that proves it, with a text search
 
 Arguments: $ARGUMENTS
 
-Before writing code, read `AGENTS.md` and `docs/spec-annotations.md`. They hold the tech stack,
-the dependency rules, and the exact annotation format. This skill doesn't repeat them.
+Before writing code, read `AGENTS.md`, `tools/speclint/docs/spec-annotations.md`, and
+`docs/spec-annotations.md`. They hold the tech stack, the dependency rules, the exact annotation
+format, and how callback applies it. This skill doesn't repeat them.
 
 ## 1. Resolve the scenarios
 
@@ -133,8 +134,8 @@ by tracing the requested scenarios. List what's missing across a whole feature f
 scenario to read its breakdown:
 
 ```sh
-go run ./cmd/spectrace -missing features/<file>.feature
-go run ./cmd/spectrace <scenario-id>
+go run -C tools/speclint ./cmd/spectrace -root ../.. -missing features/<file>.feature
+go run -C tools/speclint ./cmd/spectrace -root ../.. <scenario-id>
 ```
 
 It lists the scenario's entry points and each step's tests, layer by layer, with the same matching
@@ -154,5 +155,6 @@ Finish with:
   suggestion only if step 3 raised a real decision.
 - A request to the user to confirm the scenarios are built. Don't change a status to
   `@status:implemented` yourself. When the user confirms, flip the tags, then run
-  `go run ./cmd/speclint` again. With the scenarios now `implemented`, it checks that every
-  scenario is linked in code and tests, and every step in tests.
+  `go run -C tools/speclint ./cmd/speclint -root ../..` again. With the scenarios now
+  `implemented`, it checks that every scenario is linked in code and tests, and every step in
+  tests.
