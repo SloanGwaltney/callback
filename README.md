@@ -27,6 +27,12 @@ scenario traces from spec to SQL to UI. All of the app's code was built through 
 the tooling around it (speclint, spectrace, the hook, and the check script) was written outside
 it. See it with `git log --reverse`.
 
+> **Note:** speclint and spectrace now live in their own repository,
+> [SloanGwaltney/speclint](https://github.com/SloanGwaltney/speclint), included here as a git
+> submodule at `tools/speclint/`. They were first built in this repository as part of the effort
+> described here, and this section tells it as it happened then. Moving them out is the
+> "harness carries over" point below put into practice.
+
 **The eight hours weren't spent on this app. They were spent on a foundation, and the app was
 the first thing built on it.** None of it is thrown away when the next feature comes along:
 
@@ -99,7 +105,7 @@ starting cold finds its way around without reading everything. `spectrace` lays 
 layer:
 
 ```
-$ go run ./cmd/spectrace card-shows-document-count
+$ go run -C tools/speclint ./cmd/spectrace -root ../.. card-shows-document-count
 
 Scenario: The card shows that documents are attached
   features/job-documents.feature:29  @id:card-shows-document-count  @status:implemented
@@ -123,7 +129,8 @@ Fully linked: @scenario in code and tests, and all 3 steps in tests.
 
 ### The links are enforced, not hoped for
 
-- **`speclint`** ([internal/speclint/](internal/speclint/)) fails on any annotation that doesn't
+- **`speclint`** ([SloanGwaltney/speclint](https://github.com/SloanGwaltney/speclint), a
+  submodule at `tools/speclint/`) fails on any annotation that doesn't
   match the spec word for word, uses the wrong keyword, or points at a missing or withdrawn
   scenario, and on any implemented scenario with no `@scenario` link in code and tests, or step
   with no link in tests.
@@ -248,6 +255,9 @@ Each choice, and why, is in [AGENTS.md](AGENTS.md) and [docs/adr/](docs/adr/).
 
 ## Development
 
+speclint is a git submodule, so clone with `git clone --recurse-submodules`, or run
+`git submodule update --init` in a clone you already have.
+
 Run the app with hot reload:
 
 ```sh
@@ -307,7 +317,7 @@ then publish it
 | `internal/docfiles/` | The app's copies of attached documents |
 | `internal/desktop/` | Opening documents and links with the OS |
 | `internal/appdata/` | Finding the app data directory |
-| `internal/speclint/` | The spec link linter and tracer, run by `cmd/speclint` and `cmd/spectrace` |
+| `tools/speclint/` | The spec link linter and tracer, a git submodule configured by `.speclint.json` |
 | `frontend/src/hooks/` | React hooks wrapping the Wails bindings, the only code that calls them |
 | `frontend/src/components/` | React components, each with its own CSS Module |
 | `frontend/src/board/` | Board search, pagination, and drag and drop logic |

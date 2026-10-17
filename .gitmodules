@@ -1,0 +1,3 @@
+[submodule "tools/speclint"]
+	path = tools/speclint
+	url = https://github.com/SloanGwaltney/speclint
