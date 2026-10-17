@@ -33,6 +33,22 @@ differently:
   have to try to open the app, then go to **System Settings → Privacy & Security → Open
   Anyway** and enter their password.
 
+Note added 2026-10-15: on Windows, every way to sign a binary we distribute ourselves still
+depends on SmartScreen reputation, so signing wouldn't remove the warning for an app this size:
+
+- **EV certificates no longer skip SmartScreen.** Since 2024, a new EV-signed build starts with
+  low reputation, the same as an OV-signed one.
+- **Free and cheap signing builds reputation the same way.** SignPath Foundation signs
+  open-source projects for free, under its own name as the publisher. Azure Trusted Signing and
+  Certum's open-source certificate are paid. With any of them, a build stops warning only after
+  enough users have run files from that certificate without problems.
+- **This app isn't expected to reach the scale where it builds that reputation.** Signing would
+  add cost or setup to every release and users would most likely still see the warning.
+- **The only foreseeable way around reputation is the Microsoft Store.** Individual developer
+  accounts are free, and Microsoft re-signs MSIX packages submitted to the Store with its own
+  certificate. That means users install from the Store instead of GitHub, and few users get
+  desktop apps that way, so it isn't planned.
+
 ## Decisions
 
 1. Version releases with Semantic Versioning, as `vX.Y.Z`.
@@ -100,6 +116,13 @@ differently:
 - **macOS, signed with an Apple Developer ID and notarized.** The right experience for users, but
   rejected for now because of the yearly fee and the extra signing and notarization steps and
   secrets in the release workflow. To be revisited if macOS users need the app.
+- **Windows, signed (EV, OV, SignPath Foundation, or Azure Trusted Signing).** Rejected because
+  each still has to build SmartScreen reputation, which this app isn't expected to reach (see
+  Context).
+- **Windows, through the Microsoft Store as MSIX.** Microsoft signs the package, so there's no
+  certificate of our own and no reputation to build. Rejected because users would have to install
+  from the Store, which few use for desktop apps, and every release would need MSIX packaging and
+  Store certification.
 - **Linux packages (AppImage, `.deb`, Flatpak).** Each needs extra work and tooling. A `.tar.gz`
   covers Linux until there's a need for more.
 
