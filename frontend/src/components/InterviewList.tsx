@@ -25,8 +25,8 @@ export function when(interview: { date: string; time: string }): string {
 		: `${interview.date} at ${formatTime(interview.time)}`;
 }
 
-// InterviewList shows a job's interviews, marking the ones that have passed, and adds, edits, and
-// removes them, asking before a removal.
+// InterviewList shows a job's interviews one to a line, marking the ones that have passed, and adds,
+// edits, and removes them, asking before a removal.
 // @scenario [#add-interview] [#add-interview-minimum] [#interview-kinds] [#interview-missing-required] [#interview-past-date] [#interview-any-status] [#view-interviews] [#interviews-same-day-by-time] [#past-interviews-marked] [#no-interviews] [#edit-interview] [#remove-interview] [#cancel-remove-interview]
 export function InterviewList({ jobId, interviews, onChanged }: Props) {
 	const { add, update, remove } = useInterviews();
@@ -57,14 +57,18 @@ export function InterviewList({ jobId, interviews, onChanged }: Props) {
 								className={`${styles.interview} ${interview.past ? styles.past : ""}`}
 								aria-label={name}
 							>
-								<div className={styles.heading}>
-									<span className={styles.summary}>
-										<span className={styles.kind}>{interviewKindLabel(interview.kind)}</span>
-										<span className={styles.when}>{when(interview)}</span>
-										<span className={interview.past ? styles.pastBadge : styles.upcomingBadge}>
-											{interview.past ? "Past" : "Upcoming"}
-										</span>
+								<span className={styles.kind}>{interviewKindLabel(interview.kind)}</span>
+								<span className={styles.when}>{when(interview)}</span>
+								<span className={interview.past ? styles.pastBadge : styles.upcomingBadge}>
+									{interview.past ? "Past" : "Upcoming"}
+								</span>
+								{/* On one line, cut off when it's long; all of it shows on hover and in Edit. */}
+								{interview.notes !== "" && (
+									<span className={styles.notes} title={interview.notes}>
+										{interview.notes}
 									</span>
+								)}
+								<span className={styles.buttons}>
 									<button
 										type="button"
 										className={styles.button}
@@ -75,14 +79,13 @@ export function InterviewList({ jobId, interviews, onChanged }: Props) {
 									</button>
 									<button
 										type="button"
-										className={styles.button}
+										className={styles.danger}
 										aria-label={`Remove ${name}`}
 										onClick={() => setRemoving(interview)}
 									>
 										Remove
 									</button>
-								</div>
-								{interview.notes !== "" && <p className={styles.notes}>{interview.notes}</p>}
+								</span>
 							</li>
 						);
 					})}

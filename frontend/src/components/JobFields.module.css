@@ -8,8 +8,24 @@
 	composes: field from "./form.module.css";
 }
 
-.wide {
+.wide,
+.interest,
+.full {
 	grid-column: 1 / -1;
+}
+
+/* The interest rating is a different kind of input from the fields around it, so it gets a row of
+   its own, where it centers itself (InterestRating.module.css). */
+/* In a wide dialog: company, role, location, and salary in one row; the link and date applied in
+   the next. The rating, description, and notes always get a row each. */
+@container dialog (min-width: 52rem) {
+	.fields {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+
+	.wide {
+		grid-column: span 3;
+	}
 }
 
 .required {

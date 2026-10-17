@@ -4,14 +4,17 @@
 }
 
 .saved {
-	margin: var(--space-3) 0 0;
+	margin: 0;
 	color: var(--color-status-offer);
 	font-size: var(--font-size-sm);
 }
 
+/* The footer's buttons: Delete job and Open link at the left, Save at the right. */
 .actions {
-	composes: actions from "./form.module.css";
+	display: flex;
 	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-2);
 }
 
 .spacer {

@@ -144,3 +144,7 @@
 	composes: error from "./form.module.css";
 	margin: 0 0 var(--space-4);
 }
+
+.danger {
+	composes: danger from "./form.module.css";
+}

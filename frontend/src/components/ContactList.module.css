@@ -1,7 +1,7 @@
 .contacts {
 	margin-top: var(--space-5);
 	padding-top: var(--space-4);
-	border-top: 1px solid var(--color-border);
+	border-top: 1px solid var(--color-divider);
 }
 
 .header {
@@ -23,68 +23,82 @@
 	font-size: var(--font-size-sm);
 }
 
+/* The contacts are rows of one bordered list, one line each. */
 .list {
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-2);
 	margin: 0;
 	padding: 0;
+	border: 1px solid var(--color-divider);
+	border-radius: var(--radius-md);
 	list-style: none;
 }
 
 .contact {
-	padding: var(--space-2) var(--space-3);
-	border: 1px solid var(--color-border);
-	border-radius: var(--radius-sm);
-	background: var(--color-surface-muted);
-}
-
-/* The name takes the leftover width and truncates, so the buttons stay on the row. */
-.heading {
 	display: flex;
 	align-items: center;
 	gap: var(--space-2);
 	min-width: 0;
+	padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+	white-space: nowrap;
+}
+
+.contact + .contact {
+	border-top: 1px solid var(--color-divider);
 }
 
 .name {
+	flex: 0 0 auto;
+	max-width: 16rem;
 	min-width: 0;
-	font-weight: var(--font-weight-bold);
-	white-space: nowrap;
 	overflow: hidden;
+	font-weight: var(--font-weight-bold);
 	text-overflow: ellipsis;
 }
 
 .relationship {
-	flex-shrink: 0;
+	flex: none;
 	color: var(--color-text-muted);
 	font-size: var(--font-size-sm);
 }
 
-.spacer {
-	flex: 1;
-}
-
+/* The details follow on the same line, each after a dot. It's positioned so its hidden labels
+   stay inside it. */
 .info {
-	display: grid;
-	grid-template-columns: auto minmax(0, 1fr);
-	gap: var(--space-1) var(--space-3);
-	margin: var(--space-2) 0 0;
+	position: relative;
+	display: flex;
+	flex: 1 1 0;
+	align-items: center;
+	min-width: 0;
+	margin: 0;
+	overflow: hidden;
 	font-size: var(--font-size-sm);
 }
 
 .info dt {
-	color: var(--color-text-muted);
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
 }
 
 .info dd {
-	min-width: 0;
+	flex: none;
 	margin: 0;
-	overflow-wrap: anywhere;
 }
 
-.notes {
-	white-space: pre-wrap;
+.info dd::before {
+	content: "·" / "";
+	margin: 0 var(--space-2);
+	color: var(--color-text-muted);
+}
+
+/* The notes take what's left of the line, cut off with an ellipsis. */
+.info .notes {
+	flex: 1 1 0;
+	min-width: 0;
+	overflow: hidden;
+	color: var(--color-text-muted);
+	text-overflow: ellipsis;
 }
 
 .link {
@@ -94,13 +108,22 @@
 	background: none;
 	color: var(--color-accent);
 	font-size: inherit;
-	text-align: left;
-	overflow-wrap: anywhere;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	vertical-align: bottom;
 	cursor: pointer;
 }
 
 .link:hover {
 	text-decoration: underline;
+}
+
+.buttons {
+	display: flex;
+	flex: none;
+	gap: var(--space-1);
+	margin-left: auto;
 }
 
 .fields {
@@ -140,4 +163,8 @@
 
 .primary {
 	composes: primary from "./form.module.css";
+}
+
+.danger {
+	composes: danger from "./form.module.css";
 }

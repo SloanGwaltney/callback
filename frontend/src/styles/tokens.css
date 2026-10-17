@@ -28,27 +28,46 @@
 	--color-surface: #ffffff;
 	--color-surface-muted: #e1e4ea;
 	--color-border: #b4bcc8;
-	/* Outlines cards and dialogs, so they stand out by their edges rather than their fill. */
+	/* Lines meant to be noticed: the dashed box shown when the backups or document library are empty,
+	   and the bar beside a card's next action. Cards and dialogs use the faint --color-divider. */
 	--color-border-strong: #8e97a6;
-	/* Form controls. Fields and buttons share a border that meets WCAG's 3:1 for control outlines. */
+	/* Outlines small controls, like the board's column counts. Meets WCAG's 3:1 for control outlines. */
 	--color-control-border: #858fa0;
 	--color-field: #ffffff;
-	--color-button: #e9ecf1;
-	--color-button-hover: #d9dee6;
+	/* Fields' border: shadcn/ui's --input, a faint hairline. It's below WCAG's 3:1 for a control's
+	   outline, a look chosen on purpose; --color-control-border meets it. */
+	--color-field-border: #ebebeb;
+	/* Lines that divide a dialog's sections and its lists' rows: shadcn/ui's --border, as faint
+	   as the fields' border. */
+	--color-divider: #ebebeb;
+	/* A focused field's border and ring: shadcn/ui's --ring, a neutral gray, quieter than
+	   --color-focus, which buttons and everything else still use. */
+	--color-field-ring: #a1a1a1;
+	/* Buttons have no border, just a soft fill. It's see-through, so a button shows on a panel
+	   or a list item as well as on a dialog. */
+	--color-button: rgb(15 23 42 / 7%);
+	--color-button-hover: rgb(15 23 42 / 13%);
 	--color-text: #0f1520;
 	--color-text-muted: #434c5b;
-	/* --color-accent and --color-danger are for text and links; the -fill colors are for solid
-	   buttons, with --color-on-fill text on them. */
+	/* --color-accent and --color-danger are for text and links. --color-accent-fill is for solid
+	   buttons, with --color-on-fill text on them. Buttons that delete something are
+	   --color-danger text on a --color-danger-soft tint. */
 	--color-accent: #1f4fd8;
 	--color-accent-fill: #1f4fd8;
 	--color-accent-fill-hover: #183fae;
 	--color-danger: #b42330;
-	--color-danger-fill: #b42330;
-	--color-danger-fill-hover: #931c27;
+	--color-danger-soft: rgb(180 35 48 / 10%);
+	--color-danger-soft-hover: rgb(180 35 48 / 17%);
 	--color-on-fill: #ffffff;
 	--color-danger-bg: #fdecee;
 	--color-focus: #1f4fd8;
 	--color-backdrop: rgb(15 20 30 / 45%);
+	/* Scrollbar thumbs, which sit on no track; the hover color shows the thumb can be dragged. */
+	--color-scrollbar: #b4bcc8;
+	--color-scrollbar-hover: #858fa0;
+	/* A select's chevron: Lucide's chevron-down, in --color-text-muted at half opacity. A
+	   background image can't take a CSS variable's color, so each scheme writes it out. */
+	--icon-chevron-down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23434c5b' stroke-opacity='0.5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 
 	--color-status-saved: #5f6b7e;
 	--color-status-applied: #1f4fd8;
@@ -70,8 +89,8 @@
 
 @media (prefers-color-scheme: dark) {
 	:root {
-		/* Near-black, neutral backgrounds. Cards and dialogs stand out by bright borders rather
-		   than lighter fills; columns get a dim border so the board isn't a grid of bright boxes. */
+		/* Near-black, neutral backgrounds. Cards and dialogs are framed by a faint hairline and
+		   a slightly lighter fill; columns get a dim border so the board isn't a grid of boxes. */
 		--color-bg: #09090b;
 		--color-surface: #141418;
 		--color-surface-muted: #0e0e11;
@@ -81,8 +100,11 @@
 		   they look raised from it. */
 		--color-control-border: #8e919b;
 		--color-field: #09090b;
-		--color-button: #232329;
-		--color-button-hover: #313139;
+		--color-field-border: rgb(255 255 255 / 15%);
+		--color-divider: rgb(255 255 255 / 10%);
+		--color-field-ring: #737373;
+		--color-button: rgb(255 255 255 / 9%);
+		--color-button-hover: rgb(255 255 255 / 15%);
 		--color-text: #f5f5f7;
 		--color-text-muted: #b3b5bd;
 		/* Text colors are bright to read on near-black; fills are saturated, with white text. */
@@ -90,11 +112,14 @@
 		--color-accent-fill: #2563eb;
 		--color-accent-fill-hover: #1d4ed8;
 		--color-danger: #ff7c86;
-		--color-danger-fill: #dc2626;
-		--color-danger-fill-hover: #b91c1c;
+		--color-danger-soft: rgb(239 68 68 / 20%);
+		--color-danger-soft-hover: rgb(239 68 68 / 30%);
 		--color-danger-bg: #21090d;
 		--color-focus: #a3b9ff;
 		--color-backdrop: rgb(0 0 0 / 70%);
+		--color-scrollbar: #3f3f48;
+		--color-scrollbar-hover: #6b6b76;
+		--icon-chevron-down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b3b5bd' stroke-opacity='0.5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 
 		--color-status-saved: #9aa6b8;
 		--color-status-applied: #82a0ff;

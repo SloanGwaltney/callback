@@ -25,7 +25,7 @@ const emptyContact: ContactDetails = {
 	notes: "",
 };
 
-// ContactList shows the people on a job, and adds, edits, and removes them, asking before a
+// ContactList shows the people on a job, one to a line, and adds, edits, and removes them, asking before a
 // removal. Each job keeps its own contacts, so a change here never reaches another job's.
 // @scenario [#add-contact] [#add-contact-minimum] [#contact-relationships] [#contact-missing-required] [#contact-invalid-email] [#contact-invalid-profile-link] [#contact-phone-free-text] [#contact-any-status] [#view-contacts] [#no-contacts] [#open-contact-profile-link] [#edit-contact] [#remove-contact] [#cancel-remove-contact] [#same-person-many-jobs] [#contacts-edited-separately]
 export function ContactList({ jobId, contacts, onChanged }: Props) {
@@ -52,12 +52,13 @@ export function ContactList({ jobId, contacts, onChanged }: Props) {
 				<ul className={styles.list}>
 					{contacts.map((contact) => (
 						<li key={contact.id} className={styles.contact} aria-label={contact.name}>
-							<div className={styles.heading}>
-								<span className={styles.name}>{contact.name}</span>
-								<span className={styles.relationship}>
-									{relationshipLabel(contact.relationship)}
-								</span>
-								<span className={styles.spacer} />
+							<span className={styles.name}>{contact.name}</span>
+							<span className={styles.relationship}>{relationshipLabel(contact.relationship)}</span>
+							<ContactInfo
+								contact={contact}
+								onOpenProfile={() => run(() => openLink(contact.id))}
+							/>
+							<span className={styles.buttons}>
 								<button
 									type="button"
 									className={styles.button}
@@ -68,17 +69,13 @@ export function ContactList({ jobId, contacts, onChanged }: Props) {
 								</button>
 								<button
 									type="button"
-									className={styles.button}
+									className={styles.danger}
 									aria-label={`Remove ${contact.name}`}
 									onClick={() => setRemoving(contact)}
 								>
 									Remove
 								</button>
-							</div>
-							<ContactInfo
-								contact={contact}
-								onOpenProfile={() => run(() => openLink(contact.id))}
-							/>
+							</span>
 						</li>
 					))}
 				</ul>
@@ -130,7 +127,9 @@ type InfoProps = {
 	onOpenProfile: () => void;
 };
 
-// ContactInfo lists the details a contact has, leaving out the ones left empty.
+// ContactInfo lists the details a contact has on the contact's line, leaving out the ones left
+// empty. Their labels are read out but not shown, and the line cuts off what doesn't fit: the notes
+// first, which show in full on hover and in Edit.
 function ContactInfo({ contact, onOpenProfile }: InfoProps) {
 	if (
 		contact.email === "" &&
@@ -173,7 +172,9 @@ function ContactInfo({ contact, onOpenProfile }: InfoProps) {
 			{contact.notes !== "" && (
 				<>
 					<dt>Notes</dt>
-					<dd className={styles.notes}>{contact.notes}</dd>
+					<dd className={styles.notes} title={contact.notes}>
+						{contact.notes}
+					</dd>
 				</>
 			)}
 		</dl>

@@ -92,7 +92,7 @@ export function DocumentLibrary({ onBack }: Props) {
 								</button>
 								<button
 									type="button"
-									className={styles.button}
+									className={styles.danger}
 									aria-label={`Remove ${doc.fileName}`}
 									onClick={() => setRemoving(doc)}
 								>

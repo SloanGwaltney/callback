@@ -1,5 +1,5 @@
 // Example steps for cdp.mjs. Adds a job through the add-job dialog if the board is empty, then
-// screenshots the board and the job's details in dark and light mode, with a secondary button
+// screenshots the board and the job's details in dark and light mode, with the dialog's close button
 // hovered.
 // Run: node scripts/drive/cdp.mjs scripts/drive/example.mjs
 
@@ -31,8 +31,8 @@ export default async (page) => {
 		await page.goto();
 		await page.shot(`board-${mode}`);
 		await page.click("text=Software Engineer");
-		await page.hover("text=Close");
+		await page.hover("dialog[open] button[aria-label=Close]");
 		await page.shot(`details-${mode}`);
-		await page.click("text=Close");
+		await page.click("dialog[open] button[aria-label=Close]");
 	}
 };

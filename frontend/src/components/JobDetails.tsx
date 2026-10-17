@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useId, useState } from "react";
 import type { Details, Job } from "../hooks/types";
 import { useAction } from "../hooks/useAction";
 import { useJob } from "../hooks/useJob";
@@ -31,6 +31,10 @@ export function JobDetails({ jobId, onClose, onChanged, onDelete }: Props) {
 	const { job, error, reload, update, setClosingReason, setNextAction, clearNextAction, openLink } =
 		useJob(jobId);
 	const [changingReason, setChangingReason] = useState(false);
+	// The details form is submitted from Save in the dialog's footer, which also says how saving went.
+	const formId = useId();
+	const saving = useAction();
+	const [saved, setSaved] = useState(false);
 	// recordChanged reloads the job after one of its records changes, and lets the board know.
 	const recordChanged = () => {
 		void reload();
@@ -39,7 +43,23 @@ export function JobDetails({ jobId, onClose, onChanged, onDelete }: Props) {
 
 	const title = job ? `${job.role} at ${job.company}` : "Job";
 	return (
-		<Dialog title={title} onClose={onClose}>
+		<Dialog
+			title={title}
+			wide
+			onClose={onClose}
+			footer={
+				job && (
+					<DetailsActions
+						job={job}
+						formId={formId}
+						saved={saved}
+						saveError={saving.error}
+						onOpenLink={openLink}
+						onDelete={() => onDelete(job.id)}
+					/>
+				)
+			}
+		>
 			<ErrorMessage message={error} />
 			{job && (
 				<>
@@ -61,13 +81,18 @@ export function JobDetails({ jobId, onClose, onChanged, onDelete }: Props) {
 					</p>
 					<DetailsForm
 						job={job}
+						id={formId}
 						onSave={async (details) => {
-							await update(details);
-							onChanged();
+							setSaved(false);
+							// When saving fails, the form keeps what was entered, and nothing is saved.
+							setSaved(
+								await saving.run(async () => {
+									await update(details);
+									onChanged();
+								}),
+							);
 						}}
-						onOpenLink={openLink}
-						onDelete={() => onDelete(job.id)}
-						onClose={onClose}
+						onEdit={() => setSaved(false)}
 					/>
 					<NextActionPanel
 						nextAction={job.nextAction ?? null}
@@ -106,15 +131,16 @@ export function JobDetails({ jobId, onClose, onChanged, onDelete }: Props) {
 
 type FormProps = {
 	job: Job;
+	// id lets Save in the dialog's footer submit the form from outside it.
+	id: string;
 	onSave: (details: Details) => Promise<void>;
-	onOpenLink: () => Promise<void>;
-	onDelete: () => Promise<void>;
-	onClose: () => void;
+	// onEdit runs on every change, so "Saved." goes once there's something new to save.
+	onEdit: () => void;
 };
 
 // DetailsForm edits a job's details. It's keyed to the loaded job, so it starts from what's saved.
-// @scenario [#edit-job-details] [#salary-free-text] [#add-notes] [#edit-notes] [#open-job-link] [#invalid-job-link] [#set-date-applied] [#date-applied-any-status] [#clear-date-applied] [#future-date-applied] [#delete-job] [#cancel-delete-job]
-function DetailsForm({ job, onSave, onOpenLink, onDelete, onClose }: FormProps) {
+// @scenario [#edit-job-details] [#salary-free-text] [#add-notes] [#edit-notes] [#invalid-job-link] [#set-date-applied] [#date-applied-any-status] [#clear-date-applied] [#future-date-applied]
+function DetailsForm({ job, id, onSave, onEdit }: FormProps) {
 	const [details, setDetails] = useState<Details>({
 		company: job.company,
 		role: job.role,
@@ -127,32 +153,45 @@ function DetailsForm({ job, onSave, onOpenLink, onDelete, onClose }: FormProps) 
 		// The backend sends null for no rating; the form uses undefined.
 		interest: job.interest ?? undefined,
 	});
-	const { error, run } = useAction();
-	const [saved, setSaved] = useState(false);
-	const [confirmingDelete, setConfirmingDelete] = useState(false);
 
-	const submit = async (e: FormEvent) => {
+	const submit = (e: FormEvent) => {
 		e.preventDefault();
-		setSaved(false);
-		// When saving fails, the form keeps what was entered, and nothing is saved.
-		setSaved(await run(() => onSave(details)));
+		void onSave(details);
 	};
 
 	return (
-		<form onSubmit={submit} noValidate>
+		<form id={id} onSubmit={submit} noValidate>
 			<JobFields
 				details={details}
 				onChange={(d) => {
 					setDetails(d);
-					setSaved(false);
+					onEdit();
 				}}
 			/>
-			<ErrorMessage message={error} />
-			{saved && (
-				<p role="status" className={styles.saved}>
-					Saved.
-				</p>
-			)}
+		</form>
+	);
+}
+
+type ActionsProps = {
+	job: Job;
+	// formId is the details form's, which Save submits.
+	formId: string;
+	saved: boolean;
+	saveError: string;
+	onOpenLink: () => Promise<void>;
+	onDelete: () => Promise<void>;
+};
+
+// DetailsActions are the job's buttons in the dialog's footer, which stays in view as the dialog
+// scrolls: deleting the job, opening its link, and saving its details.
+// @scenario [#open-job-link] [#delete-job] [#cancel-delete-job]
+function DetailsActions({ job, formId, saved, saveError, onOpenLink, onDelete }: ActionsProps) {
+	const { error, run } = useAction();
+	const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+	return (
+		<>
+			<ErrorMessage message={saveError || error} />
 			<div className={styles.actions}>
 				<button type="button" className={styles.danger} onClick={() => setConfirmingDelete(true)}>
 					Delete job
@@ -166,10 +205,12 @@ function DetailsForm({ job, onSave, onOpenLink, onDelete, onClose }: FormProps) 
 					Open link
 				</button>
 				<span className={styles.spacer} />
-				<button type="button" className={styles.button} onClick={onClose}>
-					Close
-				</button>
-				<button type="submit" className={styles.primary}>
+				{saved && (
+					<p role="status" className={styles.saved}>
+						Saved.
+					</p>
+				)}
+				<button type="submit" form={formId} className={styles.primary}>
 					Save
 				</button>
 			</div>
@@ -182,6 +223,6 @@ function DetailsForm({ job, onSave, onOpenLink, onDelete, onClose }: FormProps) 
 					onCancel={() => setConfirmingDelete(false)}
 				/>
 			)}
-		</form>
+		</>
 	);
 }
