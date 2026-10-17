@@ -3,6 +3,8 @@ package main
 import (
 	"testing"
 	"time"
+
+	"github.com/wailsapp/wails/v2/pkg/options"
 )
 
 func TestStartHidden(t *testing.T) {
@@ -24,6 +26,30 @@ func TestStartHidden(t *testing.T) {
 			}
 			if got := startHidden(getenv); got != tt.want {
 				t.Errorf("startHidden() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestWindowStartState(t *testing.T) {
+	tests := []struct {
+		name   string
+		hidden string
+		want   options.WindowStartState
+	}{
+		{"opens maximized", "", options.Maximised},
+		{"stays normal when hidden", "1", options.Normal},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			getenv := func(key string) string {
+				if key == StartHiddenEnvVar {
+					return tt.hidden
+				}
+				return ""
+			}
+			if got := windowStartState(getenv); got != tt.want {
+				t.Errorf("windowStartState() = %v, want %v", got, tt.want)
 			}
 		})
 	}

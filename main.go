@@ -72,6 +72,7 @@ func main() {
 		},
 		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
 		StartHidden:      startHidden(os.Getenv),
+		WindowStartState: windowStartState(os.Getenv),
 		OnStartup:        app.startup,
 		Bind: []interface{}{
 			app,
@@ -86,6 +87,16 @@ func main() {
 // startHidden reports whether StartHiddenEnvVar asks for the window to stay hidden.
 func startHidden(getenv func(string) string) bool {
 	return getenv(StartHiddenEnvVar) != ""
+}
+
+// windowStartState opens the window maximized, so the board has room on any screen. A hidden
+// window starts normal instead: showing a window maximized can also show it, and an agent's
+// development run must never put its window on the screen.
+func windowStartState(getenv func(string) string) options.WindowStartState {
+	if startHidden(getenv) {
+		return options.Normal
+	}
+	return options.Maximised
 }
 
 // clock returns what the app takes as the current time: now, or with TodayEnvVar set, that date at

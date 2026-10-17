@@ -91,8 +91,9 @@ jobs:
 
       # The agent command line, built from the same commit into the same folder as the app, so the
       # two always share a schema (docs/adr/0023-let-users-drive-agent-tasks-from-their-own-agent-through-a-cli.md).
-      # It's a console program, with no frontend or Wails build tags.
-      - run: go build -trimpath -o "build/bin/callback-cli${{ matrix.target == 'windows' && '.exe' || '' }}" ./cmd/callback-cli
+      # It's a console program, with no frontend or Wails build tags. -s -w strips the symbol table
+      # and debug info, as wails build does for the app; panics still give file and line.
+      - run: go build -trimpath -ldflags "-s -w" -o "build/bin/callback-cli${{ matrix.target == 'windows' && '.exe' || '' }}" ./cmd/callback-cli
 
       - name: Name the binaries for the release
         run: |
